@@ -237,10 +237,14 @@ class Lexer
     int useStringtable;         // use for Identifiers
 
     ErrInfo errinfo;            // syntax error information
+    static bool inited;
 
     this(char[] sourcename, tchar[] base, int useStringtable)
     {
         //writefln("Lexer::Lexer(base = '%s')\n",base);
+        if (!inited)
+            init();
+
         std.c.string.memset(&token, 0, token.sizeof);
         this.useStringtable = useStringtable;
         this.sourcename = sourcename;
@@ -1617,7 +1621,7 @@ static Keyword keywords[] =
     {   "transient",    TOKtransient    },
 ];
 
-static this()
+void init()
 {
     uint u;
     TOK v;
@@ -1681,5 +1685,7 @@ static this()
     Token.tochars[TOKplusplus]          = "++";
     Token.tochars[TOKminusminus]        = "--";
     Token.tochars[TOKcall]              = "CALL";
+
+    Lexer.inited = true;
 }
 

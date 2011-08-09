@@ -113,7 +113,7 @@ struct CallContext
 
 struct Global
 {
-    tchar[] copyright = "Copyright (c) 1999-2007 by Digital Mars";
+    tchar[] copyright = "Copyright (c) 1999-2009 by Digital Mars";
     tchar[] written = "written by Walter Bright";
 }
 
@@ -122,8 +122,8 @@ Global global;
 tchar[] banner()
 {
     return std.string.format(
-        "Digital Mars DMDScript 1.14\n",
-        "www.digitalmars.com\n",
+        "Digital Mars DMDScript 1.15\n",
+        "http://www.digitalmars.com\n",
         "Compiled by Digital Mars DMD D compiler\n",
         global.copyright, "\n",
         global.written);

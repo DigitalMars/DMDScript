@@ -1,10 +1,10 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2009 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
- * www.digitalmars.com
+ * http://www.digitalmars.com
  * Use at your own risk. There is no warranty, express or implied.
  * License for redistribution is by the GNU General Public License in gpl.txt.
  *

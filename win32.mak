@@ -9,7 +9,6 @@
 
 
 OUTDIR=.
-#DMD=\cbx\mars\dmd
 DMD=dmd
 
 # Debug build
@@ -61,7 +60,9 @@ ds.exe : $(SRCBLDS) testscript.obj dmdscript.lib win32.mak
 	$(DMD) ds.exe testscript.obj -L$(LFLAGS) dmdscript.lib
 
 dmdscript.lib : $(OBJS) win32.mak
-	lib -c dmdscript.lib $(OBJS)
+#	$(DMD) -lib dmdscript.lib $(OBJS)
+	-del dmdscript.lib
+	lib -c -p32 dmdscript.lib $(OBJS)
 
 ##################### SPECIAL BUILDS #####################
 
@@ -104,11 +105,8 @@ clean:
 	del textgen.obj textgen.exe
 	del errmsgs.d
 
-makefile : win32.mak
-	copy win32.mak makefile
-
-zip : $(SRC) win32.mak linux.mak gpl.txt
+zip : $(SRC) win32.mak linux.mak osx.mak gpl.txt
 	del dmdscript.zip
-	zip32 dmdscript $(SRC) win32.mak linux.mak gpl.txt
+	zip32 dmdscript $(SRC) win32.mak linux.mak osx.mak gpl.txt
 
 ###################################

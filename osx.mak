@@ -1,11 +1,11 @@
-# Dscript makefile
+# DMDscript makefile for OSX
 # Copyright (C) 2005-2009 by Digital Mars
 # All Rights Reserved
 # http://www.digitalmars.com
 # Written by Walter Bright
 
 # Build with g++:
-#	make -f linux.mak
+#	make -f osx.mak
 
 
 OUTDIR=.
@@ -13,8 +13,14 @@ OUTDIR=.
 #DFLAGS=-I.. -g
 DFLAGS=-I.. -O -release
 
-CC=gcc -m32
-#DMD=../mars1/dmd
+# See: http://developer.apple.com/documentation/developertools/conceptual/cross_development/Using/chapter_3_section_2.html#//apple_ref/doc/uid/20002000-1114311-BABGCAAB
+ENVP= MACOSX_DEPLOYMENT_TARGET=10.3
+SDK=/Developer/SDKs/MacOSX10.4u.sdk
+#SDK=/Developer/SDKs/MacOSX10.6.sdk
+LDFLAGS= -isysroot ${SDK} -Wl,-syslibroot,${SDK}
+
+CC=gcc -m32 -isysroot $(SDK)
+
 DMD=dmd
 
 # Makerules:
@@ -58,7 +64,7 @@ testscript.o : testscript.d
 	$(DMD) -c $(DFLAGS) testscript.d
 
 ds : testscript.o libdmdscript.a linux.mak
-	$(CC) -o $@ testscript.o libdmdscript.a -lphobos -lpthread -lm -g
+	${ENVP} $(CC) -o $@ testscript.o libdmdscript.a -lphobos -lpthread -lm -g
 
 libdmdscript.a : $(OBJS) linux.mak
 	ar -r $@ $(OBJS)

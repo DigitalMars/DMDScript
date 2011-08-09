@@ -160,17 +160,6 @@ template proto(alias TEXT_D1)
             constructor.Put(TEXT_prototype, prototype, DontEnum | DontDelete | ReadOnly);
         }
     }
-
-
-    /**********************************
-     * Register initializer for this class.
-     */
-
-    static this()
-    {
-        ThreadContext.initTable ~= &D0.init;
-    }
-
 }
 
 alias proto!(TEXT_SyntaxError) syntaxerror;
@@ -180,3 +169,16 @@ alias proto!(TEXT_RangeError) rangeerror;
 alias proto!(TEXT_TypeError) typeerror;
 alias proto!(TEXT_URIError) urierror;
 
+/**********************************
+ * Register initializer for each class.
+ */
+
+static this()
+{
+    ThreadContext.initTable ~= &syntaxerror.D0.init;
+    ThreadContext.initTable ~= &evalerror.D0.init;
+    ThreadContext.initTable ~= &referenceerror.D0.init;
+    ThreadContext.initTable ~= &rangeerror.D0.init;
+    ThreadContext.initTable ~= &typeerror.D0.init;
+    ThreadContext.initTable ~= &urierror.D0.init;
+}

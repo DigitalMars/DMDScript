@@ -522,7 +522,7 @@ struct Value
                                 }
                             }
                         }
-                        string = p[0 .. std.string.strlen(p)].dup;
+                        string = p[0 .. std.c.string.strlen(p)].dup;
                     }
                     //writefln("string = '%s'", string);
                     return string;

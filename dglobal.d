@@ -635,6 +635,18 @@ else version (Windows)
         if (c == EOF)
             break;
 }
+else version (OSX)
+{
+        c = std.c.stdio.getchar();
+        if (c == EOF)
+            break;
+}
+else version (FreeBSD)
+{
+        c = std.c.stdio.getchar();
+        if (c == EOF)
+            break;
+}
 else
 {
         static assert(0);
