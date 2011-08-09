@@ -33,7 +33,7 @@ import std.c.stdlib;
 import dmdscript.script;
 import dmdscript.text;
 import dmdscript.identifier;
-import dmdscript.scope;
+import dmdscript.scopex;
 import dmdscript.errmsgs;
 
 /* Tokens:
@@ -241,7 +241,7 @@ class Lexer
     this(char[] sourcename, tchar[] base, int useStringtable)
     {
         //writefln("Lexer::Lexer(base = '%s')\n",base);
-        memset(&token, 0, token.sizeof);
+        std.c.string.memset(&token, 0, token.sizeof);
         this.useStringtable = useStringtable;
         this.sourcename = sourcename;
         if (!base.length || (base[length - 1] != 0 && base[length - 1] != 0x1A))

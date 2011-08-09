@@ -96,13 +96,13 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
     void *result;
 version (none)
 {
-    Array scope;
-    scope.reserve(cc.scoperoot + fd.withdepth + 2);
+    Array scopex;
+    scopex.reserve(cc.scoperoot + fd.withdepth + 2);
     for (uint u = 0; u < cc.scoperoot; u++)
-        scope.push(cc.scope.data[u]);
+        scopex.push(cc.scopex.data[u]);
 
-    Array *scopesave = cc.scope;
-    cc.scope = &scope;
+    Array *scopesave = cc.scopex;
+    cc.scopex = &scopex;
     Dobject variablesave = cc.variable;
     cc.variable = cc.global;
 
@@ -114,7 +114,7 @@ version (none)
 
     delete p1;
     cc.variable = variablesave;
-    cc.scope = scopesave;
+    cc.scopex = scopesave;
     return result;
 }
 else
@@ -123,7 +123,7 @@ else
     // in the same order, as the calling context's scope chain.
     // This includes objects added to the calling context's
     // scope chain by WithStatement.
-//    cc.scope.reserve(fd.withdepth);
+//    cc.scopex.reserve(fd.withdepth);
 
     // Variable instantiation is performed using the calling
     // context's variable object and using empty

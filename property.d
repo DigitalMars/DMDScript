@@ -25,6 +25,8 @@ import dmdscript.script;
 import dmdscript.value;
 import dmdscript.identifier;
 
+import std.c.string;
+
 // attribute flags
 enum
 {
@@ -64,42 +66,57 @@ extern (C)
     {
         aaA *left;
         aaA *right;
-        union
-        {
-            uint nodes; // used in the head element to store the total # of AA elements
-            uint hash;
-        }
+        hash_t hash;
         /* key   */
         /* value */
     }
 
-    aaA*[] _aaRehash(aaA*[]* paa, TypeInfo keyti);
+    struct BB
+    {
+        aaA*[] b;
+        size_t nodes;   // total number of aaA nodes
+    }
+
+    struct AA
+    {
+        BB* a;
+        version (X86_64)
+        {
+        }
+        else
+        {
+            // This is here only to retain binary compatibility with the
+            // old way we did AA's. Should eventually be removed.
+            int reserved;
+        }
+    }
+
+    long _aaRehash(AA* paa, TypeInfo keyti);
 
     /************************
      * Alternate Get() version
      */
 
-    Property* _aaGetY(uint hash, Property[Value]* bb, Value* key)
+    Property* _aaGetY(hash_t hash, Property[Value]* bb, Value* key)
     {
-        uint i;
-        aaA *e;
-        aaA **pe;
-        aaA*[]* aa = cast(aaA*[]*)bb;
-        size_t aalen;
+        aaA* e;
+        auto aa = cast(AA*)bb;
 
-        aalen = (*aa).length;
+        if (!aa.a)
+            aa.a = new BB();
+
+        auto aalen = aa.a.b.length;
         if (!aalen)
         {
             alias aaA *pa;
 
-            aalen = 97 + 1;
-            *aa = new pa[aalen];
-            (*aa)[0] = cast(aaA *) cast(void*) new byte[aaA.sizeof];
+            aalen = 97;
+            aa.a.b = new pa[aalen];
         }
 
         //printf("hash = %d\n", hash);
-        i = (hash % (aalen - 1)) + 1;
-        pe = &(*aa)[i];
+        size_t i = hash % aalen;
+        auto pe = &aa.a.b[i];
         while ((e = *pe) != null)
         {   int c;
 
@@ -129,11 +146,11 @@ extern (C)
         // Not found, create new elem
         //printf("\tcreate new one\n");
         e = cast(aaA *) cast(void*) new byte[aaA.sizeof + Value.sizeof + Property.sizeof];
-        memcpy(e + 1, key, Value.sizeof);
+        std.c.string.memcpy(e + 1, key, Value.sizeof);
         e.hash = hash;
         *pe = e;
 
-        uint nodes = ++(*aa)[0].nodes;
+        auto nodes = ++aa.a.nodes;
         //printf("length = %d, nodes = %d\n", (*aa).length, nodes);
         if (nodes > aalen * 4)
         {
@@ -148,18 +165,17 @@ extern (C)
      * Alternate In() with precomputed values.
      */
 
-    Property* _aaInY(uint hash, Property[Value] bb, Value* key)
+    Property* _aaInY(hash_t hash, Property[Value] bb, Value* key)
     {
-        uint i;
-        aaA *e;
-        aaA*[] aa = *cast(aaA*[]*)&bb;
+        size_t i;
+        AA aa = *cast(AA*)&bb;
 
         //printf("_aaIn(), aa.length = %d, .ptr = %x\n", aa.length, cast(uint)aa.ptr);
-        if (aa.length > 1)
+        if (aa.a && aa.a.b.length)
         {
             //printf("hash = %d\n", hash);
-            i = (hash % (aa.length - 1)) + 1;
-            e = aa[i];
+            i = hash % aa.a.b.length;
+            auto e = aa.a.b[i];
             while (e != null)
             {   int c;
 
@@ -241,7 +257,7 @@ struct PropTable
         return p;
     }
 
-    Value* get(Value* key, uint hash)
+    Value* get(Value* key, hash_t hash)
     {
         uint i;
         Property *p;
@@ -285,7 +301,7 @@ struct PropTable
         //return get(id.value.string, id.value.hash);
     }
 
-    Value* get(d_string name, uint hash)
+    Value* get(d_string name, hash_t hash)
     {
         //writefln("get('%s', hash = x%x)", name, hash);
         Value key;
@@ -320,7 +336,7 @@ struct PropTable
         return hasproperty(&v);
     }
 
-    Value* put(Value* key, uint hash, Value* value, uint attributes)
+    Value* put(Value* key, hash_t hash, Value* value, uint attributes)
     {
         Property* p;
 
@@ -330,7 +346,7 @@ struct PropTable
         p = _aaGetY(hash, &table, key);
 /+
     {
-        uint i;
+        size_t i;
         aaA *e;
         aaA **pe;
         aaA*[]* aa = cast(aaA*[]*)&table;
@@ -472,7 +488,7 @@ struct PropTable
         return put(&key, Value.calcHash(index), &value, attributes);
     }
 
-    int canput(Value* key, uint hash)
+    int canput(Value* key, hash_t hash)
     {
         Property *p;
         PropTable *t;

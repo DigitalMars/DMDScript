@@ -37,7 +37,7 @@ OBJS=	identifier.o lexer.o parse.o expression.o errmsgs.o \
 	dstring.o ddate.o dboolean.o dnumber.o dregexp.o derror.o \
 	darguments.o dglobal.o darray.o dfunction.o dobject.o \
 	threadcontext.o script.o program.o statement.o ddeclaredfunction.o \
-	scope.o symbol.o functiondefinition.o irstate.o ir.o \
+	scopex.o symbol.o functiondefinition.o irstate.o ir.o \
 	opcodes.o text.o \
 	protoerror.o testscript.o
 
@@ -46,7 +46,7 @@ SRC=	identifier.d lexer.d parse.d expression.d textgen.d \
 	dstring.d ddate.d dboolean.d dnumber.d dregexp.d derror.d \
 	darguments.d dglobal.d darray.d dfunction.d dobject.d \
 	threadcontext.d script.d program.d statement.d ddeclaredfunction.d \
-	scope.d symbol.d functiondefinition.d irstate.d ir.d \
+	scopex.d symbol.d functiondefinition.d irstate.d ir.d \
 	opcodes.d text.d testscript.d
 
 SRCBLDS= errmsgs.d
@@ -148,8 +148,8 @@ property.o : property.d
 protoerror.o : protoerror.d
 	 $(DMD) -c $(DFLAGS) protoerror.d
 
-scope.o : scope.d
-	 $(DMD) -c $(DFLAGS) scope.d
+scopex.o : scopex.d
+	 $(DMD) -c $(DFLAGS) scopex.d
 
 script.o : script.d
 	 $(DMD) -c $(DFLAGS) script.d

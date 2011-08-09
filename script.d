@@ -90,7 +90,7 @@ import dmdscript.text;
 
 struct CallContext
 {
-    Dobject[] scope;    // current scope chain
+    Dobject[] scopex;   // current scope chain
     Dobject variable;   // object for variable instantiation
     Dobject global;     // global object
     uint scoperoot;     // number of entries in scope[] starting from 0
@@ -120,7 +120,7 @@ Global global;
 tchar[] banner()
 {
     return std.string.format(
-        "Digital Mars DMDScript 1.07\n",
+        "Digital Mars DMDScript 1.09\n",
         "www.digitalmars.com\n",
         "Compiled by Digital Mars DMD D compiler\n",
         global.copyright, "\n",

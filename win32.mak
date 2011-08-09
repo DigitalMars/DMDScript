@@ -40,7 +40,7 @@ OBJS=	identifier.obj lexer.obj parse.obj expression.obj errmsgs.obj \
 	dstring.obj ddate.obj dboolean.obj dnumber.obj dregexp.obj derror.obj \
 	darguments.obj dglobal.obj darray.obj dfunction.obj dobject.obj \
 	threadcontext.obj script.obj program.obj statement.obj ddeclaredfunction.obj \
-	scope.obj symbol.obj functiondefinition.obj irstate.obj ir.obj \
+	scopex.obj symbol.obj functiondefinition.obj irstate.obj ir.obj \
 	opcodes.obj text.obj \
 	protoerror.obj testscript.obj
 
@@ -49,7 +49,7 @@ SRC=	identifier.d lexer.d parse.d expression.d textgen.d \
 	dstring.d ddate.d dboolean.d dnumber.d dregexp.d derror.d \
 	darguments.d dglobal.d darray.d dfunction.d dobject.d \
 	threadcontext.d program.d statement.d ddeclaredfunction.d \
-	scope.d symbol.d functiondefinition.d irstate.d ir.d \
+	scopex.d symbol.d functiondefinition.d irstate.d ir.d \
 	opcodes.d text.d script.d testscript.d
 
 SRCBLDS= errmsgs.d

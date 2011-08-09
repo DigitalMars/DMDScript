@@ -25,7 +25,7 @@ import dmdscript.script;
 import dmdscript.identifier;
 import dmdscript.statement;
 import dmdscript.dfunction;
-import dmdscript.scope;
+import dmdscript.scopex;
 import dmdscript.irstate;
 import dmdscript.opcodes;
 import dmdscript.ddeclaredfunction;

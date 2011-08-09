@@ -65,11 +65,11 @@ class Program
         // Create global object
         cc.global = new Dglobal(null);
 
-        Dobject[] scope;
-        scope ~= cc.global;
+        Dobject[] scopex;
+        scopex ~= cc.global;
 
         cc.variable = cc.global;
-        cc.scope = scope;
+        cc.scopex = scopex;
         cc.scoperoot++;
         cc.globalroot++;
 
@@ -202,10 +202,10 @@ class Program
         // object with 0 attributes
         globalfunction.instantiate(cc.variable, 0);
 
-//      cc.scope.reserve(globalfunction.withdepth + 1);
+//      cc.scopex.reserve(globalfunction.withdepth + 1);
 
         // The 'this' value is the global object
-        //printf("cc.scope.ptr = %x, cc.scope.length = %d\n", cc.scope.ptr, cc.scope.length);
+        //printf("cc.scopex.ptr = %x, cc.scopex.length = %d\n", cc.scopex.ptr, cc.scopex.length);
         program_save = getProgram();
         try
         {

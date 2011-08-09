@@ -26,7 +26,7 @@ import std.stdio;
 
 import dmdscript.script;
 import dmdscript.value;
-import dmdscript.scope;
+import dmdscript.scopex;
 import dmdscript.expression;
 import dmdscript.irstate;
 import dmdscript.symbol;

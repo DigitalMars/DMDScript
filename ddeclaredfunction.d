@@ -105,14 +105,14 @@ class DdeclaredFunction : Dfunction
         //          var cardpic = new MakeArray("LL","AP","BA","MB","FH","AW","CW","CV","DZ");
         Put(TEXT_arguments, args, DontDelete);          // make grannymail bug work
 
-        Dobject[] scopesave = cc.scope;
+        Dobject[] scopesave = cc.scopex;
 
-        Dobject[] scope;
-        //scope.reserve(cc.scoperoot + fd.withdepth + 2);
-        scope = cc.scope[0 .. cc.scoperoot].dup;
-        scope ~= actobj;
+        Dobject[] scopex;
+        //scopex.reserve(cc.scoperoot + fd.withdepth + 2);
+        scopex = cc.scopex[0 .. cc.scoperoot].dup;
+        scopex ~= actobj;
 
-        cc.scope = scope;
+        cc.scopex = scopex;
         Dobject variablesave = cc.variable;
         cc.variable = actobj;
         Dobject callersave = cc.caller;
@@ -136,7 +136,7 @@ class DdeclaredFunction : Dfunction
 
         cc.caller = callersave;
         cc.variable = variablesave;
-        cc.scope = scopesave;
+        cc.scopex = scopesave;
 
         // Remove the arguments object
         //Value* v;

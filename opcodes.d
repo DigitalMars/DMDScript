@@ -29,7 +29,7 @@ import dmdscript.statement;
 import dmdscript.functiondefinition;
 import dmdscript.value;
 import dmdscript.iterator;
-import dmdscript.scope;
+import dmdscript.scopex;
 import dmdscript.identifier;
 
 //debug=VERIFY; // verify integrity of code
@@ -85,13 +85,13 @@ class Finally : Dobject
  * Look for identifier in scope.
  */
 
-Value* scope_get(Dobject[] scope, Identifier* id, Dobject *pthis)
+Value* scope_get(Dobject[] scopex, Identifier* id, Dobject *pthis)
 {   uint d;
     Dobject o;
     Value* v;
 
-    //writef("scope_get: scope = %p, scope.data = %p\n", scope, scope.data);
-    d = scope.length;
+    //writef("scope_get: scope = %p, scope.data = %p\n", scopex, scopex.data);
+    d = scopex.length;
     for (;;)
     {
         if (!d)
@@ -100,7 +100,7 @@ Value* scope_get(Dobject[] scope, Identifier* id, Dobject *pthis)
             break;
         }
         d--;
-        o = scope[d];
+        o = scopex[d];
         //writef("o = %x, hash = x%x, s = '%s'\n", o, hash, s);
         v = o.Get(id);
         if (v)
@@ -111,13 +111,13 @@ Value* scope_get(Dobject[] scope, Identifier* id, Dobject *pthis)
     return v;
 }
 
-Value* scope_get_lambda(Dobject[] scope, Identifier* id, Dobject *pthis)
+Value* scope_get_lambda(Dobject[] scopex, Identifier* id, Dobject *pthis)
 {   uint d;
     Dobject o;
     Value* v;
 
-    //printf("scope_get_lambda: scope = %p, length = %d\n", scope.ptr, scope.length);
-    d = scope.length;
+    //printf("scope_get_lambda: scope = %p, length = %d\n", scopex.ptr, scopex.length);
+    d = scopex.length;
     for (;;)
     {
         if (!d)
@@ -126,7 +126,7 @@ Value* scope_get_lambda(Dobject[] scope, Identifier* id, Dobject *pthis)
             break;
         }
         d--;
-        o = scope[d];
+        o = scopex[d];
         //printf("o = %p ", o);
         //writefln("o = %s", o);
         //printf("o = %x, hash = x%x, s = '%.*s'\n", o, hash, s);
@@ -141,16 +141,16 @@ Value* scope_get_lambda(Dobject[] scope, Identifier* id, Dobject *pthis)
     return v;
 }
 
-Value* scope_get(Dobject[] scope, Identifier* id)
+Value* scope_get(Dobject[] scopex, Identifier* id)
 {   uint d;
     Dobject o;
     Value* v;
 
-    d = scope.length;
+    d = scopex.length;
     // 1 is most common case for d
     if (d == 1)
     {
-        return scope[0].Get(id);
+        return scopex[0].Get(id);
     }
     for (;;)
     {
@@ -159,7 +159,7 @@ Value* scope_get(Dobject[] scope, Identifier* id)
             break;
         }
         d--;
-        o = scope[d];
+        o = scopex[d];
         v = o.Get(id);
         if (v)
             break;
@@ -168,17 +168,17 @@ Value* scope_get(Dobject[] scope, Identifier* id)
 }
 
 /************************************
- * Find last object in scope, null if none.
+ * Find last object in scopex, null if none.
  */
 
-Dobject scope_tos(Dobject[] scope)
+Dobject scope_tos(Dobject[] scopex)
 {   uint d;
     Dobject o;
 
-    for (d = scope.length; d;)
+    for (d = scopex.length; d;)
     {
         d--;
-        o = scope[d];
+        o = scopex[d];
         if (o.getTypeof() != null) // if not a Finally or a Catch
             return o;
     }
@@ -200,10 +200,10 @@ void PutValue(CallContext *cc, d_string s, Value* a)
     Value* v;
     Dobject o;
 
-    d = cc.scope.length;
+    d = cc.scopex.length;
     if (d == cc.globalroot)
     {
-        o = scope_tos(cc.scope);
+        o = scope_tos(cc.scopex);
         o.Put(s, a, 0);
         return;
     }
@@ -213,7 +213,7 @@ void PutValue(CallContext *cc, d_string s, Value* a)
     for (;; d--)
     {
         assert(d > 0);
-        o = cc.scope[d - 1];
+        o = cc.scopex[d - 1];
         if (d == cc.globalroot)
         {
             o.Put(s, a, 0);
@@ -241,17 +241,17 @@ void PutValue(CallContext *cc, Identifier* id, Value* a)
     Value* v;
     Dobject o;
 
-    d = cc.scope.length;
+    d = cc.scopex.length;
     if (d == cc.globalroot)
     {
-        o = scope_tos(cc.scope);
+        o = scope_tos(cc.scopex);
     }
     else
     {
         for (;; d--)
         {
             assert(d > 0);
-            o = cc.scope[d - 1];
+            o = cc.scopex[d - 1];
             if (d == cc.globalroot)
                 break;
             v = o.Get(id);
@@ -342,7 +342,7 @@ struct IR
         tchar[] tx;
         tchar[] ty;
         Dobject o;
-        Dobject[] scope;
+        Dobject[] scopex;
         uint dimsave;
         uint offset;
         Catch ca;
@@ -403,9 +403,9 @@ struct IR
             printfunc(code);
             writef("-printfunc\n");
         }
-        scope = cc.scope;
-        //printf("call: scope = %p, length = %d\n", scope.ptr, scope.length);
-        dimsave = scope.length;
+        scopex = cc.scopex;
+        //printf("call: scope = %p, length = %d\n", scopex.ptr, scopex.length);
+        dimsave = scopex.length;
     //if (logflag)
     //    writef("IR.call(othis = %p, code = %p, locals = %p)\n",othis,code,locals);
 
@@ -413,16 +413,16 @@ struct IR
     {
         uint debug_scoperoot = cc.scoperoot;
         uint debug_globalroot = cc.globalroot;
-        uint debug_scopedim = scope.length;
-        uint debug_scopeallocdim = scope.allocdim;
+        uint debug_scopedim = scopex.length;
+        uint debug_scopeallocdim = scopex.allocdim;
         Dobject debug_global = cc.global;
         Dobject debug_variable = cc.variable;
 
         void** debug_pscoperootdata = cast(void**)mem.malloc((void*).sizeof*debug_scoperoot);
         void** debug_pglobalrootdata = cast(void**)mem.malloc((void*).sizeof*debug_globalroot);
 
-        memcpy(debug_pscoperootdata, scope.data, (void*).sizeof*debug_scoperoot);
-        memcpy(debug_pglobalrootdata, scope.data, (void*).sizeof*debug_globalroot);
+        memcpy(debug_pscoperootdata, scopex.data, (void*).sizeof*debug_scoperoot);
+        memcpy(debug_pglobalrootdata, scopex.data, (void*).sizeof*debug_globalroot);
     }
 
         assert(code);
@@ -443,18 +443,18 @@ struct IR
 
     debug
     {
-            assert(scope == cc.scope);
+            assert(scopex == cc.scopex);
             assert(debug_scoperoot == cc.scoperoot);
             assert(debug_globalroot == cc.globalroot);
             assert(debug_global == cc.global);
             assert(debug_variable == cc.variable);
-            assert(scope.length >= debug_scoperoot);
-            assert(scope.length >= debug_globalroot);
-            assert(scope.length >= debug_scopedim);
-            assert(scope.allocdim >= debug_scopeallocdim);
-            assert(0 == memcmp(debug_pscoperootdata, scope.data, (void*).sizeof*debug_scoperoot));
-            assert(0 == memcmp(debug_pglobalrootdata, scope.data, (void*).sizeof*debug_globalroot));
-            assert(scope);
+            assert(scopex.length >= debug_scoperoot);
+            assert(scopex.length >= debug_globalroot);
+            assert(scopex.length >= debug_scopedim);
+            assert(scopex.allocdim >= debug_scopeallocdim);
+            assert(0 == memcmp(debug_pscoperootdata, scopex.data, (void*).sizeof*debug_scoperoot));
+            assert(0 == memcmp(debug_pglobalrootdata, scopex.data, (void*).sizeof*debug_globalroot));
+            assert(scopex);
     }
 
 
@@ -571,11 +571,11 @@ struct IR
                     // Inline scope_get() for speed
                     {   uint d;
 
-                        d = scope.length;
+                        d = scopex.length;
                         // 1 is most common case for d
                         if (d == 1)
                         {
-                            o = scope[0];
+                            o = scopex[0];
                             v = o.Get(id);
                         }
                         else
@@ -588,7 +588,7 @@ struct IR
                                     break;
                                 }
                                 d--;
-                                o = scope[d];
+                                o = scopex[d];
                                 v = o.Get(id);
                                 //writef("o = %x, v = %x\n", o, v);
                                 if (v)
@@ -612,7 +612,7 @@ struct IR
     }
     else
     {
-                    v = scope_get(scope, id);
+                    v = scope_get(scopex, id);
                     if (!v)
                         v = &vundefined;
     }
@@ -645,11 +645,11 @@ struct IR
                     if (s is scopecache[si].s)
                         v = scopecache[si].v;
                     else
-                        v = scope_get(scope, id);
+                        v = scope_get(scopex, id);
     }
     else
     {
-                    v = scope_get(scope, id);
+                    v = scope_get(scopex, id);
     }
                 Laddass2:
                     a = GETa(code);
@@ -1026,7 +1026,7 @@ struct IR
                     }
                     else
                     {
-                        v = scope_get(scope, id, &o);
+                        v = scope_get(scopex, id, &o);
                         if (v)
                         {   n = v.toNumber() + inc;
                             v.putVnumber(n);
@@ -1038,7 +1038,7 @@ struct IR
     }
     else
     {
-                    v = scope_get(scope, id, &o);
+                    v = scope_get(scopex, id, &o);
                     if (v)
                     {   n = v.toNumber();
                         v.putVnumber(n + inc);
@@ -1087,7 +1087,7 @@ struct IR
 
                 case IRpostincscope:        // a = s++
                     id = (code + 2).id;
-                    v = scope_get(scope, id, &o);
+                    v = scope_get(scopex, id, &o);
                     if (v && v != &vundefined)
                     {
                         n = v.toNumber();
@@ -1121,7 +1121,7 @@ struct IR
 
                 case IRpostdecscope:        // a = s--
                     id = (code + 2).id;
-                    v = scope_get(scope, id, &o);
+                    v = scope_get(scopex, id, &o);
                     if (v && v != &vundefined)
                     {   n = v.toNumber();
                         a = GETa(code);
@@ -1161,8 +1161,8 @@ struct IR
                 case IRdelscope:    // a = delete s
                     id = (code + 2).id;
                     s = id.value.string;
-                    //o = scope_tos(scope);             // broken way
-                    if (!scope_get(scope, id, &o))
+                    //o = scope_tos(scopex);            // broken way
+                    if (!scope_get(scopex, id, &o))
                         bo = true;
                     else if (o.implementsDelete())
                         bo = o.Delete(s);
@@ -1561,7 +1561,7 @@ struct IR
                         code += (code + 1).offset;
                     else
                     {
-                        o = scope_tos(scope);
+                        o = scope_tos(scopex);
                         o.Put(s, v, 0);
                         code += 4;
                     }
@@ -1616,7 +1616,7 @@ struct IR
                     id = (code + 2).id;
                     s = id.value.string;
                     a = GETa(code);
-                    v = scope_get_lambda(scope, id, &o);
+                    v = scope_get_lambda(scopex, id, &o);
                     //writefln("v.toString() = '%s'", v.toString());
                     if (!v)
                     {
@@ -1694,7 +1694,7 @@ struct IR
                 case IRputcallscope:   // a = s(argc, argv)
                     id = (code + 2).id;
                     s = id.value.string;
-                    v = scope_get_lambda(scope, id, &o);
+                    v = scope_get_lambda(scopex, id, &o);
                     if (!v)
                     {
                         ErrInfo errinfo;
@@ -1757,15 +1757,15 @@ struct IR
                         a = cannotConvert(a, GETlinnum(code));
                         goto Lthrow;
                     }
-                    scope ~= o;         // push entry onto scope chain
-                    cc.scope = scope;
+                    scopex ~= o;                // push entry onto scope chain
+                    cc.scopex = scopex;
                     code += 2;
                     break;
 
                 case IRpop:
                     SCOPECACHE_CLEAR();
-                    o = scope[length - 1];
-                    scope = scope[0 .. length - 1];     // pop entry off scope chain
+                    o = scopex[length - 1];
+                    scopex = scopex[0 .. length - 1];   // pop entry off scope chain
                     // If it's a Finally, we need to execute
                     // the finally block
                     code += 1;
@@ -1816,7 +1816,7 @@ struct IR
                     SCOPECACHE_CLEAR();
                     for (;;)
                     {
-                        if (scope.length <= dimsave)
+                        if (scopex.length <= dimsave)
                         {
                             ret.putVundefined();
                             // 'a' may be pointing into the stack, which means
@@ -1826,8 +1826,8 @@ struct IR
                             Value.copy(cast(Value*)cc.value, a);
                             return cast(Value*)cc.value;
                         }
-                        o = scope[length - 1];
-                        scope = scope[0 .. length - 1]; // pop entry off scope chain
+                        o = scopex[length - 1];
+                        scopex = scopex[0 .. length - 1];       // pop entry off scope chain
                         if (o.isCatch())
                         {   ca = cast(Catch)o;
                             //writef("catch('%s')\n", ca.name);
@@ -1840,8 +1840,8 @@ else
 {
                             o.Put(ca.name, a, DontDelete);
 }
-                            scope ~= o;
-                            cc.scope = scope;
+                            scopex ~= o;
+                            cc.scopex = scopex;
                             code = codestart + ca.offset;
                             break;
                         }
@@ -1865,16 +1865,16 @@ else
                     offset = (code - codestart) + (code + 1).offset;
                     s = (code + 2).id.value.string;
                     ca = new Catch(offset, s);
-                    scope ~= ca;
-                    cc.scope = scope;
+                    scopex ~= ca;
+                    cc.scopex = scopex;
                     code += 3;
                     break;
 
                 case IRtryfinally:
                     SCOPECACHE_CLEAR();
                     f = new Finally(code + (code + 1).offset);
-                    scope ~= f;
-                    cc.scope = scope;
+                    scopex ~= f;
+                    cc.scopex = scopex;
                     code += 2;
                     break;
 

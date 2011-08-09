@@ -25,7 +25,7 @@ import std.string;
 
 import dmdscript.script;
 import dmdscript.lexer;
-import dmdscript.scope;
+import dmdscript.scopex;
 import dmdscript.text;
 import dmdscript.errmsgs;
 import dmdscript.functiondefinition;

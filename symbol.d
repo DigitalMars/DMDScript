@@ -23,7 +23,7 @@ module dmdscript.symbol;
 
 import dmdscript.script;
 import dmdscript.identifier;
-import dmdscript.scope;
+import dmdscript.scopex;
 import dmdscript.statement;
 import dmdscript.irstate;
 import dmdscript.opcodes;
