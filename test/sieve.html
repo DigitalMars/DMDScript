@@ -1,0 +1,48 @@
+<HTML>
+<BODY>
+<SCRIPT LANGUAGE="JavaScript">
+
+document.write(navigator.appName);
+	var b = navigator.appName
+	if (b=="Netscape") this.b = "ns"
+	else if (b=="Microsoft Internet Explorer") this.b = "ie"
+	else this.b = b
+document.writeln(" " + b);
+
+document.write("<br> ScriptEngine " + ScriptEngine() + " Build " + ScriptEngineBuildVersion() + "<br>");
+
+document.write("<h2>Eratosthenes Sieve prime number calculation</h2><br>");
+ 
+size = 8190;
+sizepl = 8191;
+
+var flags = new Array(sizepl);
+
+var i, prime, k, count, iter;
+
+document.write("10 iterations<br>");
+starttime = new Date();
+for (iter = 1; iter <= 10; iter++)
+{   count = 0;
+    for (i = 0; i <= size; i++)
+	flags[i] = true;
+    for (i = 0; i <= size; i++)
+    {   if (flags[i])
+	{   prime = i + i + 3;
+	    k = i + prime;
+	    while (k <= size)
+	    {
+		flags[k] = false;
+		k += prime;
+	    }
+	    count += 1;
+	}
+    }
+}
+elapsedtime = new Date() - starttime;
+document.write(count + " primes<br>");
+document.write("elapsed time = " + elapsedtime + "<br>");
+
+</SCRIPT>
+</BODY>
+</HTML>
