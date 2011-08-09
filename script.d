@@ -1,21 +1,16 @@
-
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2006 by Digital Mars
- * All Rights Reserved
+ * D version Copyright (c) 2004-2010 by Digital Mars
+ * Distributed under the Boost Software License, Version 1.0.
+ * (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  * written by Walter Bright
- * www.digitalmars.com
- * Use at your own risk. There is no warranty, express or implied.
- * License for redistribution is by the GNU General Public License in gpl.txt.
- *
- * A binary, non-exclusive license for commercial use can be
- * purchased from www.digitalmars.com/dscript/buy.html.
+ * http://www.digitalmars.com
  *
  * DMDScript is implemented in the D Programming Language,
- * www.digitalmars.com/d/
+ * http://www.digitalmars.com/d/
  *
- * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cppscript.html.
+ * For a C++ implementation of DMDScript, including COM support, see
+ * http://www.digitalmars.com/dscript/cppscript.html
  */
 
 
@@ -113,7 +108,7 @@ struct CallContext
 
 struct Global
 {
-    tchar[] copyright = "Copyright (c) 1999-2009 by Digital Mars";
+    tchar[] copyright = "Copyright (c) 1999-2010 by Digital Mars";
     tchar[] written = "written by Walter Bright";
 }
 
@@ -122,7 +117,7 @@ Global global;
 tchar[] banner()
 {
     return std.string.format(
-        "Digital Mars DMDScript 1.15\n",
+        "Digital Mars DMDScript 1.16\n",
         "http://www.digitalmars.com\n",
         "Compiled by Digital Mars DMD D compiler\n",
         global.copyright, "\n",

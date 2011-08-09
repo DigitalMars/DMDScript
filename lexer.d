@@ -1,21 +1,16 @@
-
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
- * All Rights Reserved
+ * D version Copyright (c) 2004-2010 by Digital Mars
+ * Distributed under the Boost Software License, Version 1.0.
+ * (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  * written by Walter Bright
- * www.digitalmars.com
- * Use at your own risk. There is no warranty, express or implied.
- * License for redistribution is by the GNU General Public License in gpl.txt.
- *
- * A binary, non-exclusive license for commercial use can be
- * purchased from www.digitalmars.com/dscript/buy.html.
+ * http://www.digitalmars.com
  *
  * DMDScript is implemented in the D Programming Language,
- * www.digitalmars.com/d/
+ * http://www.digitalmars.com/d/
  *
- * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cppscript.html.
+ * For a C++ implementation of DMDScript, including COM support, see
+ * http://www.digitalmars.com/dscript/cppscript.html
  */
 
 /* Lexical Analyzer
@@ -223,6 +218,31 @@ struct Token
 
 class Lexer
 {
+    static bool isUnicodeLetter(dchar c)
+    {
+        // See ECMA262v3 7.6
+        static uint[2][] UnicodeLetter =
+        [
+            [0x0660, 0x0669], [0x06F0, 0x06F9], [0x07C0, 0x07C9], [0x0966, 0x096F],
+            [0x09E6, 0x09EF], [0x0A66, 0x0A6F], [0x0AE6, 0x0AEF], [0x0B66, 0x0B6F],
+            [0x0BE6, 0x0BEF], [0x0C66, 0x0C6F], [0x0CE6, 0x0CEF], [0x0D66, 0x0D6F],
+            [0x0E50, 0x0E59], [0x0ED0, 0x0ED9], [0x0F20, 0x0F29], [0x1040, 0x1049],
+            [0x1090, 0x1099], [0x17E0, 0x17E9], [0x1810, 0x1819], [0x1946, 0x194F],
+            [0x19D0, 0x19D9], [0x1B50, 0x1B59], [0x1BB0, 0x1BB9], [0x1C40, 0x1C49],
+            [0x1C50, 0x1C59], [0xA620, 0xA629], [0xA8D0, 0xA8D9], [0xA900, 0xA909],
+            [0xAA50, 0xAA59], [0xFF10, 0xFF19]
+        ];
+
+        for (size_t i = 0; i < UnicodeLetter.length; i++)
+        {
+            if (c < UnicodeLetter[i][0])
+                return false;
+            if (c <= UnicodeLetter[i][1])
+                return true;
+        }
+        return false;
+    }
+
     Identifier[tchar[]] stringtable;
     Token* freelist;
 
@@ -533,6 +553,11 @@ class Lexer
                 Lidentifier:
                 {   tchar[] id;
 
+                    static bool isidletter(dchar d)
+                    {
+                        return isalnum(d) || d == '_' || d == '$' || (d >= 0x80 && isUnicodeLetter(d));
+                    }
+
                     do
                     {
                         p = inc(p);
@@ -541,27 +566,40 @@ class Lexer
                         {
                     Lidentifier2:
                             id = t.ptr[0 .. p - t.ptr].dup;
+                            auto ps = p;
                             p++;
-                            std.utf.encode(id, unicode());
+                            d = unicode();
+                            if (!isidletter(d))
+                            {   p = ps;
+                                break;
+                            }
+                            std.utf.encode(id, d);
                             for (;;)
                             {
                                 d = get(p);
                                 if (d == '\\' && p[1] == 'u')
-                                {
+                                {   auto pstart = p;
                                     p++;
-                                    std.utf.encode(id, unicode());
+                                    d = unicode();
+                                    if (isidletter(d))
+                                        std.utf.encode(id, d);
+                                    else
+                                    {   p = pstart;
+                                        goto Lidentifier3;
+                                    }
                                 }
-                                else if (isalnum(d) || d == '_' || d == '$')
-                                {   id ~= cast(tchar)d;
+                                else if (isidletter(d))
+                                {   std.utf.encode(id, d);
                                     p = inc(p);
                                 }
                                 else
                                     goto Lidentifier3;
                             }
                         }
-                    } while (isalnum(d) || d == '_' || d == '$');   // This should be isalnum -- any Unicode letter is allowed
+                    } while (isidletter(d));
                     id = t.ptr[0 .. p - t.ptr];
                 Lidentifier3:
+                    //printf("id = '%.*s'\n", id);
                     t.value = isKeyword(id);
                     if (t.value)
                         return;
@@ -942,7 +980,7 @@ class Lexer
                     }
                 default:
                     d = get(p);
-                    if (isalpha(d))         // This should be isalpha -- any Unicode letter
+                    if (d >= 0x80 && isUnicodeLetter(d))
                         goto Lidentifier;
                     else
                     {

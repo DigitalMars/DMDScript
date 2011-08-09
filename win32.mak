@@ -1,8 +1,9 @@
 # Dscript makefile
-# Copyright (C) 1999-2005 by Digital Mars
-# All Rights Reserved
-# www.digitalmars.com
+# http://www.digitalmars.com
 # Written by Walter Bright
+# Copyright (C) Digital Mars 1999 - 2010.
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 # Build with Digital Mars D:
 #	make -f win32.mak
@@ -10,6 +11,8 @@
 
 OUTDIR=.
 DMD=dmd
+DSCRIPTSVN=\svnproj\dmdscript\trunk
+CP=cp
 
 # Debug build
 #CFLAGS=-I.. -g
@@ -105,8 +108,14 @@ clean:
 	del textgen.obj textgen.exe
 	del errmsgs.d
 
-zip : $(SRC) win32.mak linux.mak osx.mak gpl.txt
+zip : $(SRC) win32.mak linux.mak osx.mak LICENSE_1_0.txt
 	del dmdscript.zip
-	zip32 dmdscript $(SRC) win32.mak linux.mak osx.mak gpl.txt
+	zip32 dmdscript $(SRC) win32.mak linux.mak osx.mak LICENSE_1_0.txt
+
+################### Write to SVN ################
+
+svn:
+	$(CP) $(SRC) win32.mak linux.mak osx.mak LICENSE_1_0.txt $(DSCRIPTSVN)\ 
+
 
 ###################################
