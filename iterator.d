@@ -116,5 +116,6 @@ struct Iterator
                 ;
             }
         }
+        assert(0);
     }
 }

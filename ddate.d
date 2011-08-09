@@ -89,6 +89,9 @@ d_string dateToString(CallContext *cc, d_time t, TIMEFORMAT tf)
                 p = std.date.toUTCString(t);
                 //p = std.date.toString(t);
                 break;
+
+            default:
+                assert(0);
         }
     }
     return p;

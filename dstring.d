@@ -928,6 +928,8 @@ void *tocase(Dobject othis, Value *ret, CASE caseflag)
         case CASE.LocaleUpper:
             s = std.string.toupper(s);
             break;
+        default:
+            assert(0);
     }
 
     ret.putVstring(s);

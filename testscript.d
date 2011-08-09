@@ -72,7 +72,6 @@ enum
 
 int main(char[][] args)
 {
-    uint i;
     uint errors = 0;
     char[][] includes;
     SrcFile[] srcfiles;
@@ -83,7 +82,7 @@ int main(char[][] args)
 
     fwritefln(stderr, dmdscript.script.banner());
 
-    for (i = 1; i < args.length; i++)
+    for (size_t i = 1; i < args.length; i++)
     {   char[] p = args[i];
 
         if (*p == '-')
@@ -169,7 +168,7 @@ class SrcFile
         //writef("read file '%s'\n",srcfile);
 
         // Read the includes[] files
-        uint i;
+        size_t i;
         void[] buf;
         ulong len;
 
@@ -184,7 +183,8 @@ class SrcFile
 
         // Prefix the includes[] files
 
-        buffer = new tchar[len];
+        int sz = cast(int)len;
+        buffer = new tchar[sz];
 
         foreach (char[] filename; includes)
         {

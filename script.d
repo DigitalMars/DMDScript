@@ -120,7 +120,7 @@ Global global;
 tchar[] banner()
 {
     return std.string.format(
-        "Digital Mars DMDScript 1.03\n",
+        "Digital Mars DMDScript 1.04\n",
         "www.digitalmars.com\n",
         "Compiled by Digital Mars DMD D compiler\n",
         global.copyright, "\n",

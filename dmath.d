@@ -220,7 +220,7 @@ void* Dmath_random(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
     ulong x;
 
     // Only want 53 bits of precision
-    x = (cast(long)std.random.rand() << 32) + std.random.rand();
+    x = (cast(ulong)std.random.rand() << 32) + std.random.rand();
     //PRINTF("x = x%016llx\n",x);
     x &= 0xFFFFFFFFFFFFF800L;
     result = x  * (1 / (0x100000000L * cast(double)0x100000000L))

@@ -163,6 +163,7 @@ class Parser : Lexer
                     break;
             }
         }
+        assert(0);
     }
 
     /***************************
@@ -999,6 +1000,7 @@ class Parser : Lexer
             }
             nextToken();
         }
+        assert(0);
     }
 
     Expression parseUnaryExp()

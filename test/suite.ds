@@ -1404,7 +1404,8 @@ assert(r[2] == "");
 TDATE = new Date(0);
 (TDATE).setUTCMilliseconds(0);
 TDATE1 = TDATE.getFullYear();
-assert(TDATE1 == 1969);
+println(TDATE1);
+//assert(TDATE1 == 1969);	// result is timezone dependent
 
 ////////////////////////////////////////
 
@@ -1418,7 +1419,7 @@ assert(TDATE1 == 0);
 TDATE = new Date(0);
 (TDATE).setFullYear(1969,11);
 TDATE1 = TDATE.valueOf();
-assert(TDATE1 == 0);
+//assert(TDATE1 == 0);		// result is timezone dependent
 
 ////////////////////////////////////////
 

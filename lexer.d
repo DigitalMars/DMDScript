@@ -738,6 +738,9 @@ class Lexer
                                     case '\r':
                                     case 0xA0:          // no-break space
                                         continue;
+
+                                    default:
+                                        assert(0);
                                 }
                                 break;
                             }
@@ -1096,6 +1099,7 @@ class Lexer
             }
             stringbuffer ~= c;
         }
+        assert(0);
     }
 
     /**************************************

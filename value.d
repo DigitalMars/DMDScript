@@ -157,8 +157,10 @@ struct Value
     body
 +/
     {
-        asm
-        {       naked                   ;
+        version (D_InlineAsm)
+        {
+            asm
+            {   naked                   ;
                 push    ESI             ;
                 mov     ECX,[EAX]       ;
                 mov     ESI,8[ESP]      ;
@@ -171,12 +173,16 @@ struct Value
                 mov     12[ESI],EAX     ;
                 pop     ESI             ;
                 ret     4               ;
+             }
         }
-        //*to = *from;
-        //(cast(uint *)to)[0] = (cast(uint *)from)[0];
-        //(cast(uint *)to)[1] = (cast(uint *)from)[1];
-        //(cast(uint *)to)[2] = (cast(uint *)from)[2];
-        //(cast(uint *)to)[3] = (cast(uint *)from)[3];
+        else
+        {
+            *to = *from;
+            //(cast(uint *)to)[0] = (cast(uint *)from)[0];
+            //(cast(uint *)to)[1] = (cast(uint *)from)[1];
+            //(cast(uint *)to)[2] = (cast(uint *)from)[2];
+            //(cast(uint *)to)[3] = (cast(uint *)from)[3];
+        }
     }
 
     void* toPrimitive(Value* v, tchar[] PreferredType)
@@ -232,7 +238,10 @@ struct Value
                 return string.length ? true : false;
             case V_OBJECT:
                 return true;
+            default:
+                assert(0);
         }
+        assert(0);
     }
 
 
@@ -280,7 +289,10 @@ struct Value
                 else
                     return d_number.nan;
             }
+            default:
+                assert(0);
         }
+        assert(0);
     }
 
 
@@ -316,6 +328,7 @@ struct Value
                 return number;
             }
         }
+        assert(0);
     }
 
 
@@ -351,6 +364,7 @@ struct Value
                 return int32;
             }
         }
+        assert(0);
     }
 
 
@@ -386,6 +400,7 @@ struct Value
                 return uint32;
             }
         }
+        assert(0);
     }
 
     d_uint16 toUint16()
@@ -418,6 +433,7 @@ struct Value
                 return uint16;
             }
         }
+        assert(0);
     }
 
     d_string toString()
@@ -515,7 +531,10 @@ struct Value
                 else
                     return v.toObject().classname;
             }
+            default:
+                assert(0);
         }
+        assert(0);
     }
 
     d_string toLocaleString()
@@ -579,6 +598,7 @@ struct Value
             default:
                 return toString();
         }
+        assert(0);
     }
 
     Dobject toObject()
@@ -599,7 +619,10 @@ struct Value
                 return new Dstring(string);
             case V_OBJECT:
                 return object;
+            default:
+                assert(0);
         }
+        assert(0);
     }
 
     int opEquals(Value* v)
@@ -679,6 +702,8 @@ struct Value
                 if (v.object == object)
                     return 0;
                 break;
+            default:
+                assert(0);
         }
         return -1;
     }
@@ -752,6 +777,7 @@ struct Value
                 index = 0;
                 return false;
         }
+        assert(0);
     }
 
     static uint calcHash(uint u)
@@ -866,6 +892,8 @@ struct Value
                  */
                 h = cast(uint)cast(void*) object;
                 break;
+            default:
+                assert(0);
         }
         //writefln("\tValue.toHash() = %x", h);
         return h;
@@ -1037,14 +1065,8 @@ struct Value
 
 static assert(Value.sizeof == 16);
 
-Value vundefined;
-Value vnull;
-
-static this()
-{
-    vundefined.putVundefined();
-    vnull.putVnull();
-}
+Value vundefined = { V_UNDEFINED };
+Value vnull = { V_NULL };
 
 tchar[] TypeUndefined = "Undefined";
 tchar[] TypeNull      = "Null";
