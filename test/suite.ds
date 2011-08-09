@@ -1,5 +1,5 @@
 
-// DMDScript test suite program
+// DScript test suite program
 
 a = new Object();
 assert(a == "[object Object]");
@@ -1404,8 +1404,7 @@ assert(r[2] == "");
 TDATE = new Date(0);
 (TDATE).setUTCMilliseconds(0);
 TDATE1 = TDATE.getFullYear();
-println(TDATE1);
-//assert(TDATE1 == 1969);	// result is timezone dependent
+assert(TDATE1 == 1969);
 
 ////////////////////////////////////////
 
@@ -1419,7 +1418,7 @@ assert(TDATE1 == 0);
 TDATE = new Date(0);
 (TDATE).setFullYear(1969,11);
 TDATE1 = TDATE.valueOf();
-//assert(TDATE1 == 0);		// result is timezone dependent
+assert(TDATE1 == 0);
 
 ////////////////////////////////////////
 

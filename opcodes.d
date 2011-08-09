@@ -294,9 +294,18 @@ struct IR
     {
         struct
         {
-            ubyte opcode;
-            ubyte padding;
-            ushort linnum;
+            version (LittleEndian)
+            {
+                ubyte opcode;
+                ubyte padding;
+                ushort linnum;
+            }
+            else
+            {
+                ushort linnum;
+                ubyte padding;
+                ubyte opcode;
+            }
         }
         IR* code;
         Value* value;

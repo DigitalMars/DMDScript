@@ -38,7 +38,7 @@ struct Identifier
 
     int opEquals(Identifier *id)
     {
-        return this === id || value.string == id.value.string;
+        return this is id || value.string == id.value.string;
     }
 
     static Identifier* build(tchar[] s)

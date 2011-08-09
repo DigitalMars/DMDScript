@@ -436,7 +436,6 @@ struct PropTable
 
         p.attributes = attributes & ~DontOverride;
         Value.copy(&p.value, value);
-        //p.value.dump();
         assert(p.value == value);
 
         return null;                    // success
@@ -511,7 +510,7 @@ struct PropTable
         {
             if (p.attributes & DontDelete)
                 return false;
-            delete table[*key];
+            table.remove(*key);
         }
         return true;                    // not found
     }

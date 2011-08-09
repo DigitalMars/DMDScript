@@ -120,7 +120,7 @@ Global global;
 tchar[] banner()
 {
     return std.string.format(
-        "Digital Mars DMDScript 1.05\n",
+        "Digital Mars DMDScript 1.06\n",
         "www.digitalmars.com\n",
         "Compiled by Digital Mars DMD D compiler\n",
         global.copyright, "\n",
@@ -293,7 +293,7 @@ d_number StringNumericLiteral(d_string string, out size_t endidx, int parsefloat
         number = std.c.stdlib.strtod(s, &endptr);
         endidx = (endptr - s) + i;
 
-        //printf("s = '%s', endidx = %d\n", s, endidx);
+        //printf("s = '%s', endidx = %d, eoff = %d, number = %g\n", s, endidx, eoff, number);
 
         // Correctly produce a -0 for the
         // string "-1e-2000"

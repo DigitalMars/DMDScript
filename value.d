@@ -41,6 +41,9 @@ import dmdscript.identifier;
 //    padding can contain garbage stack pointers which can
 //    prevent memory from being garbage collected.
 
+version (DigitalMars)
+    version (D_InlineAsm)
+        version = UseAsm;
 
 enum
 {
@@ -157,7 +160,7 @@ struct Value
     body
 +/
     {
-        version (D_InlineAsm)
+        version (all /*UseAsm*/)
         {
             asm
             {   naked                   ;

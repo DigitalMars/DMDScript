@@ -109,7 +109,12 @@ struct ThreadContext
             }
             else
             {
-                cc = &threadtable[ti];
+                cc = ti in threadtable;
+                if (!cc)
+                {
+                    threadtable[ti] = ThreadContext.init;
+                    cc = &threadtable[ti];
+                }
 
                 cc.threadid = ti;
 

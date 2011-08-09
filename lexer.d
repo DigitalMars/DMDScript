@@ -562,7 +562,12 @@ class Lexer
                     if (t.value)
                         return;
                     if (useStringtable)
-                    {   Identifier* i = &stringtable[id];
+                    {   //Identifier* i = &stringtable[id];
+                        Identifier* i = id in stringtable;
+                        if (!i)
+                        {   stringtable[id] = Identifier.init;
+                            i = id in stringtable;
+                        }
                         i.value.putVstring(id);
                         i.value.toHash();
                         t.ident = i;

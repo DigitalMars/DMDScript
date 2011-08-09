@@ -188,16 +188,12 @@ struct IRstate
 
     void gen(Loc loc, uint opcode, uint argc, ...)
     {
-        uint* ap;
-
         codebuf.reserve((1 + argc) * 4);
         codebuf.write(combine(loc, opcode));
-        ap = &argc;
         for (uint i = 1; i <= argc; i++)
         {
-            codebuf.write(ap[i]);
+            codebuf.write(va_arg!(uint)(_argptr));
         }
-        va_end(ap);
     }
 
     void pops(uint npops)
