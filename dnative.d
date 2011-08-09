@@ -24,6 +24,7 @@ module dmdscript.dnative;
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.dfunction;
+import dmdscript.value;
 
 /******************* DnativeFunction ****************************/
 

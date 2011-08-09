@@ -27,6 +27,12 @@ import std.date;
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.value;
+import dmdscript.threadcontext;
+import dmdscript.dfunction;
+import dmdscript.dnative;
+import dmdscript.property;
+import dmdscript.text;
+import dmdscript.errmsgs;
 
 version = DATETOSTRING;                 // use DateToString
 
@@ -1062,12 +1068,8 @@ void* Ddate_prototype_setUTCHours(Dobject pthis, CallContext *cc, Dobject othis,
                 hours   = d_time_nan;
                 break;
         }
-        //writefln("setUTCHours: hours = %s, minutes = %s, seconds = %s, ms = %s", hours, minutes, seconds, ms);
         time = std.date.MakeTime(hours, minutes, seconds, ms);
-        //writefln("\ttime = %s", time);
         n = std.date.TimeClip(std.date.MakeDate(std.date.Day(t),time));
-        //writefln("\tn = %s", n);
-        //writefln("\td_time = %s", typeid(d_time));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }

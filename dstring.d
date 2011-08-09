@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2006 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -21,13 +21,22 @@
 
 module dmdscript.dstring;
 
-private import std.regexp;
-private import std.utf;
+import std.regexp;
+import std.utf;
+import std.c.stdlib;
+import std.c.string;
 
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.dregexp;
 import dmdscript.darray;
+import dmdscript.value;
+import dmdscript.threadcontext;
+import dmdscript.dfunction;
+import dmdscript.text;
+import dmdscript.property;
+import dmdscript.errmsgs;
+import dmdscript.dnative;
 
 //alias script.tchar tchar;
 
@@ -317,6 +326,7 @@ void* Dstring_prototype_lastIndexOf(Dobject pthis, CallContext *cc, Dobject othi
 
 version (all)
 {
+    {
     // This is the 'transferable' version
     Value *v;
     void *a;
@@ -325,6 +335,7 @@ version (all)
     if (a)                              // if exception was thrown
         return a;
     s = ret.toString();
+    }
 }
 else
 {
@@ -492,19 +503,19 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
             m = re.re_nsub;
             if (f)
             {
-                Value* arglist;
+                Value* alist;
 
-                arglist = cast(Value *)alloca((m + 3) * Value.sizeof);
-                assert(arglist);
-                arglist[0].putVstring(ret.string);
+                alist = cast(Value *)alloca((m + 3) * Value.sizeof);
+                assert(alist);
+                alist[0].putVstring(ret.string);
                 for (i = 0; i < m; i++)
                 {
-                    arglist[1 + i].putVstring(
+                    alist[1 + i].putVstring(
                         string[re.pmatch[1 + i].rm_so .. re.pmatch[1 + i].rm_eo]);
                 }
-                arglist[m + 1].putVnumber(re.pmatch[0].rm_so);
-                arglist[m + 2].putVstring(string);
-                f.Call(cc, f, ret, arglist[0 .. m + 3]);
+                alist[m + 1].putVnumber(re.pmatch[0].rm_so);
+                alist[m + 2].putVstring(string);
+                f.Call(cc, f, ret, alist[0 .. m + 3]);
                 replacement = ret.toString();
             }
             else
@@ -545,12 +556,12 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
             pmatch[0].rm_eo = match + searchString.length;
             if (f)
             {
-                Value[3] arglist;
+                Value[3] alist;
 
-                arglist[0].putVstring(searchString);
-                arglist[1].putVnumber(pmatch[0].rm_so);
-                arglist[2].putVstring(string);
-                f.Call(cc, f, ret, arglist);
+                alist[0].putVstring(searchString);
+                alist[1].putVnumber(pmatch[0].rm_so);
+                alist[2].putVstring(string);
+                f.Call(cc, f, ret, alist);
                 replacement = ret.toString();
             }
             else

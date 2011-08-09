@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2006 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -21,12 +21,19 @@
 
 module dmdscript.ddeclaredfunction;
 
+import std.c.stdlib;
+
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.dfunction;
 import dmdscript.darguments;
 import dmdscript.opcodes;
 import dmdscript.ir;
+import dmdscript.identifier;
+import dmdscript.value;
+import dmdscript.functiondefinition;
+import dmdscript.text;
+import dmdscript.property;
 
 /* ========================== DdeclaredFunction ================== */
 

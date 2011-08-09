@@ -24,6 +24,9 @@ module dmdscript.darguments;
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.identifier;
+import dmdscript.value;
+import dmdscript.text;
+import dmdscript.property;
 
 // The purpose of Darguments is to implement "value sharing"
 // per ECMA 10.1.8 between the activation object and the

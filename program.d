@@ -22,12 +22,21 @@
 module dmdscript.program;
 
 import std.stdio;
+import std.c.stdlib;
 
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.dglobal;
 import dmdscript.functiondefinition;
 import dmdscript.statement;
+import dmdscript.threadcontext;
+import dmdscript.value;
+import dmdscript.opcodes;
+import dmdscript.darray;
+import dmdscript.parse;
+import dmdscript.scopex;
+import dmdscript.text;
+import dmdscript.property;
 
 class Program
 {

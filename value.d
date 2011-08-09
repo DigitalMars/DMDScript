@@ -23,11 +23,19 @@ module dmdscript.value;
 import std.math;
 import std.date;
 import std.string;
+import std.stdio;
+import std.c.string;
 
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.iterator;
 import dmdscript.identifier;
+import dmdscript.errmsgs;
+import dmdscript.text;
+import dmdscript.program;
+import dmdscript.dstring;
+import dmdscript.dnumber;
+import dmdscript.dboolean;
 
 // Porting issues:
 // A lot of scaling is done on arrays of Value's. Therefore, adjusting

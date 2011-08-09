@@ -21,6 +21,8 @@
 
 module dmdscript.symbol;
 
+import std.stdio;
+
 import dmdscript.script;
 import dmdscript.identifier;
 import dmdscript.scopex;

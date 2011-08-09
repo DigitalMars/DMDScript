@@ -29,6 +29,11 @@ import dmdscript.value;
 import dmdscript.protoerror;
 import dmdscript.text;
 import dmdscript.darray;
+import dmdscript.threadcontext;
+import dmdscript.dfunction;
+import dmdscript.property;
+import dmdscript.errmsgs;
+import dmdscript.dnative;
 
 //alias script.tchar tchar;
 

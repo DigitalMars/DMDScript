@@ -23,8 +23,12 @@ module testscript;
 
 import std.path;
 import std.file;
+import std.stdio;
+import std.c.stdlib;
 
 import dmdscript.script;
+import dmdscript.program;
+import dmdscript.errmsgs;
 
 enum
 {
@@ -81,7 +85,6 @@ int main(char[][] args)
     uint errors = 0;
     char[][] includes;
     SrcFile[] srcfiles;
-    char *p;
     int result;
     bool verbose;
     ErrInfo errinfo;
@@ -91,7 +94,7 @@ int main(char[][] args)
     for (size_t i = 1; i < args.length; i++)
     {   char[] p = args[i];
 
-        if (*p == '-')
+        if (p[0] == '-')
         {
             switch (p[1])
             {

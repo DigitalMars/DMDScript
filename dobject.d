@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2006 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -23,6 +23,7 @@ module dmdscript.dobject;
 
 import std.string;
 import std.c.stdarg;
+import std.c.string;
 
 import dmdscript.script;
 import dmdscript.value;
@@ -31,6 +32,9 @@ import dmdscript.property;
 import dmdscript.threadcontext;
 import dmdscript.iterator;
 import dmdscript.identifier;
+import dmdscript.errmsgs;
+import dmdscript.text;
+import dmdscript.program;
 
 import dmdscript.dboolean;
 import dmdscript.dstring;
@@ -40,6 +44,7 @@ import dmdscript.dmath;
 import dmdscript.ddate;
 import dmdscript.dregexp;
 import dmdscript.derror;
+import dmdscript.dnative;
 
 import dmdscript.protoerror;
 int* pfoo = &dmdscript.protoerror.foo;  // link it in

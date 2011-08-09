@@ -21,8 +21,9 @@
 
 module dmdscript.statement;
 
-import std.string;
 import std.stdio;
+import std.string;
+import std.math;
 
 import dmdscript.script;
 import dmdscript.value;
@@ -30,6 +31,12 @@ import dmdscript.scopex;
 import dmdscript.expression;
 import dmdscript.irstate;
 import dmdscript.symbol;
+import dmdscript.identifier;
+import dmdscript.ir;
+import dmdscript.lexer;
+import dmdscript.errmsgs;
+import dmdscript.functiondefinition;
+import dmdscript.opcodes;
 
 enum
 {
@@ -653,7 +660,6 @@ class SwitchStatement : Statement
             x = irs.alloc(1);
             for (uint i = 0; i < cases.length; i++)
             {
-                uint x;
                 CaseStatement cs;
 
                 x = irs.alloc(1);

@@ -23,6 +23,12 @@ module dmdscript.dboolean;
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.value;
+import dmdscript.threadcontext;
+import dmdscript.dfunction;
+import dmdscript.text;
+import dmdscript.property;
+import dmdscript.errmsgs;
+import dmdscript.dnative;
 
 /* ===================== Dboolean_constructor ==================== */
 

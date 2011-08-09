@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2006 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -21,6 +21,7 @@
 
 module dmdscript.opcodes;
 
+import std.stdio;
 import std.string;
 
 import dmdscript.script;
@@ -31,6 +32,9 @@ import dmdscript.value;
 import dmdscript.iterator;
 import dmdscript.scopex;
 import dmdscript.identifier;
+import dmdscript.ir;
+import dmdscript.errmsgs;
+import dmdscript.property;
 
 //debug=VERIFY; // verify integrity of code
 

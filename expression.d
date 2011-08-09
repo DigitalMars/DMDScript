@@ -32,6 +32,7 @@ import dmdscript.functiondefinition;
 import dmdscript.irstate;
 import dmdscript.ir;
 import dmdscript.opcodes;
+import dmdscript.identifier;
 
 /******************************** Expression **************************/
 

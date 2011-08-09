@@ -28,6 +28,8 @@ alias std.thread.Thread Thread;
 import dmdscript.script;
 import dmdscript.program;
 import dmdscript.dmath;
+import dmdscript.dobject;
+import dmdscript.dfunction;
 
 // These are our per-thread global variables
 

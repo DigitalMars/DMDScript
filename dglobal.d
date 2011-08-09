@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2006 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -23,12 +23,30 @@ module dmdscript.dglobal;
 
 import std.uri;
 import std.c.stdlib;
+import std.c.string;
 import std.stdio;
+import std.math;
 
 import dmdscript.script;
 import dmdscript.protoerror;
 import dmdscript.parse;
 import dmdscript.text;
+import dmdscript.dobject;
+import dmdscript.value;
+import dmdscript.statement;
+import dmdscript.threadcontext;
+import dmdscript.functiondefinition;
+import dmdscript.scopex;
+import dmdscript.opcodes;
+import dmdscript.property;
+
+import dmdscript.dstring;
+import dmdscript.darray;
+import dmdscript.dregexp;
+import dmdscript.dnumber;
+import dmdscript.dboolean;
+import dmdscript.dfunction;
+import dmdscript.dnative;
 
 d_string arg0string(Value[] arglist)
 {

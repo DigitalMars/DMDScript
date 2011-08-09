@@ -25,6 +25,10 @@ import dmdscript.script;
 import dmdscript.lexer;
 import dmdscript.functiondefinition;
 import dmdscript.expression;
+import dmdscript.statement;
+import dmdscript.identifier;
+import dmdscript.ir;
+import dmdscript.errmsgs;
 
 class Parser : Lexer
 {
@@ -344,7 +348,7 @@ class Parser : Lexer
 
                 nextToken();
                 for (;;)
-                {   Loc loc = currentline;
+                {   loc = currentline;
 
                     if (token.value != TOKidentifier)
                     {
@@ -903,7 +907,6 @@ class Parser : Lexer
             for (;;)
             {   Field f;
                 Identifier* ident;
-                Expression e;
 
                 if (token.value != TOKidentifier)
                 {   error(ERR_EXPECTED_IDENTIFIER);
@@ -912,8 +915,7 @@ class Parser : Lexer
                 ident = token.ident;
                 nextToken();
                 check(TOKcolon);
-                e = parseAssignExp();
-                f = new Field(ident,e);
+                f = new Field(ident, parseAssignExp());
                 fields ~= f;
                 if (token.value != TOKcomma)
                     break;

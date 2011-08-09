@@ -24,7 +24,7 @@ module dmdscript.iterator;
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.value;
-//import dmdscript.property;
+import dmdscript.property;
 
 Dobject getPrototype(Dobject o)
 {

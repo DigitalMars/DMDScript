@@ -28,6 +28,9 @@ import dmdscript.script;
 import dmdscript.value;
 import dmdscript.dobject;
 import dmdscript.dnative;
+import dmdscript.threadcontext;
+import dmdscript.text;
+import dmdscript.property;
 
 d_number math_helper(Value[] arglist)
 {

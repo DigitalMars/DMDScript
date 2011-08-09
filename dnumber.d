@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2006 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -22,10 +22,17 @@
 module dmdscript.dnumber;
 
 import std.math;
+import std.c.stdlib;
 
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.dfunction;
+import dmdscript.value;
+import dmdscript.threadcontext;
+import dmdscript.text;
+import dmdscript.property;
+import dmdscript.errmsgs;
+import dmdscript.dnative;
 
 /* ===================== Dnumber_constructor ==================== */
 

@@ -22,11 +22,20 @@
 module dmdscript.dfunction;
 
 import std.string;
+import std.c.stdlib;
 
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.value;
 import dmdscript.protoerror;
+import dmdscript.threadcontext;
+import dmdscript.text;
+import dmdscript.errmsgs;
+import dmdscript.property;
+import dmdscript.scopex;
+import dmdscript.dnative;
+import dmdscript.functiondefinition;
+import dmdscript.parse;
 
 /* ===================== Dfunction_constructor ==================== */
 

@@ -22,10 +22,19 @@
 module dmdscript.darray;
 
 import std.string;
+import std.c.stdlib;
 
 import dmdscript.script;
 import dmdscript.value;
 import dmdscript.dobject;
+import dmdscript.threadcontext;
+import dmdscript.identifier;
+import dmdscript.dfunction;
+import dmdscript.text;
+import dmdscript.property;
+import dmdscript.errmsgs;
+import dmdscript.dnative;
+import dmdscript.program;
 
 /* ===================== Darray_constructor ==================== */
 
@@ -162,21 +171,21 @@ void *Darray_prototype_toLocaleString(Dobject pthis, CallContext *cc, Dobject ot
             r ~= separator;
         v = othis.Get(k);
         if (v && !v.isUndefinedOrNull())
-        {   Dobject othis;
+        {   Dobject ot;
 
-            othis = v.toObject();
-            v = othis.Get(TEXT_toLocaleString);
+            ot = v.toObject();
+            v = ot.Get(TEXT_toLocaleString);
             if (v && !v.isPrimitive())  // if it's an Object
             {   void* a;
                 Dobject o;
-                Value ret;
+                Value rt;
 
                 o = v.object;
-                ret.putVundefined();
-                a = o.Call(cc, othis, &ret, null);
+                rt.putVundefined();
+                a = o.Call(cc, ot, &rt, null);
                 if (a)                  // if exception was thrown
                     return a;
-                r ~= ret.toString();
+                r ~= rt.toString();
             }
         }
     }

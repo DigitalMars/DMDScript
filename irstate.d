@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2006 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -22,10 +22,15 @@
 module dmdscript.irstate;
 
 import std.c.stdarg;
+import std.c.stdlib;
+import std.c.string;
 import std.outbuffer;
 
 import dmdscript.script;
 import dmdscript.statement;
+import dmdscript.opcodes;
+import dmdscript.ir;
+import dmdscript.identifier;
 
 // The state of the interpreter machine as seen by the code generator, not
 // the interpreter.
