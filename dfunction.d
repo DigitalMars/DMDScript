@@ -15,7 +15,7 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
@@ -36,6 +36,7 @@ import dmdscript.scopex;
 import dmdscript.dnative;
 import dmdscript.functiondefinition;
 import dmdscript.parse;
+import dmdscript.ddeclaredfunction;
 
 /* ===================== Dfunction_constructor ==================== */
 
@@ -88,7 +89,8 @@ class Dfunction_constructor : Dfunction
             if (errinfo.message)
                 goto Lsyntaxerror;
             fd.toIR(null);
-            ret.putVobject(fd.fobject);
+            Dfunction fobj = new DdeclaredFunction(fd);
+            ret.putVobject(fobj);
         }
         else
             ret.putVundefined();
@@ -289,6 +291,7 @@ class Dfunction_prototype : Dfunction
 
 class Dfunction : Dobject
 {   tchar[] name;
+    Dobject[] scopex;   // Function object's scope chain per 13.2 step 7
 
     this(d_uint32 length)
     {

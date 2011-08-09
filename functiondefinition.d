@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2006 by Digital Mars
+ * D version Copyright (c) 2004-2007 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -15,11 +15,13 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
 module dmdscript.functiondefinition;
+
+import std.stdio;
 
 import dmdscript.script;
 import dmdscript.identifier;
@@ -51,13 +53,14 @@ class FunctionDefinition : TopStatement
 
     Identifier*[] varnames;     // array of Identifier's
     FunctionDefinition[] functiondefinitions;
+    FunctionDefinition enclosingFunction;
+    int nestDepth;
     int withdepth;              // max nesting of ScopeStatement's
 
     SymbolTable *labtab;        // symbol table for LabelSymbol's
 
     IR *code;
     uint nlocals;
-    Dfunction fobject;
 
 
     this(TopStatement[] topstatements)
@@ -88,16 +91,11 @@ class FunctionDefinition : TopStatement
         TopStatement ts;
         FunctionDefinition fd;
 
-        //writef("FunctionDefinition::semantic(%p)\n", this);
+        //writef("FunctionDefinition::semantic(%s)\n", this);
 
-        if (!fobject)
-        {
-            fobject = new DdeclaredFunction(this);
-            assert(fobject.internal_prototype);
-        }
         // Log all the FunctionDefinition's so we can rapidly
         // instantiate them at runtime
-        fd = sc.funcdef;
+        fd = enclosingFunction = sc.funcdef;
 
         // But only push it if it is not already in the array
         for (i = 0; ; i++)
@@ -112,7 +110,11 @@ class FunctionDefinition : TopStatement
 
         //writef("isglobal = %d, isanonymous = %d\n", isglobal, isanonymous);
         if (!isglobal && !isanonymous)
-            sc = sc.push(this);
+        {   sc = sc.push(this);
+            sc.nestDepth++;
+        }
+        nestDepth = sc.nestDepth;
+        //writefln("nestDepth = %d", nestDepth);
 
         if (topstatements.length)
         {
@@ -195,7 +197,7 @@ class FunctionDefinition : TopStatement
         IRstate irs;
         uint i;
 
-        //writef("FunctionDefinition::toIR('%ls'), code = %p, done = %d\n", name ? name.string : L"", code, done);
+        //writefln("FunctionDefinition.toIR() done = %d", done);
         irs.ctor();
         if (topstatements.length)
         {
@@ -220,29 +222,42 @@ class FunctionDefinition : TopStatement
         }
         irs.gen0(0, IRret);
         irs.gen0(0, IRend);
+
+        //irs.validate();
+
         irs.doFixups();
         irs.optimize();
+
         code = cast(IR *) irs.codebuf.data;
         irs.codebuf.data = null;
         nlocals = irs.nlocals;
     }
 
-    void instantiate(Dobject actobj, uint attributes)
+    void instantiate(Dobject[] scopex, Dobject actobj, uint attributes)
     {
-        //writefln("FunctionDefinition.instantiate()");
+        //writefln("FunctionDefinition.instantiate() %s nestDepth = %d", name ? name.toString() : "", nestDepth);
 
-        // Instantiate all the Var's
+        // Instantiate all the Var's per 10.1.3
         foreach (Identifier* name; varnames)
         {
             // If name is already declared, don't override it
+            //writefln("\tVar Put(%s)", name.toString());
             actobj.Put(name.toString(), &vundefined, Instantiate | DontOverride | attributes);
         }
 
-        // Instantiate the Function's
+        // Instantiate the Function's per 10.1.3
         foreach (FunctionDefinition fd; functiondefinitions)
         {
+            // Set [[Scope]] property per 13.2 step 7
+            Dfunction fobject = new DdeclaredFunction(fd);
+            fobject.scopex = scopex;
+
             if (fd.name)       // skip anonymous functions
-                actobj.Put(fd.name.toString(), fd.fobject, Instantiate | attributes);
+            {
+                //writefln("\tFunction Put(%s)", fd.name.toString());
+                actobj.Put(fd.name.toString(), fobject, Instantiate | attributes);
+            }
         }
+        //writefln("-FunctionDefinition.instantiate()");
     }
 }

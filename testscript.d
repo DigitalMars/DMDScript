@@ -15,7 +15,7 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
@@ -25,6 +25,7 @@ import std.path;
 import std.file;
 import std.stdio;
 import std.c.stdlib;
+import std.gc;
 
 import dmdscript.script;
 import dmdscript.program;

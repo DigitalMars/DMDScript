@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2007 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -15,7 +15,7 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
@@ -1315,7 +1315,9 @@ class WithStatement : ScopeStatement
         if (depth > sc.funcdef.withdepth)
             sc.funcdef.withdepth = depth;
 
+        sc.nestDepth++;
         bdy = bdy.semantic(sc);
+        sc.nestDepth--;
 
         sc.scopeContext = enclosingScope;
         return this;

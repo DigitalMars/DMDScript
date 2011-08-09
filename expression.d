@@ -15,7 +15,7 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
@@ -310,7 +310,9 @@ class StringExpression : Expression
     {
         static assert((Identifier*).sizeof == uint.sizeof);
         if (ret)
-            irs.gen2(loc, IRstring, ret, cast(uint)Identifier.build(string));
+        {   uint u =  cast(uint)Identifier.build(string);
+            irs.gen2(loc, IRstring, ret, u);
+        }
     }
 }
 
@@ -601,7 +603,7 @@ class FunctionLiteral : Expression
     void toIR(IRstate *irs, uint ret)
     {
         func.toIR(null);
-        irs.gen2(loc, IRobject, ret, cast(uint)cast(void*)func.fobject);
+        irs.gen2(loc, IRobject, ret, cast(uint)cast(void*)func);
     }
 }
 

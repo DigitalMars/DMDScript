@@ -15,7 +15,7 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
@@ -87,6 +87,7 @@ import dmdscript.value;
 import dmdscript.dobject;
 import dmdscript.program;
 import dmdscript.text;
+import dmdscript.functiondefinition;
 
 struct CallContext
 {
@@ -100,7 +101,8 @@ struct CallContext
     void* lastnamedfunc;  // points to the last named function added as an event
     Program prog;
     Dobject callerothis;        // caller's othis
-    Dobject caller;             // caller function
+    Dobject caller;             // caller function object
+    FunctionDefinition callerf;
 
     char[16] value;     // place to store exception; must be same size as Value
     uint linnum;        // source line number of exception (1 based, 0 if not available)
@@ -120,7 +122,7 @@ Global global;
 tchar[] banner()
 {
     return std.string.format(
-        "Digital Mars DMDScript 1.13\n",
+        "Digital Mars DMDScript 1.14\n",
         "www.digitalmars.com\n",
         "Compiled by Digital Mars DMD D compiler\n",
         global.copyright, "\n",

@@ -15,7 +15,7 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
@@ -25,6 +25,7 @@ import std.c.stdarg;
 import std.c.stdlib;
 import std.c.string;
 import std.outbuffer;
+import std.gc;
 
 import dmdscript.script;
 import dmdscript.statement;
@@ -51,6 +52,20 @@ struct IRstate
     void ctor()
     {
         codebuf = new OutBuffer();
+    }
+
+    void validate()
+    {
+        assert(codebuf.offset <= codebuf.data.length);
+        if (codebuf.data.length > std.gc.capacity(codebuf.data.ptr))
+            printf("ptr %p, length %d, capacity %d\n", codebuf.data.ptr, codebuf.data.length, std.gc.capacity(codebuf.data.ptr));
+        assert(codebuf.data.length <= std.gc.capacity(codebuf.data.ptr));
+        for (uint u = 0; u < codebuf.offset;)
+        {
+            IR* code = cast(IR*)(codebuf.data.ptr + u);
+            assert(code.opcode < IRMAX);
+            u += IR.size(code.opcode) * 4;
+        }
     }
 
     /**********************************
@@ -193,7 +208,7 @@ struct IRstate
 
     void gen(Loc loc, uint opcode, uint argc, ...)
     {
-        codebuf.reserve((1 + argc) * 4);
+        codebuf.reserve((1 + argc) * uint.sizeof);
         codebuf.write(combine(loc, opcode));
         for (uint i = 1; i <= argc; i++)
         {
@@ -224,6 +239,7 @@ struct IRstate
 
     void patchJmp(uint index, uint value)
     {
+        assert((index + 1) * 4 < codebuf.offset);
         (cast(uint *)(codebuf.data))[index + 1] = value - index;
     }
 
@@ -250,6 +266,7 @@ struct IRstate
         for (i = 0; i < fixups.length; i++)
         {
             index = fixups[i];
+            assert((index + 1) * 4 < codebuf.offset);
             s = (cast(Statement *)codebuf.data)[index + 1];
             value = s.getTarget();
             patchJmp(index, value);
@@ -272,8 +289,7 @@ struct IRstate
         length = c - code + 1;
 
         // Allocate a bit vector for the array
-        bit[] b;
-        b.length = length;
+        bit[] b = new bit[length];
 
         // Set bit for each target of a jump
         for (c = code; c.opcode != IRend; c += IR.size(c.opcode))

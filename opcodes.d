@@ -15,7 +15,7 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
@@ -35,6 +35,8 @@ import dmdscript.identifier;
 import dmdscript.ir;
 import dmdscript.errmsgs;
 import dmdscript.property;
+import dmdscript.ddeclaredfunction;
+import dmdscript.dfunction;
 
 //debug=VERIFY; // verify integrity of code
 
@@ -95,6 +97,7 @@ Value* scope_get(Dobject[] scopex, Identifier* id, Dobject *pthis)
     Value* v;
 
     //writef("scope_get: scope = %p, scope.data = %p\n", scopex, scopex.data);
+    //writefln("scope_get: scopex = %x, length = %d, id = %s", cast(uint)scopex.ptr, scopex.length, id.toString());
     d = scopex.length;
     for (;;)
     {
@@ -120,7 +123,7 @@ Value* scope_get_lambda(Dobject[] scopex, Identifier* id, Dobject *pthis)
     Dobject o;
     Value* v;
 
-    //printf("scope_get_lambda: scope = %p, length = %d\n", scopex.ptr, scopex.length);
+    //writefln("scope_get_lambda: scope = %x, length = %d, id = %s", cast(uint)scopex.ptr, scopex.length, id.toString());
     d = scopex.length;
     for (;;)
     {
@@ -141,7 +144,7 @@ Value* scope_get_lambda(Dobject[] scopex, Identifier* id, Dobject *pthis)
             break;
         }
     }
-    //writef("v = %x\n", cast(uint)cast(void*)v);
+    //writefln("v = %x", cast(uint)cast(void*)v);
     return v;
 }
 
@@ -150,6 +153,7 @@ Value* scope_get(Dobject[] scopex, Identifier* id)
     Dobject o;
     Value* v;
 
+    //writefln("scope_get: scopex = %x, length = %d, id = %s", cast(uint)scopex.ptr, scopex.length, id.toString());
     d = scopex.length;
     // 1 is most common case for d
     if (d == 1)
@@ -164,9 +168,11 @@ Value* scope_get(Dobject[] scopex, Identifier* id)
         }
         d--;
         o = scopex[d];
+        //writefln("\to = %s", o);
         v = o.Get(id);
         if (v)
             break;
+        //writefln("\tnot found");
     }
     return v;
 }
@@ -322,6 +328,7 @@ struct IR
         d_boolean boolean;
         Statement target;       // used for backpatch fixups
         Dobject object;
+        void* ptr;
     }
 
     /****************************
@@ -756,9 +763,14 @@ struct IR
                     break;
 
                 case IRobject:              // a = object
-                    GETa(code).putVobject((code + 2).object);
+                {   FunctionDefinition fd;
+                    fd = cast(FunctionDefinition)(code + 2).ptr;
+                    Dfunction fobject = new DdeclaredFunction(fd);
+                    fobject.scopex = scopex;
+                    GETa(code).putVobject(fobject);
                     code += 3;
                     break;
+                }
 
                 case IRthis:                // a = this
                     GETa(code).putVobject(othis);
@@ -1984,7 +1996,7 @@ else
                 break;
 
             case IRobject:          // a = object
-                writef("\tIRobject    %d, %p\n",(code + 1).index,(code + 2).object);
+                writef("\tIRobject    %d, %x\n",(code + 1).index,cast(void*)(code + 2).object);
                 break;
 
             case IRthis:            // a = this
@@ -2592,7 +2604,7 @@ else
                 break;
 
             default:
-                writef("3: Unrecognized IR instruction %d\n", opcode);
+                writef("3: Unrecognized IR instruction %d, IRMAX = %d\n", opcode, IRMAX);
                 assert(0);          // unrecognized IR instruction
         }
         assert(sz <= 6);

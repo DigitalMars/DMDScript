@@ -15,12 +15,13 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
 module dmdscript.ddeclaredfunction;
 
+import std.stdio;
 import std.c.stdlib;
 
 import dmdscript.script;
@@ -69,8 +70,9 @@ class DdeclaredFunction : Dfunction
         uint i;
         void *result;
 
-        //writef("DdeclaredFunction.Call() '%s'\n", toString());
-        //writef("\tinstantiate(this = %p, fd = %p)\n", this, fd);
+        //writefln("DdeclaredFunction.Call() '%s'", toString());
+        //writefln("this.scopex.length = %d", this.scopex.length);
+        //writefln("\tinstantiate(this = %x, fd = %x)", cast(uint)cast(void*)this, cast(uint)cast(void*)fd);
 
         // if it's an empty function, just return
         if (fd.code[0].opcode == IRret)
@@ -81,8 +83,6 @@ class DdeclaredFunction : Dfunction
         // Generate the activation object
         // ECMA v3 10.1.6
         actobj = new Dobject(null);
-
-        fd.instantiate(actobj, DontDelete);
 
         // Instantiate the parameters
         {
@@ -112,18 +112,57 @@ class DdeclaredFunction : Dfunction
         //          var cardpic = new MakeArray("LL","AP","BA","MB","FH","AW","CW","CV","DZ");
         Put(TEXT_arguments, args, DontDelete);          // make grannymail bug work
 
+        auto scoperootsave = cc.scoperoot;
+
+        /* If calling a nested function, need to increase scoperoot
+         */
+        if (fd.enclosingFunction == cc.callerf)
+        {   assert(cc.scoperoot < cc.scopex.length);
+            cc.scoperoot++;
+        }
+        else
+        {
+            auto df = cast(DdeclaredFunction)cc.caller;
+            if (df && !fd.isanonymous)
+            {
+                version (none)
+                {
+                    writefln("current nestDepth = %d, calling %d, cc.scopex.length = %d",
+                            df.fd.nestDepth,
+                            fd.nestDepth,
+                            cc.scopex.length);
+                }
+                int diff = df.fd.nestDepth - fd.nestDepth;
+                if (diff > 0)
+                {   if (diff >= cc.scoperoot)
+                        writefln("diff %s cc.scoperoot %s", diff, cc.scoperoot);
+                    else
+                        cc.scoperoot -= diff;
+                    assert(cc.scoperoot >= 1);
+                }
+            }
+        }
+
         Dobject[] scopesave = cc.scopex;
 
         Dobject[] scopex;
-        //scopex.reserve(cc.scoperoot + fd.withdepth + 2);
-        scopex = cc.scopex[0 .. cc.scoperoot].dup;
+        //scopex = cc.scopex[0 .. cc.scoperoot].dup;
+        scopex = this.scopex.dup;
+        if (scopex.length == 0)
+        {   this.scopex = cc.scopex[0 .. cc.scoperoot];
+            scopex = this.scopex.dup;
+        }
         scopex ~= actobj;
+
+        fd.instantiate(scopex, actobj, DontDelete);
 
         cc.scopex = scopex;
         Dobject variablesave = cc.variable;
         cc.variable = actobj;
-        Dobject callersave = cc.caller;
+        auto callersave = cc.caller;
         cc.caller = this;
+        auto callerfsave = cc.callerf;
+        cc.callerf = fd;
 
         Value[] p1;
         Value* v;
@@ -141,9 +180,11 @@ class DdeclaredFunction : Dfunction
 
         delete p1;
 
+        cc.callerf = callerfsave;
         cc.caller = callersave;
         cc.variable = variablesave;
         cc.scopex = scopesave;
+        cc.scoperoot = scoperootsave;
 
         // Remove the arguments object
         //Value* v;

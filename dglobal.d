@@ -15,7 +15,7 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
@@ -146,7 +146,7 @@ else
     // Variable instantiation is performed using the calling
     // context's variable object and using empty
     // property attributes
-    fd.instantiate(cc.variable, 0);
+    fd.instantiate(cc.scopex, cc.variable, 0);
 
     // The this value is the same as the this value of the
     // calling context.

@@ -15,7 +15,7 @@
  * www.digitalmars.com/d/
  *
  * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
+ * see www.digitalmars.com/dscript/cppscript.html.
  */
 
 
@@ -209,7 +209,7 @@ class Program
 
         // Instantiate global variables as properties of global
         // object with 0 attributes
-        globalfunction.instantiate(cc.variable, 0);
+        globalfunction.instantiate(cc.scopex, cc.variable, 0);
 
 //      cc.scopex.reserve(globalfunction.withdepth + 1);
 

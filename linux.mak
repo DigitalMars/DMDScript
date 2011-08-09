@@ -14,7 +14,7 @@ OUTDIR=.
 DFLAGS=-I.. -O -release
 
 CC=gcc
-#DMD=../mars/dmd
+#DMD=../mars1/dmd
 DMD=dmd
 
 # Makerules:
