@@ -355,7 +355,7 @@ void* Dregexp_prototype_compile(Dobject pthis, CallContext *cc, Dobject othis, V
         {
             r.compile(pattern, attributes);
         }
-        catch (RegExpError e)
+        catch (RegExpException e)
         {
             // Affect source, global and ignoreCase properties
             dr.source.putVstring(r.pattern);

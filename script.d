@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2006 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -111,7 +111,7 @@ struct CallContext
 
 struct Global
 {
-    tchar[] copyright = "Copyright (c) 1999-2005 by Digital Mars";
+    tchar[] copyright = "Copyright (c) 1999-2006 by Digital Mars";
     tchar[] written = "written by Walter Bright";
 }
 
@@ -120,7 +120,7 @@ Global global;
 tchar[] banner()
 {
     return std.string.format(
-        "Digital Mars DMDScript 1.06\n",
+        "Digital Mars DMDScript 1.07\n",
         "www.digitalmars.com\n",
         "Compiled by Digital Mars DMD D compiler\n",
         global.copyright, "\n",

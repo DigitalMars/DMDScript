@@ -116,7 +116,7 @@ Value* scope_get_lambda(Dobject[] scope, Identifier* id, Dobject *pthis)
     Dobject o;
     Value* v;
 
-    //printf("scope_get_lambda: scope = %p, length = %d\n", scope, scope.length);
+    //printf("scope_get_lambda: scope = %p, length = %d\n", scope.ptr, scope.length);
     d = scope.length;
     for (;;)
     {
@@ -127,6 +127,8 @@ Value* scope_get_lambda(Dobject[] scope, Identifier* id, Dobject *pthis)
         }
         d--;
         o = scope[d];
+        //printf("o = %p ", o);
+        //writefln("o = %s", o);
         //printf("o = %x, hash = x%x, s = '%.*s'\n", o, hash, s);
         //v = o.GetLambda(s, hash);
         v = o.Get(id);
@@ -402,6 +404,7 @@ struct IR
             writef("-printfunc\n");
         }
         scope = cc.scope;
+        //printf("call: scope = %p, length = %d\n", scope.ptr, scope.length);
         dimsave = scope.length;
     //if (logflag)
     //    writef("IR.call(othis = %p, code = %p, locals = %p)\n",othis,code,locals);
