@@ -728,7 +728,6 @@ struct Value
             default:
                 writefln("vtype = %d", vtype);
                 assert(0);
-                break;
         }
         return s;
     }
@@ -747,7 +746,6 @@ struct Value
             default:
                 writefln("vtype = %d", vtype);
                 assert(0);
-                break;
         }
         return s;
     }
@@ -941,7 +939,7 @@ struct Value
             msg = std.string.format(errmsgtbl[ERR_CANNOT_GET_FROM_PRIMITIVE],
                 PropertyName, getType(), toString());
             throw new ScriptException(msg);
-            return &vundefined;
+            //return &vundefined;
         }
     }
 
@@ -957,7 +955,7 @@ struct Value
             msg = std.string.format(errmsgtbl[ERR_CANNOT_GET_INDEX_FROM_PRIMITIVE],
                 index, getType(), toString());
             throw new ScriptException(msg);
-            return &vundefined;
+            //return &vundefined;
         }
     }
 
@@ -973,7 +971,7 @@ struct Value
             msg = std.string.format(errmsgtbl[ERR_CANNOT_GET_FROM_PRIMITIVE],
                 id.toString(), getType(), toString());
             throw new ScriptException(msg);
-            return &vundefined;
+            //return &vundefined;
         }
     }
 /+
@@ -989,7 +987,7 @@ struct Value
             msg = std.string.format(errmsgtbl[ERR_CANNOT_GET_FROM_PRIMITIVE],
                 PropertyName, getType(), toString());
             throw new ScriptException(msg);
-            return &vundefined;
+            //return &vundefined;
         }
     }
 +/

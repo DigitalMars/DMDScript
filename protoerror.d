@@ -28,6 +28,7 @@ import dmdscript.threadcontext;
 import dmdscript.text;
 import dmdscript.dfunction;
 
+int foo;        // cause this module to be linked in
 
 /* ===================== D0_constructor ==================== */
 

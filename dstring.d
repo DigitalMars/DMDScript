@@ -896,7 +896,6 @@ void* Dstring_prototype_substring(Dobject pthis, CallContext *cc, Dobject othis,
 
     void* p = dstring_substring(s, sUCSdim, start, end, ret);
     return p;
-    return dstring_substring(s, sUCSdim, start, end, ret);
 }
 
 /* ===================== Dstring_prototype_toLowerCase ============= */

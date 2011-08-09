@@ -33,6 +33,12 @@ enum
         EXITCODE_RUNTIME_ERROR = 3,
 }
 
+version (Windows)
+{
+    pragma(lib, "dmdscript");
+}
+
+
 
 /**************************************************
         Usage:

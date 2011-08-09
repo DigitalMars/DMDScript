@@ -42,6 +42,8 @@ import dmdscript.dregexp;
 import dmdscript.derror;
 
 import dmdscript.protoerror;
+int* pfoo = &dmdscript.protoerror.foo;  // link it in
+
 
 //debug = LOG;
 
