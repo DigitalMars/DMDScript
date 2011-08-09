@@ -491,7 +491,7 @@ struct Value
 
                         // Trim leading spaces
                         // Trim leading spaces
-                        for (p = buffer; *p == ' '; p++) { }
+                        for (p = buffer.ptr; *p == ' '; p++) { }
 
                         {   // Trim any 0's following exponent 'e'
                             tchar* q;

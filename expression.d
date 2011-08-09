@@ -96,7 +96,7 @@ class Expression
         if (!sc.errinfo.message)
         {   sc.errinfo.message = buf;
             sc.errinfo.linnum = loc;
-            sc.errinfo.srcline = Lexer.locToSrcline(sc.getSource(), loc);
+            sc.errinfo.srcline = Lexer.locToSrcline(sc.getSource().ptr, loc);
         }
     }
 

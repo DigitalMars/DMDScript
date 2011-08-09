@@ -220,7 +220,7 @@ class Program
         {
             setProgram(this);
             ret.putVundefined();
-            result = cast(Value*)IR.call(cc, cc.global, globalfunction.code, &ret, locals);
+            result = cast(Value*)IR.call(cc, cc.global, globalfunction.code, &ret, locals.ptr);
         }
         finally
         {

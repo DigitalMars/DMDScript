@@ -137,7 +137,7 @@ class DdeclaredFunction : Dfunction
             locals = p1;
         }
 
-        result = IR.call(cc, othis, fd.code, ret, locals);
+        result = IR.call(cc, othis, fd.code, ret, locals.ptr);
 
         delete p1;
 

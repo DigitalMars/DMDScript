@@ -248,7 +248,7 @@ class Lexer
             base ~= cast(tchar)0x1A;
         this.base = base;
         this.end  = base.ptr + base.length;
-        p = base;
+        p = base.ptr;
         currentline = 1;
         freelist = null;
     }
@@ -294,8 +294,8 @@ class Lexer
         //writefln("TEXT START ------------\n%ls\nTEXT END ------------------", base);
 
         // Find the beginning of the line
-        slinestart = base;
-        for (s = base; s != p; s++)
+        slinestart = base.ptr;
+        for (s = base.ptr; s != p; s++)
         {
             if (*s == '\n')
             {   linnum++;
@@ -1284,14 +1284,14 @@ class Lexer
                         if ((number_t.max - v) / base < intvalue)
                         {
                             realvalue = 0;
-                            foreach (tchar v; start[0 .. p - start])
+                            foreach (tchar w; start[0 .. p - start])
                             {
-                                if ('0' <= v && v <= '9')
-                                    v -= '0';
-                                else if ('a' <= v && v <= 'f')
-                                    v -= ('a' - 10);
-                                else if ('A' <= v && v <= 'F')
-                                    v -= ('A' - 10);
+                                if ('0' <= w && w <= '9')
+                                    w -= '0';
+                                else if ('a' <= w && w <= 'f')
+                                    w -= ('a' - 10);
+                                else if ('A' <= w && w <= 'F')
+                                    w -= ('A' - 10);
                                 else
                                     assert(0);
                                 realvalue *= base;

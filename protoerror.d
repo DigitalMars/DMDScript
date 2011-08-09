@@ -93,7 +93,6 @@ template proto(alias TEXT_D1)
         }
     }
 
-
     /* ===================== D0 ==================== */
 
     class D0 : Dobject
@@ -161,6 +160,7 @@ template proto(alias TEXT_D1)
             constructor.Put(TEXT_prototype, prototype, DontEnum | DontDelete | ReadOnly);
         }
     }
+
 
     /**********************************
      * Register initializer for this class.

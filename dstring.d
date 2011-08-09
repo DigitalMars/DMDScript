@@ -745,7 +745,7 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
             {
                 if (str)                // string
                 {
-                    if (q + rs.length <= S.length && !memcmp(S.ptr + q, rs, rs.length * tchar.sizeof))
+                    if (q + rs.length <= S.length && !memcmp(S.ptr + q, rs.ptr, rs.length * tchar.sizeof))
                     {
                         e = q + rs.length;
                         if (e != p)

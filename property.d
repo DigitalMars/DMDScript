@@ -1,7 +1,7 @@
 
 /* Digital Mars DMDScript source code.
  * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
+ * D version Copyright (c) 2004-2006 by Digital Mars
  * All Rights Reserved
  * written by Walter Bright
  * www.digitalmars.com
@@ -118,10 +118,8 @@ extern (C)
         size_t i = hash % aalen;
         auto pe = &aa.a.b[i];
         while ((e = *pe) != null)
-        {   int c;
-
-            c = hash - e.hash;
-            if (c == 0)
+        {
+            if (hash == e.hash)
             {
                 Value* v = cast(Value*)(e + 1);
                 if (key.vtype == V_NUMBER)
@@ -132,20 +130,18 @@ extern (C)
                 {   if (v.vtype == V_STRING && key.string is v.string)
                         goto Lret;
                 }
-                c = key.opCmp(v);
+                auto c = key.opCmp(v);
                 if (c == 0)
                     goto Lret;
+                pe = (c < 0) ? &e.left : &e.right;
             }
-
-            if (c < 0)
-                pe = &e.left;
             else
-                pe = &e.right;
+                pe = (hash < e.hash) ? &e.left : &e.right;
         }
 
         // Not found, create new elem
         //printf("\tcreate new one\n");
-        e = cast(aaA *) cast(void*) new byte[aaA.sizeof + Value.sizeof + Property.sizeof];
+        e = cast(aaA *) cast(void*) new void[aaA.sizeof + Value.sizeof + Property.sizeof];
         std.c.string.memcpy(e + 1, key, Value.sizeof);
         e.hash = hash;
         *pe = e;
@@ -177,27 +173,24 @@ extern (C)
             i = hash % aa.a.b.length;
             auto e = aa.a.b[i];
             while (e != null)
-            {   int c;
-
-                c = hash - e.hash;
-                if (c == 0)
+            {
+                if (hash == e.hash)
                 {
                     Value* v = cast(Value*)(e + 1);
                     if (key.vtype == V_NUMBER && v.vtype == V_NUMBER &&
                         key.number == v.number)
                         goto Lfound;
-                    c = key.opCmp(v);
+                    auto c = key.opCmp(v);
                     if (c == 0)
                     {
                      Lfound:
                         return cast(Property*)(cast(void *)(e + 1) + Value.sizeof);
                     }
+                    else
+                        e = (c < 0) ? e.left : e.right;
                 }
-
-                if (c < 0)
-                    e = e.left;
                 else
-                    e = e.right;
+                    e = (hash < e.hash) ? e.left : e.right;
             }
         }
 
@@ -359,17 +352,15 @@ struct PropTable
 
             aalen = 97 + 1;
             *aa = new pa[aalen];
-            (*aa)[0] = cast(aaA *) cast(void*) new byte[aaA.sizeof];
+            (*aa)[0] = cast(aaA *) cast(void*) new void[aaA.sizeof];
         }
 
         //printf("hash = %d\n", hash);
         i = (hash % (aalen - 1)) + 1;
         pe = &(*aa)[i];
         while ((e = *pe) != null)
-        {   int c;
-
-            c = hash - e.hash;
-            if (c == 0)
+        {
+            if (hash == e.hash)
             {
                 Value* v = cast(Value*)(e + 1);
                 if (key.vtype == V_NUMBER)
@@ -380,24 +371,22 @@ struct PropTable
                 {   if (v.vtype == V_STRING && key.string is v.string)
                         goto Lfound;
                 }
-                c = key.opCmp(v);
+                auto c = key.opCmp(v);
                 if (c == 0)
                 {
                 Lfound:
                     p = cast(Property*)(v + 1);
                     goto Lx;
                 }
+                pe = (c < 0) ? &e.left : &e.right;
             }
-
-            if (c < 0)
-                pe = &e.left;
             else
-                pe = &e.right;
+                pe = (hash < e.hash) ? &e.left : &e.right;
         }
 
         // Not found, create new elem
         //printf("\tcreate new one\n");
-        e = cast(aaA *) cast(void*) new byte[aaA.sizeof + Value.sizeof + Property.sizeof];
+        e = cast(aaA *) cast(void*) new void[aaA.sizeof + Value.sizeof + Property.sizeof];
         memcpy(e + 1, key, Value.sizeof);
         e.hash = hash;
         *pe = e;

@@ -151,7 +151,7 @@ else
     // The this value is the same as the this value of the
     // calling context.
     assert(cc.callerothis);
-    result = IR.call(cc, cc.callerothis, fd.code, ret, locals);
+    result = IR.call(cc, cc.callerothis, fd.code, ret, locals.ptr);
     if (p1)
         delete p1;
     fd = null;
@@ -346,7 +346,7 @@ void* Dglobal_escape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, 
     {
         //writefln("s.length = %d, escapes = %d, unicodes = %d", s.length, escapes, unicodes);
         R = new tchar[slen + escapes * 2 + unicodes * 5];
-        tchar* r = R;
+        tchar* r = R.ptr;
         foreach (dchar c; s)
         {
             if (c >= 0x100)
