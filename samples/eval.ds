@@ -1,0 +1,13 @@
+//DMDScript sample script
+//Simple read-eval loop
+
+evalLine = "";
+do{
+	evalLine = readln();
+	try{
+		var r = eval(evalLine);
+		println(r);
+	}catch(e){
+		println(e);
+	}
+}while(evalLine);

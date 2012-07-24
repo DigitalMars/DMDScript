@@ -1,72 +1,82 @@
+Intro
+---------------------------------------
+DMDScript is an implementation of ECMA-262 scripting language
+written in the D programming language.
+For more info on DMDscript, consult
+http://www.digitalmars.com/dscript/index.html
 
-	DMDScript in D
+This is DMDScript-2, a port of DMDScript to D 2.0.
 
-DMDScript is the Digital Mars implementation of the ECMA262 scripting
-language, also known as javascript.
-The D implementation is very high performance, as you can verify using
-the enclosed sieve benchmark. Try it!
+Main goals of this project, in the order of priority:
+1. Make it more stable (this is a MUST for browser-like apps for instance).
+2. Bring it in line with ECMA spec.
+3. Refactor to use modern D2 idioms and practices, Phobos being prime example.
+4. Introduce an utility wrapper library, providing 
+convenience of extensibility/embedding.
+5. Make it even faster ;)
 
 
-/* Digital Mars DMDScript source code.
- * Copyright (c) 2000-2002 by Chromium Communications
- * D version Copyright (c) 2004-2005 by Digital Mars
- * All Rights Reserved
- * written by Walter Bright
- * www.digitalmars.com
- * Use at your own risk. There is no warranty, express or implied.
- * License for redistribution is by the GNU General Public License in gpl.txt.
- *
- * A binary, non-exclusive license for commercial use can be
- * purchased from www.digitalmars.com/dscript/buy.html.
- *
- * DMDScript is implemented in the D Programming Language,
- * www.digitalmars.com/d/
- *
- * For a C++ implementation of DMDScript, including COM support,
- * see www.digitalmars.com/dscript/cpp.html.
- */
+Status
+---------------------------------------
+Well, the porting itself is complete, but I was forced to reduce
+it's performance a fair bit. The reason is simple, DMDScript used
+a kind of speed hack to manipulate with the 
+underlying AA implementation directly. The trick was to compute hash only 
+once for given value, then search it in N hash-tables.
+Chances are that D2 AA are different from theirs D1 counterpart.
+For the moment I'm just using RandAA with equivalent hack which works fine.
 
-DMDScript in D comes as source code in D with a compiled library.
-To use it, you'll need the D compiler from www.digitalmars.com/d/
 
-Documentation:
+As of now it's able to run a great deal of scripts.
+I'm running it through the Google's sputnik ECMA-262 testsuit:
+http://code.google.com/p/sputniktests/
 
-	www.digitalmars.com/dscript/index.html
+See sputnikXXX.txt logfiles for extensive details.
 
-Files:
+Speaking of the aforementioned points:
+[Stability] 
+It's about 99.9% there I see few segfaults 
+in 5200+ testes (and these are very nitpicky tests).
+[ECMA Spec] 
+This can be checked in accompaning logfile no less then 95%
+[Refactoring]
+Transition to exception handling and so on
+[extending/embedding]
+A in a highly experimential state, 
+in fact requires refactoring of the library
 
-	readme.txt	this file
-	gpl.txt		GNU Public License
-	*.d		DMDScript source files
-	testscript.d	test program
-	win32.mak	makefile for Windows
-	linux.mak	makefile for Linux
-	dmdscript.lib	library for Windows
-	libdmdscript.a	library for Linux
-	sieve.ds	simple sieve benchmark
-	sieve.html	simple sieve benchmark to run under browswer
-	suite.ds	small test suite
+Building
+---------------------------------------
+To get started just invoke make with the right makefile
+in the project's root dir, that is
+make -fwin32.mak
+or 
+make -fposix.mak
 
-To create test program ds:
+and make sure you have DMD's paths properly set up.
+And if this all goes well you'll have 2 files produced:
+dmdscript.lib/libdmdscript - the scripting language engine lib
+ds.exe/ds - standalone console version, good for testing things
 
-    Windows:
+*** A note to Windows users:
+If you are uncomfortable with makefiles there is also VisualD's solution file.
+Check it out: http://www.dsource.org/projects/visuald
 
-	1) unzip dmdscript.zip
-	2) cd dmdscript
-	3) dmd ds.exe testscript.d dmdscript.lib
 
-    Linux:
+Testing
+---------------------------------------
 
-	1) unzip dmdscript.zip
-	2) cd dmdscript
-	3) gcc -o ds testscript.o libdmdscript.a -lpthread -lm -g
+Was successfully tested on Windows 7 and Ubuntu 10.4 32bit.
+Anyone having interest please take time to build and run it 
+through the Google's Sputnik testsuit
+the results if any is warmly welcome at dmitry.olsh@gmail.com
 
-To run sieve.ds:
-
-    ds sieve
-
-To run suite.ds:
-
-    ds suite
-
+Samples
+---------------------------------------
+There some small samples to get started located at /samples.
+Their number should gradualy increase as the main areas of work on  
+the engine itself are complete.
+To prepare samples, as thouse on extending/embedding script 
+engine require additional compilation,  use samples target of makefile
+make -f<win32.mak/posix.mak> samples
 
