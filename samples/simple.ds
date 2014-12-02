@@ -1,0 +1,4 @@
+//Simple example showing DMDScript extensions to ECMA262, print(ln)/readln 
+println("What's your name stranger?");
+var name = readln();
+print("Hello, ",name,"\n");

@@ -1,0 +1,45 @@
+function Run() {
+	BenchmarkSuite.RunSuites({ NotifyStep: ShowProgress,
+                             NotifyError: AddError,
+                             NotifyResult: AddResult,
+                             NotifyScore: AddScore }); 
+}
+var completed = 0;
+var benchmarks = BenchmarkSuite.CountBenchmarks();
+var success = true;
+ 
+function ShowProgress(name) {
+  var percentage = ((++completed) / benchmarks) * 100;
+  println("\rRunning: " + Math.round(percentage) + "% completed.");
+}
+ 
+function AddResult(name, result) {
+  var text = name + ': ' + result;
+  println(text);
+}
+ 
+ 
+function AddError(name, error) {
+  AddResult(name, 'error');
+  //println(text);
+  success = false;
+}
+ 
+ 
+function AddScore(score) {
+  if (success) {
+    //results.push("Score: " + score);
+  }
+}
+ 
+function Run() {
+  BenchmarkSuite.RunSuites({ NotifyStep: ShowProgress,
+                             NotifyError: AddError,
+                             NotifyResult: AddResult,
+                             NotifyScore: AddScore }); 
+}
+  
+
+println("Version: ", BenchmarkSuite.version);
+Run();
+ 

@@ -1,0 +1,6 @@
+print("Calling extended function...");
+println(mul(2,2,4));
+a = new A(42);//extended method
+a.f("Test it");
+
+

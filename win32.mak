@@ -1,121 +1,38 @@
-# Dscript makefile
-# http://www.digitalmars.com
-# Written by Walter Bright
-# Copyright (C) Digital Mars 1999 - 2010.
-# Distributed under the Boost Software License, Version 1.0.
-# (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-
-# Build with Digital Mars D:
-#	make -f win32.mak
-
-
-OUTDIR=.
 DMD=dmd
-DSCRIPTSVN=\svnproj\dmdscript\trunk
-CP=cp
 
-# Debug build
-#CFLAGS=-I.. -g
-#LFLAGS=/ma/co
+RFLAGS=-O -release -inline  -d 
+LIB_SRC= \
+dmdscript\darguments.d dmdscript\darray.d dmdscript\dboolean.d \
+dmdscript\ddate.d dmdscript\ddeclaredfunction.d \
+dmdscript\derror.d dmdscript\dfunction.d dmdscript\dglobal.d \
+dmdscript\dmath.d dmdscript\dnative.d dmdscript\dnumber.d \
+dmdscript\dobject.d dmdscript\dregexp.d dmdscript\dstring.d \
+dmdscript\errmsgs.d dmdscript\expression.d dmdscript\functiondefinition.d \
+dmdscript\identifier.d dmdscript\ir.d dmdscript\irstate.d \
+dmdscript\iterator.d dmdscript\lexer.d dmdscript\opcodes.d dmdscript\parse.d \
+dmdscript\program.d dmdscript\property.d \
+dmdscript/date.d dmdscript/dateparse.d dmdscript/datebase.d \
+dmdscript\protoerror.d dmdscript\RandAA.d dmdscript\scopex.d dmdscript/outbuffer.d\
+dmdscript\script.d dmdscript\statement.d dmdscript\symbol.d dmdscript\text.d dmdscript/regexp.d\
+dmdscript\threadcontext.d dmdscript\utf.d dmdscript\value.d dmdscript\extending.d
 
-# Release build
-CFLAGS=-I.. -O -release
-LFLAGS=/ma
+all: ds.exe samples
 
-# Makerules:
-.d.obj :
-	 $(DMD) -c $(CFLAGS) $*.d
+ds.exe: testscript.d dmdscript.lib
+	$(DMD) $(RFLAGS) dmdscript.lib testscript.d -ofds.exe
 
-defaulttarget: ds.exe dmdscript.lib
+dmdscript.lib: $(LIB_SRC)
+	$(DMD) -lib $(RFLAGS) $(LIB_SRC) -ofdmdscript.lib
 
-################ RELEASES #########################
+samples: samples/ext.exe
 
-release:
-	make clean
-	make ds.exe
-	make clean
-
-#########################################
-
-OBJS=	identifier.obj lexer.obj parse.obj expression.obj errmsgs.obj \
-	property.obj iterator.obj value.obj dmath.obj dnative.obj \
-	dstring.obj ddate.obj dboolean.obj dnumber.obj dregexp.obj derror.obj \
-	darguments.obj dglobal.obj darray.obj dfunction.obj dobject.obj \
-	threadcontext.obj script.obj program.obj statement.obj ddeclaredfunction.obj \
-	scopex.obj symbol.obj functiondefinition.obj irstate.obj ir.obj \
-	opcodes.obj text.obj \
-	protoerror.obj testscript.obj
-
-SRC=	identifier.d lexer.d parse.d expression.d textgen.d \
-	property.d iterator.d protoerror.d value.d dmath.d dnative.d \
-	dstring.d ddate.d dboolean.d dnumber.d dregexp.d derror.d \
-	darguments.d dglobal.d darray.d dfunction.d dobject.d \
-	threadcontext.d program.d statement.d ddeclaredfunction.d \
-	scopex.d symbol.d functiondefinition.d irstate.d ir.d \
-	opcodes.d text.d script.d testscript.d
-
-SRCBLDS= errmsgs.d
-
-
-############### Link Command Line ##########################
-
-ds.exe : $(SRCBLDS) testscript.obj dmdscript.lib win32.mak
-	$(DMD) ds.exe testscript.obj -L$(LFLAGS) dmdscript.lib
-
-dmdscript.lib : $(OBJS) win32.mak
-#	$(DMD) -lib dmdscript.lib $(OBJS)
-	-del dmdscript.lib
-	lib -c -p32 dmdscript.lib $(OBJS)
-
-##################### SPECIAL BUILDS #####################
-
-################# Source file dependencies ###############
-
-dfunction.obj : dfunction.d protoerror.d
-
-dglobal.obj : dglobal.d protoerror.d
-
-dobject.obj : dobject.d
-
-dregexp.obj : dregexp.d protoerror.d
-
-opcodes.obj : opcodes.d
-	 $(DMD) -c $(CFLAGS) -inline opcodes.d
-
-property.obj : property.d
-	 $(DMD) -c $(CFLAGS) -inline property.d
-
-value.obj : value.d
-	 $(DMD) -c $(CFLAGS) -inline value.d
-
-threadcontext.obj : threadcontext.d
-
-################### Utilities ################
-
-errmsgs.d : $(OUTDIR)\textgen.exe
-	$(OUTDIR)\textgen
-
-$(OUTDIR)\textgen.obj : textgen.d
-	$(DMD) -c textgen.d
-
-$(OUTDIR)\textgen.exe : $(OUTDIR)\textgen.obj
-	$(DMD) $(OUTDIR)\textgen.obj $(OUTDIR)\textgen.exe
-
-################### Utilities ################
+samples/ext.exe: samples/ext.d dmdscript.lib
+	$(DMD) $(RFLAGS) dmdscript.lib samples/ext.d -ofext.exe
+	copy ext.exe samples
+	del ext.exe
 
 clean:
-	del $(OBJS)
-	del textgen.obj textgen.exe
-	del errmsgs.d
+	del dmdscript.lib
+	del ds.exe
+	del samples/ext.exe
 
-zip : $(SRC) win32.mak linux.mak osx.mak LICENSE_1_0.txt
-	del dmdscript.zip
-	zip32 dmdscript $(SRC) win32.mak linux.mak osx.mak LICENSE_1_0.txt
-
-################### Write to SVN ################
-
-svn:
-	$(CP) $(SRC) win32.mak linux.mak osx.mak LICENSE_1_0.txt $(DSCRIPTSVN)\ 
-
-
-###################################

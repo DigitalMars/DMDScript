@@ -6,6 +6,8 @@
  * written by Walter Bright
  * http://www.digitalmars.com
  *
+ * D2 port by Dmitry Olshansky
+ *
  * DMDScript is implemented in the D Programming Language,
  * http://www.digitalmars.com/d/
  *
@@ -16,18 +18,18 @@
 // Program to generate string files in script data structures.
 // Saves much tedious typing, and eliminates typo problems.
 // Generates:
-//      text.d
+//	text.d
 
 import std.c.stdio;
 import std.c.stdlib;
-import std.stdio;
-
+//import std.stdio;
+import std.string;
 
 struct Msgtable
 {
-        char[] name;
-        int value;
-        char[] ident;
+	string name;
+	int value;
+	string ident;
 }
 
 
@@ -36,8 +38,8 @@ Msgtable errtable[] =
     { "DMDScript fatal runtime error: ",                         0, "ERR_RUNTIME_PREFIX" },
     { "No default value for COM object",                         0, "ERR_COM_NO_DEFAULT_VALUE" },
     { "%s does not have a [[Construct]] property",               0, "ERR_COM_NO_CONSTRUCT_PROPERTY" },
-    { "argument type mismatch for %s",                           0, "ERR_DISP_E_TYPEMISMATCH" },
-    { "wrong number of arguments for %s",                        0, "ERR_DISP_E_BADPARAMCOUNT" },
+    { "argument type mismatch for %s",			         0, "ERR_DISP_E_TYPEMISMATCH" },
+    { "wrong number of arguments for %s",		         0, "ERR_DISP_E_BADPARAMCOUNT" },
     { "%s Invoke() fails with COM error %x",                     0, "ERR_COM_FUNCTION_ERROR" },
     { "Dcomobject: %s.%s fails with COM error %x",               0, "ERR_COM_OBJECT_ERROR" },
     { "unrecognized switch '%s'",                                0, "ERR_BAD_SWITCH" },
@@ -96,7 +98,7 @@ Msgtable errtable[] =
     { "cannot assign to %s",                                     0, "ERR_CANNOT_ASSIGN_TO" },
     { "cannot assign %s to %s",                                  0, "ERR_CANNOT_ASSIGN" },
     { "cannot assign to %s.%s",                                  0, "ERR_CANNOT_ASSIGN_TO2" },
-    { "cannot assign to function",                               0, "ERR_FUNCTION_NOT_LVALUE"},
+    { "cannot assign to function",				                 0, "ERR_FUNCTION_NOT_LVALUE"},
     { "RHS of %s must be an Object, not a %s",                   0, "ERR_RHS_MUST_BE_OBJECT" },
     { "can't Put('%s', %s) to a primitive %s",                   0, "ERR_CANNOT_PUT_TO_PRIMITIVE" },
     { "can't Put(%u, %s) to a primitive %s",                     0, "ERR_CANNOT_PUT_INDEX_TO_PRIMITIVE" },
@@ -106,29 +108,29 @@ Msgtable errtable[] =
     { "primitive %s has no Construct method",                    0, "ERR_PRIMITIVE_NO_CONSTRUCT" },
     { "primitive %s has no Call method",                         0, "ERR_PRIMITIVE_NO_CALL" },
     { "for-in must be on an object, not a primitive",            0, "ERR_FOR_IN_MUST_BE_OBJECT" },
-    { "assert() line %d",                                        0, "ERR_ASSERT"},
-    { "object does not have a [[Call]] property",                0, "ERR_OBJECT_NO_CALL"},
-    { "%s: %s",                                                  0, "ERR_S_S"},
-    { "no Default Put for object",                               0, "ERR_NO_DEFAULT_PUT"},
-    { "%s does not have a [[Construct]] property",               0, "ERR_S_NO_CONSTRUCT"},
-    { "%s does not have a [[Call]] property",                    0, "ERR_S_NO_CALL"},
-    { "%s does not have a [[HasInstance]] property",             0, "ERR_S_NO_INSTANCE"},
-    { "length property must be an integer",                      0, "ERR_LENGTH_INT"},
-    { "Array.prototype.toLocaleString() not transferrable",      0, "ERR_TLS_NOT_TRANSFERRABLE"},
-    { "Function.prototype.toString() not transferrable",         0, "ERR_TS_NOT_TRANSFERRABLE"},
+    { "assert() line %d",					 0, "ERR_ASSERT"},
+    { "object does not have a [[Call]] property",		 0, "ERR_OBJECT_NO_CALL"},
+    { "%s: %s",							 0, "ERR_S_S"},
+    { "no Default Put for object",				 0, "ERR_NO_DEFAULT_PUT"},
+    { "%s does not have a [[Construct]] property",		 0, "ERR_S_NO_CONSTRUCT"},
+    { "%s does not have a [[Call]] property",			 0, "ERR_S_NO_CALL"},
+    { "%s does not have a [[HasInstance]] property",		 0, "ERR_S_NO_INSTANCE"},
+    { "length property must be an integer",			 0, "ERR_LENGTH_INT"},
+    { "Array.prototype.toLocaleString() not transferrable",	 0, "ERR_TLS_NOT_TRANSFERRABLE"},
+    { "Function.prototype.toString() not transferrable",	 0, "ERR_TS_NOT_TRANSFERRABLE"},
     { "Function.prototype.apply(): argArray must be array or arguments object", 0, "ERR_ARRAY_ARGS"},
-    { ".prototype must be an Object, not a %s",                  0, "ERR_MUST_BE_OBJECT"},
-    { "VBArray expected, not a %s",                              0, "ERR_VBARRAY_EXPECTED"},
-    { "VBArray subscript out of range",                          0, "ERR_VBARRAY_SUBSCRIPT"},
-    { "Type mismatch",                                           0, "ERR_ACTIVEX"},
-    { "no property %s",                                          0, "ERR_NO_PROPERTY"},
-    { "Put of %s failed",                                        0, "ERR_PUT_FAILED"},
-    { "Get of %s failed",                                        0, "ERR_GET_FAILED"},
-    { "argument not a collection",                               0, "ERR_NOT_COLLECTION"},
-    { "%s.%s expects a valid UTF codepoint not \\\\u%x",         0, "ERR_NOT_VALID_UTF"},
-
+    { ".prototype must be an Object, not a %s",			 0, "ERR_MUST_BE_OBJECT"},
+    { "VBArray expected, not a %s",				 0, "ERR_VBARRAY_EXPECTED"},
+    { "VBArray subscript out of range",				 0, "ERR_VBARRAY_SUBSCRIPT"},
+    { "Type mismatch",						 0, "ERR_ACTIVEX"},
+    { "no property %s",						 0, "ERR_NO_PROPERTY"},
+    { "Put of %s failed",					 0, "ERR_PUT_FAILED"},
+    { "Get of %s failed",					 0, "ERR_GET_FAILED"},
+    { "argument not a collection",				 0, "ERR_NOT_COLLECTION"},
+    { "%s.%s expects a valid UTF codepoint not \\\\u%x",	 0, "ERR_NOT_VALID_UTF"},
+	{ "Variable '%s' is not defined" ,                            0, "ERR_UNDEFINED_VAR"},
 // COM error messages
-    { "Unexpected",                                              0, "ERR_E_UNEXPECTED"},
+    { "Unexpected",						 0, "ERR_E_UNEXPECTED"},
 ];
 
 int main()
@@ -139,8 +141,8 @@ int main()
     fp = fopen("errmsgs.d","w");
     if (!fp)
     {
-        printf("can't open errmsgs.d\n");
-        exit(EXIT_FAILURE);
+	printf("can't open errmsgs.d\n");
+	exit(EXIT_FAILURE);
     }
 
     fprintf(fp, "// File generated by textgen.d\n");
@@ -151,22 +153,22 @@ int main()
     fprintf(fp, "module dmdscript.errmsgs;\n");
     fprintf(fp, "enum {\n");
     for (i = 0; i < errtable.length; i++)
-    {   char[] id = errtable[i].ident;
+    {	string id = errtable[i].ident;
 
-        if (!id)
-            id = errtable[i].name;
-        fwritefln(fp,"\t%s = %d,", id, i);
+	if (!id)
+	    id = errtable[i].name;
+	fprintf(fp,"\t%s = %d,\n", toStringz(id), i);
     }
     fprintf(fp, "};\n");
 
     fprintf(fp, "// *** ERROR MESSAGES ***\n");
     fprintf(fp, "//\n");
-    fprintf(fp, "char[][] errmsgtbl = [\n");
+    fprintf(fp, "string[] errmsgtbl = [\n");
     for (i = 0; i < errtable.length; i++)
-    {   char[] id = errtable[i].ident;
-        char[] p = errtable[i].name;
+    {	string id = errtable[i].ident;
+	string p = errtable[i].name;
 
-        fwritefln(fp,"\t\"%s\",", p);
+	fprintf(fp,"\t\"%s\",\n",toStringz(p));
     }
     fprintf(fp, "];\n");
 
