@@ -191,7 +191,7 @@ class DdateConstructor : Dfunction
             { TEXT_UTC, &Ddate_UTC, 7 },
         ];
 
-        DnativeFunction.init(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, nfd, DontEnum);
     }
 
     void *Construct(CallContext *cc, Value *ret, Value[] arglist)
@@ -1488,7 +1488,7 @@ class DdatePrototype : Ddate
             { TEXT_toGMTString, &Ddate_prototype_toUTCString, 0 },
         ];
 
-        DnativeFunction.init(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, nfd, DontEnum);
         assert(proptable.get("toString", Value.calcHash("toString")));
     }
 }
@@ -1519,7 +1519,7 @@ class Ddate : Dobject
         value.putVnumber(d_number.nan);
     }
 
-    static void init()
+    static void initialize()
     {
         Ddate_constructor = new DdateConstructor();
         Ddate_prototype = new DdatePrototype();

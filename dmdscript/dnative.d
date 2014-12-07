@@ -62,7 +62,7 @@ class DnativeFunction : Dfunction
      * to go in as properties of o.
      */
 
-    static void init(Dobject o, NativeFunctionData[] nfd, uint attributes)
+    static void initialize(Dobject o, NativeFunctionData[] nfd, uint attributes)
     {
         Dobject f = Dfunction.getPrototype();
 

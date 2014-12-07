@@ -64,10 +64,8 @@ enum
 
 struct Value
 {
-    ubyte vtype = V_UNDEFINED;
-
     uint  hash;                 // cache 'hash' value
-
+    ubyte vtype = V_UNDEFINED;
     union
     {
         d_boolean dbool;        // can be true or false
@@ -1154,8 +1152,10 @@ struct Value
         writef("v[%x] = %8x, %8x, %8x, %8x\n", cast(uint)v, v[0], v[1], v[2], v[3]);
     }
 }
-
-static assert(Value.sizeof == 16);
+static if(size_t.sizeof == 4)
+  static assert(Value.sizeof == 16);
+else
+  static assert(Value.sizeof == 24); //fat string point 2*8 + type tag & hash
 
 Value vundefined = { V_UNDEFINED };
 Value vnull = { V_NULL };

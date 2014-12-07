@@ -108,7 +108,7 @@ class DarrayConstructor : Dfunction
                 a.proptable.roots.zero();
                }
              +/
-            a.ulength = arglist.length;
+            a.ulength = cast(uint)arglist.length;
             a.length.number = arglist.length;
             for(uint k = 0; k < arglist.length; k++)
             {
@@ -876,7 +876,7 @@ version(SliceSpliceExtension){
     }
 
     A.Put(TEXT_length, delcnt, DontEnum);
-    inscnt = (arglist.length > 2) ? arglist.length - 2 : 0;
+    inscnt = (arglist.length > 2) ? cast(uint)arglist.length - 2 : 0;
     if(inscnt != delcnt)
     {
         if(inscnt <= delcnt)
@@ -936,9 +936,9 @@ void *Darray_prototype_unshift(Dobject pthis, CallContext *cc, Dobject othis, Va
     {
         v = othis.Get(k - 1);
         if(v)
-            othis.Put(k + arglist.length - 1, v, 0);
+            othis.Put(cast(uint)(k + arglist.length - 1), v, 0);
         else
-            othis.Delete(k + arglist.length - 1);
+            othis.Delete(cast(uint)(k + arglist.length - 1));
     }
 
     for(k = 0; k < arglist.length; k++)
@@ -978,7 +978,7 @@ class DarrayPrototype : Darray
             { TEXT_unshift, &Darray_prototype_unshift, 1 },
         ];
 
-        DnativeFunction.init(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, nfd, DontEnum);
     }
 }
 
@@ -1208,7 +1208,7 @@ class Darray : Dobject
         return Darray_prototype;
     }
 
-    static void init()
+    static void initialize()
     {
         Darray_constructor = new DarrayConstructor();
         Darray_prototype = new DarrayPrototype();

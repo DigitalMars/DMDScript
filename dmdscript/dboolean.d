@@ -129,7 +129,7 @@ class DbooleanPrototype : Dboolean
             { TEXT_valueOf, &Dboolean_prototype_valueOf, 0 },
         ];
 
-        DnativeFunction.init(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, nfd, DontEnum);
     }
 }
 
@@ -162,7 +162,7 @@ class Dboolean : Dobject
         return Dboolean_prototype;
     }
 
-    static void init()
+    static void initialize()
     {
         Dboolean_constructor = new DbooleanConstructor();
         Dboolean_prototype = new DbooleanPrototype();

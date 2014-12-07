@@ -87,7 +87,7 @@ class DstringConstructor : Dfunction
             { TEXT_fromCharCode, &Dstring_fromCharCode, 1 },
         ];
 
-        DnativeFunction.init(this, nfd, 0);
+        DnativeFunction.initialize(this, nfd, 0);
     }
 
     void *Construct(CallContext *cc, Value *ret, Value[] arglist)
@@ -278,13 +278,13 @@ void* Dstring_prototype_indexOf(Dobject pthis, CallContext *cc, Dobject othis, V
 
     Value* v1;
     Value* v2;
-    int pos;            // ECMA says pos should be a d_number,
+    ptrdiff_t pos;            // ECMA says pos should be a d_number,
                         // but I can't find a reason.
     d_string s;
     size_t sUCSdim;
 
     d_string searchString;
-    int k;
+    ptrdiff_t k;
 
     Value xx;
     xx.putVobject(othis);
@@ -324,12 +324,12 @@ void* Dstring_prototype_lastIndexOf(Dobject pthis, CallContext *cc, Dobject othi
     // String.prototype.lastIndexOf(searchString, position)
 
     Value *v1;
-    int pos;            // ECMA says pos should be a d_number,
+    ptrdiff_t pos;            // ECMA says pos should be a d_number,
                         // but I can't find a reason.
     d_string s;
     size_t sUCSdim;
     d_string searchString;
-    int k;
+    ptrdiff_t k;
 
     version(all)
     {
@@ -532,8 +532,8 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
                 newstring = replaceValue.toString();
                 replacement = re.replace(newstring);
             }
-            int starti = re.pmatch[0].rm_so + offset;
-            int endi = re.pmatch[0].rm_eo + offset;
+            ptrdiff_t starti = re.pmatch[0].rm_so + offset;
+            ptrdiff_t endi = re.pmatch[0].rm_eo + offset;
             result = string[0 .. starti] ~
                      replacement ~
                      string[endi .. $];
@@ -557,10 +557,8 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
     }
     else
     {
-        int match;
-
         searchString = searchValue.toString();
-        match = std.string.indexOf(string, searchString);
+        ptrdiff_t match = std.string.indexOf(string, searchString);
         if(match >= 0)
         {
             pmatch[0].rm_so = match;
@@ -627,9 +625,9 @@ void* Dstring_prototype_search(Dobject pthis, CallContext *cc, Dobject othis, Va
 void* Dstring_prototype_slice(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
     // ECMA v3 15.5.4.13
-    d_int32 start;
-    d_int32 end;
-    d_int32 sUCSdim;
+    ptrdiff_t start;
+    ptrdiff_t end;
+    ptrdiff_t sUCSdim;
     d_string s;
     d_string r;
     Value *v;
@@ -691,10 +689,10 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
 {
     // ECMA v3 15.5.4.14
     // String.prototype.split(separator, limit)
-    d_uint32 lim;
-    d_uint32 p;
-    d_uint32 q;
-    d_uint32 e;
+    size_t lim;
+    size_t p;
+    size_t q;
+    size_t e;
     Value* separator = &vundefined;
     Value* limit = &vundefined;
     Dregexp R;
@@ -789,8 +787,8 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
                             p = e;
                             for(uint i = 0; i < re.re_nsub; i++)
                             {
-                                int so = re.pmatch[1 + i].rm_so;
-                                int eo = re.pmatch[1 + i].rm_eo;
+                                ptrdiff_t so = re.pmatch[1 + i].rm_so;
+                                ptrdiff_t eo = re.pmatch[1 + i].rm_eo;
 
                                 //writefln("i = %d, nsub = %s, so = %s, eo = %s, S.length = %s", i, re.re_nsub, so, eo, S.length);
                                 if(so != -1 && eo != -1)
@@ -943,16 +941,16 @@ void *tocase(Dobject othis, Value *ret, CASE caseflag)
     switch(caseflag)
     {
     case CASE.Lower:
-        s = std.string.tolower(s);
+        s = std.string.toLower(s);
         break;
     case CASE.Upper:
-        s = std.string.toupper(s);
+        s = std.string.toUpper(s);
         break;
     case CASE.LocaleLower:
-        s = std.string.tolower(s);
+        s = std.string.toLower(s);
         break;
     case CASE.LocaleUpper:
-        s = std.string.toupper(s);
+        s = std.string.toUpper(s);
         break;
     default:
         assert(0);
@@ -1183,7 +1181,7 @@ class DstringPrototype : Dstring
             { TEXT_sup, &Dstring_prototype_sup, 0 },
         ];
 
-        DnativeFunction.init(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, nfd, DontEnum);
     }
 }
 
@@ -1209,7 +1207,7 @@ class Dstring : Dobject
         value.putVstring(null);
     }
 
-    static void init()
+    static void initialize()
     {
         Dstring_constructor = new DstringConstructor();
         Dstring_prototype = new DstringPrototype();

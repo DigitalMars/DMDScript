@@ -266,7 +266,7 @@ class DregexpConstructor : Dfunction
         t = s;
         if(s.length == 2 && s[0] == '$')
         {
-            int i;
+            ptrdiff_t i;
 
             i = std.string.indexOf(from[], s[1]);
             if(i >= 0)
@@ -397,7 +397,7 @@ class DregexpPrototype : Dregexp
             { TEXT_test, &Dregexp_prototype_test, 1 },
         ];
 
-        DnativeFunction.init(this, nfd, attributes);
+        DnativeFunction.initialize(this, nfd, attributes);
     }
 }
 
@@ -414,8 +414,6 @@ class Dregexp : Dobject
     Value *source;
 
     RegExp re;
-
-    void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist);
 
     this(d_string pattern, d_string attributes)
     {
@@ -703,7 +701,7 @@ class Dregexp : Dobject
         return Dregexp_prototype;
     }
 
-    static void init()
+    static void initialize()
     {
         Dregexp_constructor = new DregexpConstructor();
         Dregexp_prototype = new DregexpPrototype();

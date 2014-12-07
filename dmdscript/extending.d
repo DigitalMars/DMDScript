@@ -73,14 +73,14 @@ if(isCallable!fn) {
         {
             name,
             &embedded,
-            staticLength!(Args)
+            Args.length
         }
     ];
-    DnativeFunction.init(pg.callcontext.global,nfd,DontEnum);
+    DnativeFunction.initialize(pg.callcontext.global,nfd,DontEnum);
 }
                                     
 void fitArray(T...)(ref Value[] arglist){
-    enum staticLen = staticLength!T;
+    enum staticLen = T.length;
     if(arglist.length < staticLen){
         auto len = arglist.length;
         arglist.length = staticLen;
@@ -97,13 +97,13 @@ if(is(T == class) && isCallable!fn){
 	static void* embedded(Dobject pthis, CallContext* cc,
                           Dobject othis, Value* ret,	Value[] arglist){
 
-        static if(staticLength!Uargs){
+        static if(Uargs.length){
             Tuple!(Uargs) tup = convertAll!(Uargs)(arglist);
         
             fitArray(arglist);
         }
         assert(cast(T)othis,"Wrong this pointer in external func ");
-        static if(staticLength!Uargs){
+        static if(Uargs.length){
              auto dg = (){ mixin("(cast(T)othis).wrapped."~(&fn).stringof[2..$]~"(tup.expand);"); };
         } else{
              auto dg = (){ mixin("(cast(T)othis).wrapped."~(&fn).stringof[2..$]~"();"); };   
@@ -121,10 +121,10 @@ if(is(T == class) && isCallable!fn){
         {
             name,
             &embedded,
-            staticLength!(Args)
+            Args.length
         }
     ];
-    DnativeFunction.init(obj,nfd,DontEnum);
+    DnativeFunction.initialize(obj,nfd,DontEnum);
 }                          
 class Wrap(Which,string ClassName,Base=Dobject): Base{
     Which wrapped;
@@ -132,7 +132,7 @@ class Wrap(Which,string ClassName,Base=Dobject): Base{
     static Constructor _constructor;
     static class Constructor: Dfunction{
         this(){
-            super(staticLength!(ConstructorArgs), Dfunction_prototype);
+            super(ConstructorArgs.length, Dfunction_prototype);
             name = ClassName;
         }
 
@@ -172,7 +172,7 @@ class Wrap(Which,string ClassName,Base=Dobject): Base{
         } 
     }
     static void methods(Methods...)(){
-        static if(staticLength!(Methods) >= 1){
+        static if(Methods.length >= 1){
              extendMethod!(Wrap,Methods[0])(_prototype,(&Methods[0]).stringof[2..$]);
         
              methods!(Methods[1..$])();
@@ -181,7 +181,7 @@ class Wrap(Which,string ClassName,Base=Dobject): Base{
 }       
                         
 auto convertAll(Args...)(Value[] dest){
-    static if(staticLength!(Args) > 1){
+    static if(Args.length > 1){
         return tuple(convert!(Args[0])(&dest[0]),convertAll!(Args[1..$])(dest[1..$]).expand);  
     }else 
         return tuple(convert!(Args[0])(&dest[0]));

@@ -29,7 +29,7 @@ void encode(ref immutable(char)[] s, dchar c)
         else if(c <= 0xFFFF)
         {
             if(0xD800 <= c && c <= 0xDFFF)
-                throw new UtfException(
+                throw new UTFException(
                     "encoding a surrogate code point in UTF-8", c);
             assert(isValidDchar(c));
             buf[0] = cast(char)(0xE0 | (c >> 12));
@@ -49,7 +49,7 @@ void encode(ref immutable(char)[] s, dchar c)
         else
         {
             assert(!isValidDchar(c));
-            throw new UtfException(
+            throw new UTFException(
                 "encoding an invalid code point in UTF-8", c);
         }
         r ~= buf[0 .. L];
