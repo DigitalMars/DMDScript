@@ -115,7 +115,7 @@ class DerrorPrototype : Derror
             { TEXT_toString, &Derror_prototype_toString, 0 },
         ];
 
-        DnativeFunction.init(this, nfd, 0);
+        DnativeFunction.initialize(this, nfd, 0);
 
         Put(TEXT_name, TEXT_Error, 0);
         Put(TEXT_message, TEXT_, 0);
@@ -176,7 +176,7 @@ class Derror : Dobject
         return Derror_prototype;
     }
 
-    static void init()
+    static void initialize()
     {
         Derror_constructor = new DerrorConstructor();
         Derror_prototype = new DerrorPrototype();

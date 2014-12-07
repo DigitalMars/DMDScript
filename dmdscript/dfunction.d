@@ -43,7 +43,7 @@ class DfunctionConstructor : Dfunction
     {
         super(1, Dfunction_prototype);
 
-        // Actually put in later by Dfunction::init()
+        // Actually put in later by Dfunction::initialize()
         //unsigned attributes = DontEnum | DontDelete | ReadOnly;
         //Put(TEXT_prototype, Dfunction::getPrototype(), attributes);
     }
@@ -275,7 +275,7 @@ class DfunctionPrototype : Dfunction
             { TEXT_call, &Dfunction_prototype_call, 1 },
         ];
 
-        DnativeFunction.init(this, nfd, attributes);
+        DnativeFunction.initialize(this, nfd, attributes);
     }
 
     void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
@@ -384,7 +384,7 @@ class Dfunction : Dobject
       return Dfunction_prototype;
   }
 
-  static void init()
+  static void initialize()
   {
       Dfunction_constructor = new DfunctionConstructor();
       Dfunction_prototype = new DfunctionPrototype();

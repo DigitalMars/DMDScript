@@ -341,7 +341,7 @@ class Dmath : Dobject
             { TEXT_tan, &Dmath_tan, 1 },
         ];
 
-        DnativeFunction.init(this, nfd, attributes);
+        DnativeFunction.initialize(this, nfd, attributes);
     }
 
     static void init()

@@ -26,7 +26,7 @@ import std.stdio;
 import std.string;
 import std.utf;
 import std.outbuffer;
-import std.ctype;
+import std.ascii;
 import std.c.stdlib;
 
 import dmdscript.script;
@@ -34,6 +34,7 @@ import dmdscript.text;
 import dmdscript.identifier;
 import dmdscript.scopex;
 import dmdscript.errmsgs;
+import dmdscript.utf;
 
 /* Tokens:
         (	)
@@ -194,15 +195,15 @@ struct Token
         switch(value)
         {
         case TOKnumber:
-            p = std.string.format(intvalue);
+            p = std.string.format("%d", intvalue);
             break;
 
         case TOKreal:
             long l = cast(long)realvalue;
             if(l == realvalue)
-                p = std.string.format(l);
+                p = std.string.format("%s", l);
             else
-                p = std.string.format(realvalue);
+                p = std.string.format("%s", realvalue);
             break;
 
         case TOKstring:
@@ -495,6 +496,7 @@ class Lexer
     {
         tchar c;
         dchar d;
+        d_string id;
 
         //writefln("Lexer.scan()");
         t.sawLineTerminator = null;
@@ -552,11 +554,12 @@ class Lexer
             case '_':
             case '$':
                 Lidentifier:
-                { d_string id;
+                {
+                  id = null;
 
                   static bool isidletter(dchar d)
                   {
-                      return isalnum(d) || d == '_' || d == '$' || (d >= 0x80 && std.uni.isUniAlpha(d));
+                      return std.ascii.isAlphaNum(d) || d == '_' || d == '$' || (d >= 0x80 && std.uni.isAlpha(d));
                   }
 
                   do
@@ -730,7 +733,7 @@ class Lexer
                 immutable(tchar) * q;
                 q = p + 1;
                 c = *q;
-                if(isdigit(c))
+                if(std.ascii.isDigit(c))
                     t.value = number(t);
                 else
                 {
@@ -1024,7 +1027,7 @@ class Lexer
                 }
             default:
                 d = get(p);
-                if(d >= 0x80 && std.uni.isUniAlpha(d))
+                if(d >= 0x80 && std.uni.isAlpha(d))
                     goto Lidentifier;
                 else if(isStrWhiteSpaceChar(d))
                 {
@@ -1033,7 +1036,7 @@ class Lexer
                 }
                 else
                 {
-                    if(isprint(d))
+                    if(std.ascii.isPrintable(d))
                         error(errmsgtbl[ERR_BAD_CHAR_C], d);
                     else
                         error(errmsgtbl[ERR_BAD_CHAR_X], d);
@@ -1101,9 +1104,9 @@ class Lexer
                 v = 0;
                 for(;; )
                 {
-                    if(isdigit(c))
+                    if(std.ascii.isDigit(c))
                         c -= '0';
-                    else if(isasciilower(c))
+                    else if(std.ascii.isLower(c))
                         c -= 'a' - 10;
                     else            // 'A' <= c && c <= 'Z'
                         c -= 'A' - 10;
@@ -1285,7 +1288,7 @@ class Lexer
         for(;; )
         {
             c = *s;
-            if(isalnum(c) || c == '_' || c == '$')
+            if(std.ascii.isAlphaNum(c) || c == '_' || c == '$')
             {
                 s++;
             }
@@ -1318,7 +1321,7 @@ class Lexer
                 break;
             }
             p++;
-            if(isdigit(c))
+            if(std.ascii.isDigit(c))
                 c -= '0';
             else if(isasciilower(c))
                 c -= 'a' - 10;
@@ -1417,7 +1420,7 @@ class Lexer
                 goto Lnumber;
 
             case '.':
-                while(isdigit(*p))
+                while(std.ascii.isDigit(*p))
                     p++;
                 if(*p == 'e' || *p == 'E')
                 {
@@ -1431,11 +1434,11 @@ class Lexer
                 Lexponent:
                 if(*p == '+' || *p == '-')
                     p++;
-                if(!isdigit(*p))
+                if(!std.ascii.isDigit(*p))
                     goto Lerr;
                 do
                     p++;
-                while(isdigit(*p));
+                while(std.ascii.isDigit(*p));
                 goto Ldouble;
 
                 Ldouble:

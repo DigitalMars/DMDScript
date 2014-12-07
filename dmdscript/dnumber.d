@@ -287,18 +287,18 @@ void* Dnumber_prototype_toFixed(Dobject pthis, CallContext *cc, Dobject othis, V
             else
             {
                 // n still doesn't give 20 digits, only 19
-                m = std.string.sformat(buffer, cast(ulong)n);
+                m = std.string.sformat(buffer[], "%d", cast(ulong)n);
                 dup = 1;
             }
             if(f != 0)
             {
-                int i;
-                int k;
+                ptrdiff_t i;
+                ptrdiff_t k;
                 k = m.length;
                 if(k <= f)
                 {
                     tchar* s;
-                    int nzeros;
+                    ptrdiff_t nzeros;
 
                     s = cast(tchar*)alloca((f + 1) * tchar.sizeof);
                     assert(s);
@@ -447,7 +447,7 @@ void* Dnumber_prototype_toExponential(Dobject pthis, CallContext *cc, Dobject ot
                     }
                 }
                 // n still doesn't give 20 digits, only 19
-                m = std.string.sformat(buffer, cast(ulong)n);
+                m = std.string.sformat(buffer[], "%d", cast(ulong)n);
             }
             if(f)
             {
@@ -547,7 +547,7 @@ void* Dnumber_prototype_toPrecision(Dobject pthis, CallContext *cc, Dobject othi
                 n = deconstruct_real(x, p - 1, e);
 
                 // n still doesn't give 20 digits, only 19
-                m = std.string.sformat(buffer, cast(ulong)n);
+                m = std.string.sformat(buffer[], "%d", cast(ulong)n);
 
                 if(e < -6 || e >= p)
                 {
@@ -636,7 +636,7 @@ class DnumberPrototype : Dnumber
             { TEXT_toPrecision, &Dnumber_prototype_toPrecision, 1 },
         ];
 
-        DnativeFunction.init(this, nfd, attributes);
+        DnativeFunction.initialize(this, nfd, attributes);
     }
 }
 
@@ -669,7 +669,7 @@ class Dnumber : Dobject
         return Dnumber_prototype;
     }
 
-    static void init()
+    static void initialize()
     {
         Dnumber_constructor = new DnumberConstructor();
         Dnumber_prototype = new DnumberPrototype();

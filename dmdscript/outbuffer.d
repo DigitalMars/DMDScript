@@ -192,7 +192,8 @@ class OutBuffer
     void fill0(uint nbytes)
     {
         reserve(nbytes);
-        *cast(ubyte*)&data[offset .. offset + nbytes] = 0;
+        auto range = cast(ubyte[])data[offset .. offset + nbytes];
+        range[] = 0;
         offset += nbytes;
     }
 

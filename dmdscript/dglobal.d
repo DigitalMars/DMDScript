@@ -61,6 +61,7 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
     immutable(char)[] s;
     FunctionDefinition fd;
     ErrInfo errinfo;
+    void *result;
 
     //FuncLog funclog(L"Global.eval()");
 
@@ -111,7 +112,7 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
         locals = p1;
     }
 
-    void *result;
+   
     version(none)
     {
         Array scopex;
@@ -137,6 +138,7 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
     }
     else
     {
+        
         // The scope chain is initialized to contain the same objects,
         // in the same order, as the calling context's scope chain.
         // This includes objects added to the calling context's
@@ -159,7 +161,7 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
         return result;
     }
 
-    Lsyntaxerror:
+Lsyntaxerror:
     Dobject o;
 
     // For eval()'s, use location of caller, not the string
@@ -183,7 +185,7 @@ void* Dglobal_parseInt(Dobject pthis, CallContext *cc, Dobject othis, Value* ret
     d_int32 radix;
     int sign = 1;
     d_number number;
-    uint i;
+    size_t i;
     d_string string;
 
     string = arg0string(arglist);
@@ -192,7 +194,7 @@ void* Dglobal_parseInt(Dobject pthis, CallContext *cc, Dobject othis, Value* ret
 
     while(i < string.length)
     {
-        uint idx = i;
+        size_t idx = i;
         dchar c = std.utf.decode(string, idx);
         if(!isStrWhiteSpaceChar(c))
             break;
@@ -520,7 +522,7 @@ void* Dglobal_decodeURI(Dobject pthis, CallContext *cc, Dobject othis, Value* re
     {
         s = std.uri.decode(s);
     }
-    catch(URIerror u)
+    catch(URIException u)
     {
         ret.putVundefined();
         return URI_error(TEXT_decodeURI);
@@ -539,7 +541,7 @@ void* Dglobal_decodeURIComponent(Dobject pthis, CallContext *cc, Dobject othis, 
     {
         s = std.uri.decodeComponent(s);
     }
-    catch(URIerror u)
+    catch(URIException u)
     {
         ret.putVundefined();
         return URI_error(TEXT_decodeURIComponent);
@@ -558,7 +560,7 @@ void* Dglobal_encodeURI(Dobject pthis, CallContext *cc, Dobject othis, Value* re
     {
         s = std.uri.encode(s);
     }
-    catch(URIerror u)
+    catch(URIException u)
     {
         ret.putVundefined();
         return URI_error(TEXT_encodeURI);
@@ -577,7 +579,7 @@ void* Dglobal_encodeURIComponent(Dobject pthis, CallContext *cc, Dobject othis, 
     {
         s = std.uri.encodeComponent(s);
     }
-    catch(URIerror u)
+    catch(URIException u)
     {
         ret.putVundefined();
         return URI_error(TEXT_encodeURIComponent);
@@ -764,7 +766,7 @@ class Dglobal : Dobject
             { TEXT_ScriptEngineMinorVersion, &Dglobal_ScriptEngineMinorVersion, 0 },
         ];
 
-        DnativeFunction.init(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, nfd, DontEnum);
 
         // Now handled by AssertExp()
         // Put(TEXT_assert, Dglobal_assert(), DontEnum);

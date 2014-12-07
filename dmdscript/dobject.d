@@ -44,7 +44,7 @@ import dmdscript.derror;
 import dmdscript.dnative;
 
 import dmdscript.protoerror;
-enum int* pfoo = &dmdscript.protoerror.foo;     // link it in
+import dmdscript.utf;
 
 class ErrorValue: Exception {
     Value value;
@@ -678,10 +678,10 @@ class Dobject
         return Dobject_prototype;
     }
 
-    static void init()
+    static void initialize()
     {
         Dobject_prototype = new DobjectPrototype();
-        Dfunction.init();
+        Dfunction.initialize();
         Dobject_constructor = new DobjectConstructor();
 
         Dobject op = Dobject_prototype;
@@ -700,7 +700,7 @@ class Dobject
             { TEXT_propertyIsEnumerable, &Dobject_prototype_propertyIsEnumerable, 0 },
         ];
 
-        DnativeFunction.init(op, nfd, DontEnum);
+        DnativeFunction.initialize(op, nfd, DontEnum);
     }
 }
 
@@ -725,15 +725,15 @@ void dobject_init()
         writef("offsetof(value) = %d\n", offsetof(Dobject, value));
     }
 
-    Dobject.init();
-    Dboolean.init();
-    Dstring.init();
-    Dnumber.init();
-    Darray.init();
-    Dmath.init();
-    Ddate.init();
-    Dregexp.init();
-    Derror.init();
+    Dobject.initialize();
+    Dboolean.initialize();
+    Dstring.initialize();
+    Dnumber.initialize();
+    Darray.initialize();
+    Dmath.initialize();
+    Ddate.initialize();
+    Dregexp.initialize();
+    Derror.initialize();
 	
 	// Call registered initializer for each object type
     foreach(void function() fpinit; threadInitTable)

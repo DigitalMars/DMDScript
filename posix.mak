@@ -1,6 +1,6 @@
 DMD=dmd
 
-RFLAGS=-O -release -inline  -d 
+RFLAGS=-O -release -inline  -d -m32
 LIB_SRC= \
 dmdscript/darguments.d dmdscript/darray.d dmdscript/dboolean.d \
 dmdscript/ddate.d dmdscript/ddeclaredfunction.d \

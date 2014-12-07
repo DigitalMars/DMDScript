@@ -117,6 +117,7 @@ Property* _aaGetY(hash_t hash, Property[Value]* bb, Value* key)
     //printf("hash = %d\n", hash);
     size_t i = hash % aalen;
     auto pe = &aa.a.b[i];
+    size_t nodes;
     while((e = *pe) != null)
     {
         if(hash == e.hash)
@@ -148,7 +149,7 @@ Property* _aaGetY(hash_t hash, Property[Value]* bb, Value* key)
     e.hash = hash;
     *pe = e;
 
-    auto nodes = ++aa.a.nodes;
+    nodes = ++aa.a.nodes;
     //printf("length = %d, nodes = %d\n", (*aa).length, nodes);
     if(nodes > aalen * 4)
     {
@@ -179,10 +180,11 @@ Property* _aaInY(hash_t hash, Property[Value] bb, Value* key)
             if(hash == e.hash)
             {
                 Value* v = cast(Value*)(e + 1);
+                int c;
                 if(key.vtype == V_NUMBER && v.vtype == V_NUMBER &&
                    key.number == v.number)
                     goto Lfound;
-                auto c = key.opCmp(*v);
+                c = key.opCmp(*v);
                 if(c == 0)
                 {
                     Lfound:
@@ -206,7 +208,7 @@ Property* _aaInY(hash_t hash, Property[Value] bb, Value* key)
 struct PropTable
 {
     //Property[Value] table;
-               RandAA!(Value, Property) table;
+    RandAA!(Value, Property) table;
     PropTable* previous;
 
     int        opApply(int delegate(ref Property) dg)
@@ -400,7 +402,8 @@ struct PropTable
         }
 		else{		
             //table[*key] = Property(attributes & ~DontOverride,*value);
-			table.insertAlt(*key,Property(attributes & ~DontOverride,*value),hash);
+            auto v = Property(attributes & ~DontOverride,*value);
+			table.insertAlt(*key, v, hash);
 			return null; // success
 		}
     }

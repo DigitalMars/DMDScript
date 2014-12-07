@@ -303,7 +303,7 @@ class StringExpression : Expression
                 Ldefault:
                 if(c & ~0xFF)
                     buf ~= std.string.format("\\u%04x", c);
-                else if(std.ctype.isprint(c))
+                else if(std.ascii.isPrintable(c))
                     buf ~= cast(tchar)c;
                 else
                     buf ~= std.string.format("\\x%02x", c);

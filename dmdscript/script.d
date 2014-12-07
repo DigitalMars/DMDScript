@@ -17,7 +17,7 @@
 
 module dmdscript.script;
 
-import std.ctype;
+import std.ascii;
 import std.string;
 import std.c.stdlib;
 import std.c.stdarg;

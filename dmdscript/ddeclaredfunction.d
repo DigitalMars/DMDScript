@@ -40,7 +40,7 @@ class DdeclaredFunction : Dfunction
 
     this(FunctionDefinition fd)
     {
-        super(fd.parameters.length, Dfunction.getPrototype());
+        super(cast(uint)fd.parameters.length, Dfunction.getPrototype());
         assert(Dfunction.getPrototype());
         assert(internal_prototype);
         this.fd = fd;

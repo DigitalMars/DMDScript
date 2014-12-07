@@ -157,7 +157,7 @@ class SrcFile
 	/* DMDScript source files default to a '.ds' extension
 	 */
 
-	srcfile = std.path.defaultExt(srcfilename, "ds");
+	srcfile = defaultExtension(srcfilename, "ds");
 	this.includes = includes;
     }
 
