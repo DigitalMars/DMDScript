@@ -148,17 +148,23 @@ void* Ddate_UTC(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     default:
     case 7:
         ms = arglist[6].toDtime();
+        goto case;
     case 6:
         seconds = arglist[5].toDtime();
+        goto case;
     case 5:
         minutes = arglist[4].toDtime();
+        goto case;
     case 4:
         hours = arglist[3].toDtime();
         time = dmdscript.date.makeTime(hours, minutes, seconds, ms);
+        goto case;
     case 3:
         date = arglist[2].toDtime();
+        goto case;
     case 2:
         month = arglist[1].toDtime();
+        goto case;
     case 1:
         year = arglist[0].toDtime();
 
@@ -194,7 +200,7 @@ class DdateConstructor : Dfunction
         DnativeFunction.initialize(this, nfd, DontEnum);
     }
 
-    void *Construct(CallContext *cc, Value *ret, Value[] arglist)
+    override void *Construct(CallContext *cc, Value *ret, Value[] arglist)
     {
         // ECMA 15.9.3
         Dobject o;
@@ -225,19 +231,23 @@ class DdateConstructor : Dfunction
         case 7:
             ms = arglist[6].toDtime();
             mixin (breakOnNan("ms"));
+            goto case;
         case 6:
             seconds = arglist[5].toDtime();
             mixin (breakOnNan("seconds"));
+            goto case;
         case 5:
             minutes = arglist[4].toDtime();
             mixin (breakOnNan("minutes"));
+            goto case;
         case 4:
             hours = arglist[3].toDtime();
             mixin (breakOnNan("hours"));
             time = dmdscript.date.makeTime(hours, minutes, seconds, ms);
-
+            goto case;
         case 3:
             date = arglist[2].toDtime();
+            goto case;
         case 2:
             month = arglist[1].toDtime();
             year = arglist[0].toDtime();
@@ -271,7 +281,7 @@ class DdateConstructor : Dfunction
         return null;
     }
 
-    void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
+    override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
     {
         // ECMA 15.9.2
         // return string as if (new Date()).toString()

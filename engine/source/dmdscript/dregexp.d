@@ -18,7 +18,7 @@
 
 module dmdscript.dregexp;
 
-private import dmdscript.regexp;
+private import undead.regexp;
 
 import dmdscript.script;
 import dmdscript.dobject;
@@ -138,6 +138,7 @@ class DregexpConstructor : Dfunction
 
         default:
             flags = &arglist[1];
+            goto case;
         case 1:
             pattern = &arglist[0];
             break;
@@ -212,37 +213,37 @@ class DregexpConstructor : Dfunction
     }
 
 
-    Value* Get(d_string PropertyName) const
+    override Value* Get(d_string PropertyName) const
     {
         return Dfunction.Get(perlAlias(PropertyName));
     }
 
-    Value* Put(d_string PropertyName, Value* value, uint attributes)
+    override Value* Put(d_string PropertyName, Value* value, uint attributes)
     {
         return Dfunction.Put(perlAlias(PropertyName), value, attributes);
     }
 
-    Value* Put(d_string PropertyName, Dobject o, uint attributes)
+    override Value* Put(d_string PropertyName, Dobject o, uint attributes)
     {
         return Dfunction.Put(perlAlias(PropertyName), o, attributes);
     }
 
-    Value* Put(d_string PropertyName, d_number n, uint attributes)
+    override Value* Put(d_string PropertyName, d_number n, uint attributes)
     {
         return Dfunction.Put(perlAlias(PropertyName), n, attributes);
     }
 
-    int CanPut(d_string PropertyName)
+    override int CanPut(d_string PropertyName)
     {
         return Dfunction.CanPut(perlAlias(PropertyName));
     }
 
-    int HasProperty(d_string PropertyName)
+    override int HasProperty(d_string PropertyName)
     {
         return Dfunction.HasProperty(perlAlias(PropertyName));
     }
 
-    int Delete(d_string PropertyName)
+    override int Delete(d_string PropertyName)
     {
         return Dfunction.Delete(perlAlias(PropertyName));
     }
@@ -351,6 +352,7 @@ void* Dregexp_prototype_compile(Dobject pthis, CallContext *cc, Dobject othis, V
 
         default:
             attributes = arglist[1].toString();
+            goto case;
         case 1:
             pattern = arglist[0].toString();
             break;

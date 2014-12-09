@@ -42,7 +42,7 @@ class D0_constructor : Dfunction
         this.newD0 = newD0;
     }
 
-    void *Construct(CallContext *cc, Value *ret, Value[] arglist)
+    override void *Construct(CallContext *cc, Value *ret, Value[] arglist)
     {
         // ECMA 15.11.7.2
         Value* m;
@@ -60,7 +60,7 @@ class D0_constructor : Dfunction
         return null;
     }
 
-    void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
+    override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
     {
         // ECMA v3 15.11.7.1
         return Construct(cc, ret, arglist);
@@ -117,7 +117,7 @@ template proto(alias TEXT_D1)
             Put(TEXT_number, cast(d_number)perrinfo.code, 0);
         }
 
-        void getErrInfo(ErrInfo *perrinfo, int linnum)
+        override void getErrInfo(ErrInfo *perrinfo, int linnum)
         {
             if(linnum && errinfo.linnum == 0)
                 errinfo.linnum = linnum;

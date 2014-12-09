@@ -18,7 +18,7 @@
 
 module dmdscript.dstring;
 
-import dmdscript.regexp;
+import undead.regexp;
 import std.utf;
 import std.c.stdlib;
 import std.c.string;
@@ -90,7 +90,7 @@ class DstringConstructor : Dfunction
         DnativeFunction.initialize(this, nfd, 0);
     }
 
-    void *Construct(CallContext *cc, Value *ret, Value[] arglist)
+    override void *Construct(CallContext *cc, Value *ret, Value[] arglist)
     {
         // ECMA 15.5.2
         d_string s;
@@ -102,7 +102,7 @@ class DstringConstructor : Dfunction
         return null;
     }
 
-    void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
+    override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
     {
         // ECMA 15.5.1
         d_string s;
@@ -419,7 +419,6 @@ void* Dstring_prototype_match(Dobject pthis, CallContext *cc, Dobject othis, Val
     if(arglist.length && !arglist[0].isPrimitive() &&
        (o = arglist[0].toObject()).isDregexp())
     {
-        ;
     }
     else
     {
@@ -484,7 +483,7 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
     int m;
     int i;
     int lasti;
-    dmdscript.regexp.regmatch_t[1] pmatch;
+    regmatch_t[1] pmatch;
     Dfunction f;
     Value* v;
 
@@ -604,7 +603,6 @@ void* Dstring_prototype_search(Dobject pthis, CallContext *cc, Dobject othis, Va
     if(arglist.length && !arglist[0].isPrimitive() &&
        (o = arglist[0].toObject()).isDregexp())
     {
-        ;
     }
     else
     {
@@ -708,8 +706,10 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
     {
     default:
         limit = &arglist[1];
+        goto case;
     case 1:
         separator = &arglist[0];
+        goto case;
     case 0:
         break;
     }

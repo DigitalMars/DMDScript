@@ -37,7 +37,7 @@ class DbooleanConstructor : Dfunction
         name = "Boolean";
     }
 
-    void *Construct(CallContext *cc, Value *ret, Value[] arglist)
+    override void *Construct(CallContext *cc, Value *ret, Value[] arglist)
     {
         // ECMA 15.6.2
         d_boolean b;
@@ -49,7 +49,7 @@ class DbooleanConstructor : Dfunction
         return null;
     }
 
-    void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
+    override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
     {
         // ECMA 15.6.1
         d_boolean b;

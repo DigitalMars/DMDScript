@@ -74,7 +74,7 @@ class DerrorConstructor : Dfunction
         return null;
     }
 
-    void* Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
+    override void* Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
     {
         // ECMA v3 15.11.1
         return Construct(cc, ret, arglist);

@@ -1115,6 +1115,7 @@ class Parser : Lexer
             case TOKregexp:
                 // Rescan as if it was a "/"
                 rescan();
+                goto case;
             case TOKdivide:
                 nextToken();
                 e2 = parseUnaryExp();

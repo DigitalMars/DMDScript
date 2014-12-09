@@ -1558,7 +1558,7 @@ struct IR
                             if(code.opcode == IRcid)
                                 res = (x == y);
                             else
-                                res = (x <> y);
+                                res = (x != y);
                             goto Lcid;
                         }
                         else if(tx == TypeString)

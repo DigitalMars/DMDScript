@@ -36,7 +36,7 @@ class Darguments : Dobject
     Dobject actobj;             // activation object
     Identifier*[] parameters;
 
-    int isDarguments() const
+    override int isDarguments() const
     {
         return true;
     }
@@ -64,7 +64,7 @@ class Darguments : Dobject
         }
     }
 
-    Value* Get(d_string PropertyName)
+    override Value* Get(d_string PropertyName)
     {
         d_uint32 index;
 
@@ -73,21 +73,21 @@ class Darguments : Dobject
                : Dobject.Get(PropertyName);
     }
 
-    Value* Get(d_uint32 index)
+    override Value* Get(d_uint32 index)
     {
         return (index < parameters.length)
                ? actobj.Get(index)
                : Dobject.Get(index);
     }
 
-    Value* Get(d_uint32 index, Value* vindex)
+    override Value* Get(d_uint32 index, Value* vindex)
     {
         return (index < parameters.length)
                ? actobj.Get(index, vindex)
                : Dobject.Get(index, vindex);
     }
 
-    Value* Put(string PropertyName, Value* value, uint attributes)
+    override Value* Put(string PropertyName, Value* value, uint attributes)
     {
         d_uint32 index;
 
@@ -97,7 +97,7 @@ class Darguments : Dobject
             return Dobject.Put(PropertyName, value, attributes);
     }
 
-    Value* Put(Identifier* key, Value* value, uint attributes)
+    override Value* Put(Identifier* key, Value* value, uint attributes)
     {
         d_uint32 index;
 
@@ -107,7 +107,7 @@ class Darguments : Dobject
             return Dobject.Put(key, value, attributes);
     }
 
-    Value* Put(string PropertyName, Dobject o, uint attributes)
+    override Value* Put(string PropertyName, Dobject o, uint attributes)
     {
         d_uint32 index;
 
@@ -117,7 +117,7 @@ class Darguments : Dobject
             return Dobject.Put(PropertyName, o, attributes);
     }
 
-    Value* Put(string PropertyName, d_number n, uint attributes)
+    override Value* Put(string PropertyName, d_number n, uint attributes)
     {
         d_uint32 index;
 
@@ -127,7 +127,7 @@ class Darguments : Dobject
             return Dobject.Put(PropertyName, n, attributes);
     }
 
-    Value* Put(d_uint32 index, Value* vindex, Value* value, uint attributes)
+    override Value* Put(d_uint32 index, Value* vindex, Value* value, uint attributes)
     {
         if(index < parameters.length)
             return actobj.Put(index, vindex, value, attributes);
@@ -135,7 +135,7 @@ class Darguments : Dobject
             return Dobject.Put(index, vindex, value, attributes);
     }
 
-    Value* Put(d_uint32 index, Value* value, uint attributes)
+    override Value* Put(d_uint32 index, Value* value, uint attributes)
     {
         if(index < parameters.length)
             return actobj.Put(index, value, attributes);
@@ -143,7 +143,7 @@ class Darguments : Dobject
             return Dobject.Put(index, value, attributes);
     }
 
-    int CanPut(d_string PropertyName)
+    override int CanPut(d_string PropertyName)
     {
         d_uint32 index;
 
@@ -152,7 +152,7 @@ class Darguments : Dobject
                : Dobject.CanPut(PropertyName);
     }
 
-    int HasProperty(d_string PropertyName)
+    override int HasProperty(d_string PropertyName)
     {
         d_uint32 index;
 
@@ -161,7 +161,7 @@ class Darguments : Dobject
                : Dobject.HasProperty(PropertyName);
     }
 
-    int Delete(d_string PropertyName)
+    override int Delete(d_string PropertyName)
     {
         d_uint32 index;
 

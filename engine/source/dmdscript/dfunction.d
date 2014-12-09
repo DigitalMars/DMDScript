@@ -48,7 +48,7 @@ class DfunctionConstructor : Dfunction
         //Put(TEXT_prototype, Dfunction::getPrototype(), attributes);
     }
 
-    void *Construct(CallContext *cc, Value *ret, Value[] arglist)
+    override void *Construct(CallContext *cc, Value *ret, Value[] arglist)
     {
         // ECMA 15.3.2.1
         immutable(char)[] bdy;
@@ -106,7 +106,7 @@ class DfunctionConstructor : Dfunction
         return v;
     }
 
-    void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
+    override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
     {
         // ECMA 15.3.1
         return Construct(cc, ret, arglist);
@@ -164,6 +164,7 @@ void* Dfunction_prototype_apply(Dobject pthis, CallContext *cc, Dobject othis, V
         break;
     default:
         argArray = &arglist[1];
+        goto case;
     case 1:
         thisArg = &arglist[0];
         break;
@@ -278,7 +279,7 @@ class DfunctionPrototype : Dfunction
         DnativeFunction.initialize(this, nfd, attributes);
     }
 
-    void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
+    override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
     {
         // ECMA v3 15.3.4
         // Accept any arguments and return "undefined"

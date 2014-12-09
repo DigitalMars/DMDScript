@@ -251,6 +251,7 @@ struct Value
         {
         case V_REF_ERROR:
             throwRefError();
+            assert(0);
         case V_UNDEFINED:
         case V_NULL:
             return false;
@@ -275,6 +276,7 @@ struct Value
         {
         case V_REF_ERROR:
             throwRefError();
+            assert(0);
         case V_UNDEFINED:
             return d_number.nan;
         case V_NULL:
@@ -339,6 +341,7 @@ struct Value
         {
         case V_REF_ERROR:
             throwRefError();
+            assert(0);
         case V_UNDEFINED:
             return d_number.nan;
         case V_NULL:
@@ -371,6 +374,7 @@ struct Value
         {
         case V_REF_ERROR:
             throwRefError();
+            assert(0);
         case V_UNDEFINED:
         case V_NULL:
             return 0;
@@ -409,6 +413,7 @@ struct Value
         {
         case V_REF_ERROR:
             throwRefError();
+            assert(0);
         case V_UNDEFINED:
         case V_NULL:
             return 0;
@@ -446,6 +451,7 @@ struct Value
         {
         case V_REF_ERROR:
             throwRefError();
+            assert(0);
         case V_UNDEFINED:
         case V_NULL:
             return 0;
@@ -481,6 +487,7 @@ struct Value
         {
         case V_REF_ERROR:
             throwRefError();
+            assert(0);
         case V_UNDEFINED:
             return TEXT_undefined;
         case V_NULL:
@@ -631,7 +638,7 @@ struct Value
               a = o.Call(cc, this.object, ret, null);
               if(a)                             // if exception was thrown
               {
-                  /*return a*/;
+                  /*return a;*/
                   writef("Vobject.toSource() failed with %x\n", a);
               }
               else if(ret.isPrimitive())
@@ -649,7 +656,8 @@ struct Value
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();    
+            throwRefError();
+            assert(0);
         case V_UNDEFINED:
             //RuntimeErrorx("cannot convert undefined to Object");
             return null;
@@ -699,6 +707,7 @@ struct Value
         {
         case V_REF_ERROR:
             throwRefError();
+            assert(0);
         case V_UNDEFINED:
             if(vtype == v.vtype)
                 return 0;
@@ -944,6 +953,7 @@ struct Value
         {
         case V_REF_ERROR:
             throwRefError();
+            assert(0);
         case V_UNDEFINED:
         case V_NULL:
             h = 0;
