@@ -344,7 +344,7 @@ class Dmath : Dobject
         DnativeFunction.initialize(this, nfd, attributes);
     }
 
-    static void init()
+    static void initialize()
     {
         Dmath_object = new Dmath();
     }
