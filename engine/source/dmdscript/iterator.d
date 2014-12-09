@@ -51,7 +51,7 @@ struct Iterator
 
     debug
     {
-        const uint ITERATOR_VALUE = 0x1992836;
+        enum uint ITERATOR_VALUE = 0x1992836;
         uint foo = ITERATOR_VALUE;
     }
 

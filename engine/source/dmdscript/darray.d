@@ -1003,7 +1003,7 @@ class Darray : Dobject
         classname = TEXT_Array;
     }
 
-    Value* Put(Identifier* key, Value* value, uint attributes)
+    override  Value* Put(Identifier* key, Value* value, uint attributes)
     {
         Value* result = proptable.put(&key.value, key.value.hash, value, attributes);
         if(!result)
@@ -1011,7 +1011,7 @@ class Darray : Dobject
         return null;
     }
 
-    Value* Put(d_string name, Value* v, uint attributes)
+    override Value* Put(d_string name, Value* v, uint attributes)
     {
         d_uint32 i;
         uint c;
@@ -1085,12 +1085,12 @@ class Darray : Dobject
         return null;
     }
 
-    Value* Put(d_string name, Dobject o, uint attributes)
+    override Value* Put(d_string name, Dobject o, uint attributes)
     {
         return Put(name, &o.value, attributes);
     }
 
-    Value* Put(d_string PropertyName, d_number n, uint attributes)
+    override Value* Put(d_string PropertyName, d_number n, uint attributes)
     {
         Value v;
 
@@ -1098,7 +1098,7 @@ class Darray : Dobject
         return Put(PropertyName, &v, attributes);
     }
 
-    Value* Put(d_string PropertyName, d_string string, uint attributes)
+    override Value* Put(d_string PropertyName, d_string string, uint attributes)
     {
         Value v;
 
@@ -1106,7 +1106,7 @@ class Darray : Dobject
         return Put(PropertyName, &v, attributes);
     }
 
-    Value* Put(d_uint32 index, Value* vindex, Value* value, uint attributes)
+    override Value* Put(d_uint32 index, Value* vindex, Value* value, uint attributes)
     {
         if(index >= ulength)
             ulength = index + 1;
@@ -1115,7 +1115,7 @@ class Darray : Dobject
         return null;
     }
 
-    Value* Put(d_uint32 index, Value* value, uint attributes)
+    override Value* Put(d_uint32 index, Value* value, uint attributes)
     {
         if(index >= ulength)
         {
@@ -1127,7 +1127,7 @@ class Darray : Dobject
         return null;
     }
 
-    Value* Put(d_uint32 index, d_string string, uint attributes)
+    final Value* Put(d_uint32 index, d_string string, uint attributes)
     {
         if(index >= ulength)
         {
@@ -1139,7 +1139,7 @@ class Darray : Dobject
         return null;
     }
 
-    Value* Get(Identifier* id)
+    override Value* Get(Identifier* id)
     {
         //writef("Darray.Get(%p, '%s')\n", &proptable, PropertyName);
         if(id.value.string == TEXT_length)
@@ -1151,7 +1151,7 @@ class Darray : Dobject
             return Dobject.Get(id);
     }
 
-    Value* Get(d_string PropertyName, uint hash)
+    override Value* Get(d_string PropertyName, uint hash)
     {
         //writef("Darray.Get(%p, '%s')\n", &proptable, PropertyName);
         if(PropertyName == TEXT_length)
@@ -1163,7 +1163,7 @@ class Darray : Dobject
             return Dobject.Get(PropertyName, hash);
     }
 
-    Value* Get(d_uint32 index)
+    override Value* Get(d_uint32 index)
     {
         Value* v;
 
@@ -1172,7 +1172,7 @@ class Darray : Dobject
         return v;
     }
 
-    Value* Get(d_uint32 index, Value* vindex)
+    override Value* Get(d_uint32 index, Value* vindex)
     {
         Value* v;
 
@@ -1181,7 +1181,7 @@ class Darray : Dobject
         return v;
     }
 
-    int Delete(d_string PropertyName)
+    override int Delete(d_string PropertyName)
     {
         // ECMA 8.6.2.5
         //writef("Darray.Delete('%ls')\n", d_string_ptr(PropertyName));
@@ -1191,7 +1191,7 @@ class Darray : Dobject
             return proptable.del(PropertyName);
     }
 
-    int Delete(d_uint32 index)
+    override int Delete(d_uint32 index)
     {
         // ECMA 8.6.2.5
         return proptable.del(index);

@@ -523,6 +523,7 @@ class Lexer
 
             case '\n':                          // line terminator
                 currentline++;
+                goto case;
             case '\r':
                 t.sawLineTerminator = p;
                 p++;
@@ -658,6 +659,7 @@ class Lexer
 
                         case '\n':
                             currentline++;
+                            goto case;
                         case '\r':
                             t.sawLineTerminator = p;
                             continue;
@@ -688,6 +690,7 @@ class Lexer
                     switch(j){
                         case 1: 
                             currentline++;
+                            goto case;
                         case 2: case 5: case 6:
                             t.sawLineTerminator = p;
                             break;
@@ -875,6 +878,7 @@ class Lexer
                         {
                         case '\n':
                             currentline++;
+                            goto case;
                         case '\r':
                             t.sawLineTerminator = p;
                             break;
@@ -1025,6 +1029,7 @@ class Lexer
                     // \uXXXX starts an identifier
                     goto Lidentifier2;
                 }
+                goto default;
             default:
                 d = get(p);
                 if(d >= 0x80 && std.uni.isAlpha(d))
@@ -1278,6 +1283,7 @@ class Lexer
             case '*':
                 if(s == p + 1)
                     return null;
+                goto default;
             default:
                 continue;
             }
@@ -1357,6 +1363,7 @@ class Lexer
                 // like 015 are illegal. But other scripts allow them.
                 if(p - start == 1)              // if leading 0
                     base = 8;
+                goto case;
             case '1': case '2': case '3': case '4': case '5':
             case '6': case '7':
                 break;

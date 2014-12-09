@@ -39,7 +39,7 @@ import dmdscript.identifier;
 
 class Expression
 {
-    const uint EXPRESSION_SIGNATURE = 0x3AF31E3F;
+    enum uint EXPRESSION_SIGNATURE = 0x3AF31E3F;
     uint signature = EXPRESSION_SIGNATURE;
 
     Loc loc;                    // file location
@@ -1479,7 +1479,7 @@ class AddExp : BinExp
 {
     this(Loc loc, Expression e1, Expression e2)
     {
-        super(loc, TOKplus, e1, e2);;
+        super(loc, TOKplus, e1, e2);
     }
 
     override Expression semantic(Scope *sc)

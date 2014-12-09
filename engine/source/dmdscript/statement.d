@@ -47,7 +47,7 @@ enum
 
 class TopStatement
 {
-    const uint TOPSTATEMENT_SIGNATURE = 0xBA3FE1F3;
+    enum uint TOPSTATEMENT_SIGNATURE = 0xBA3FE1F3;
     uint signature = TOPSTATEMENT_SIGNATURE;
 
     Loc loc;

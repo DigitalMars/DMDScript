@@ -96,7 +96,7 @@ class DobjectConstructor : Dfunction
         return null;
     }
 
-    void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
+    override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
     {
         Dobject o;
         void *result;
@@ -280,7 +280,7 @@ class Dobject
     string classname;
     Value value;
 
-    const uint DOBJECT_SIGNATURE = 0xAA31EE31;
+    enum uint DOBJECT_SIGNATURE = 0xAA31EE31;
     uint signature;
 
     invariant()

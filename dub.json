@@ -1,0 +1,17 @@
+{
+    "name": "dmdscript",
+    "description": "An implementation of the ECMA 262 (Javascript) programming language ",
+    "copyright": "Copyright (c) 2000-2002 by Chromium Communications, Copyright (c) 2004-2010 by Digital Mars",
+    "authors": ["Walter Bright", "Dmitry Olshansky"],
+    "dependencies": {
+        ":engine" : "*",
+        ":ds" : "*",
+        ":ds-ext": "*"
+    },
+
+    "targetType": "none",
+    "subPackages" : [
+       "./ds", "./ds-ext", "./engine"
+    ],
+    "license": "BSL-1.0",
+}
