@@ -6,7 +6,6 @@
     "dependencies": {
         "dmdscript:engine" : "*"
     },
-    "buildRequirements": [ "allowWarnings" ],
     "targetType": "executable",
     "license": "BSL-1.0",
 }

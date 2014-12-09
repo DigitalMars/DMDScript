@@ -17,13 +17,14 @@
 
 module dmdscript.ddate;
 
+import undead.date;
 import std.math;
 
 debug
 {
     import std.stdio;
 }
-import dmdscript.date;
+
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.value;
@@ -50,7 +51,7 @@ enum TIMEFORMAT
 
 d_time parseDateString(CallContext *cc, string s)
 {
-    return dmdscript.date.parse(s);
+    return parse(s);
 }
 
 string dateToString(CallContext *cc, d_time t, TIMEFORMAT tf)
@@ -64,38 +65,38 @@ string dateToString(CallContext *cc, d_time t, TIMEFORMAT tf)
         switch(tf)
         {
         case TIMEFORMAT.String:
-            t = dmdscript.date.localTimetoUTC(t);
-            p = dmdscript.date.toString(t);
+            t = localTimetoUTC(t);
+            p = UTCtoString(t);
             break;
 
         case TIMEFORMAT.DateString:
-            t = dmdscript.date.localTimetoUTC(t);
-            p = dmdscript.date.toDateString(t);
+            t = localTimetoUTC(t);
+            p = toDateString(t);
             break;
 
         case TIMEFORMAT.TimeString:
-            t = dmdscript.date.localTimetoUTC(t);
-            p = dmdscript.date.toTimeString(t);
+            t = localTimetoUTC(t);
+            p = toTimeString(t);
             break;
 
         case TIMEFORMAT.LocaleString:
-            //p = dmdscript.date.toLocaleString(t);
-            p = dmdscript.date.toString(t);
+            //p = toLocaleString(t);
+            p = UTCtoString(t);
             break;
 
         case TIMEFORMAT.LocaleDateString:
-            //p = dmdscript.date.toLocaleDateString(t);
-            p = dmdscript.date.toDateString(t);
+            //p = toLocaleDateString(t);
+            p = toDateString(t);
             break;
 
         case TIMEFORMAT.LocaleTimeString:
-            //p = dmdscript.date.toLocaleTimeString(t);
-            p = dmdscript.date.toTimeString(t);
+            //p = toLocaleTimeString(t);
+            p = toTimeString(t);
             break;
 
         case TIMEFORMAT.UTCString:
-            p = dmdscript.date.toUTCString(t);
-            //p = dmdscript.date.toString(t);
+            p = toUTCString(t);
+            //p = toString(t);
             break;
 
         default:
@@ -157,7 +158,7 @@ void* Ddate_UTC(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
         goto case;
     case 4:
         hours = arglist[3].toDtime();
-        time = dmdscript.date.makeTime(hours, minutes, seconds, ms);
+        time = makeTime(hours, minutes, seconds, ms);
         goto case;
     case 3:
         date = arglist[2].toDtime();
@@ -170,12 +171,12 @@ void* Ddate_UTC(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
 
         if(year != d_time_nan && year >= 0 && year <= 99)
             year += 1900;
-        day = dmdscript.date.makeDay(year, month, date);
-        n = dmdscript.date.timeClip(dmdscript.date.makeDate(day, time));
+        day = makeDay(year, month, date);
+        n = timeClip(makeDate(day, time));
         break;
 
     case 0:
-        n = dmdscript.date.getUTCtime();
+        n = getUTCtime();
         break;
     }
     ret.putVtime(n);
@@ -243,7 +244,7 @@ class DdateConstructor : Dfunction
         case 4:
             hours = arglist[3].toDtime();
             mixin (breakOnNan("hours"));
-            time = dmdscript.date.makeTime(hours, minutes, seconds, ms);
+            time = makeTime(hours, minutes, seconds, ms);
             goto case;
         case 3:
             date = arglist[2].toDtime();
@@ -254,8 +255,8 @@ class DdateConstructor : Dfunction
 
             if(year != d_time_nan && year >= 0 && year <= 99)
                 year += 1900;
-            day = dmdscript.date.makeDay(year, month, date);
-            n = dmdscript.date.timeClip(dmdscript.date.localTimetoUTC(dmdscript.date.makeDate(day, time)));
+            day = makeDay(year, month, date);
+            n = timeClip(localTimetoUTC(makeDate(day, time)));
             break;
 
         case 1:
@@ -267,12 +268,12 @@ class DdateConstructor : Dfunction
             else
             {
                 n = ret.toDtime();
-                n = dmdscript.date.timeClip(n);
+                n = timeClip(n);
             }
             break;
 
         case 0:
-            n = dmdscript.date.getUTCtime();
+            n = getUTCtime();
             break;
         }
         //writefln("\tn = %s", n);
@@ -290,14 +291,14 @@ class DdateConstructor : Dfunction
 
         version(DATETOSTRING)
         {
-            t = dmdscript.date.getUTCtime();
-            t = dmdscript.date.UTCtoLocalTime(t);
+            t = getUTCtime();
+            t = UTCtoLocalTime(t);
             s = dateToString(cc, t, TIMEFORMAT.String);
         }
         else
         {
-            t = dmdscript.date.time();
-            s = dmdscript.date.toString(t);
+            t = time();
+            s = toString(t);
         }
         ret.putVstring(s);
         return null;
@@ -332,7 +333,7 @@ int getThisLocalTime(Value* ret, Dobject othis, out d_time n)
     if(n != d_time_nan)
     {
         isn = 0;
-        n = dmdscript.date.UTCtoLocalTime(n);
+        n = UTCtoLocalTime(n);
     }
     ret.putVtime(n);
     return isn;
@@ -356,7 +357,7 @@ void* Ddate_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, Va
     else
     {
         getThisTime(ret, othis, n);
-        s = dmdscript.date.toString(n);
+        s = toString(n);
     }
     ret.putVstring(s);
     return null;
@@ -379,7 +380,7 @@ void* Ddate_prototype_toDateString(Dobject pthis, CallContext *cc, Dobject othis
     else
     {
         getThisTime(ret, othis, n);
-        s = dmdscript.date.toDateString(n);
+        s = toDateString(n);
     }
     ret.putVstring(s);
     return null;
@@ -402,9 +403,9 @@ void* Ddate_prototype_toTimeString(Dobject pthis, CallContext *cc, Dobject othis
     else
     {
         getThisTime(ret, othis, n);
-        s = dmdscript.date.toTimeString(n);
+        s = toTimeString(n);
     }
-    //s = dmdscript.date.toTimeString(n);
+    //s = toTimeString(n);
     ret.putVstring(s);
     return null;
 }
@@ -441,7 +442,7 @@ void* Ddate_prototype_getYear(Dobject pthis, CallContext *cc, Dobject othis, Val
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.yearFromTime(n);
+        n = yearFromTime(n);
         if(n != d_time_nan)
         {
             n -= 1900;
@@ -466,7 +467,7 @@ void* Ddate_prototype_getFullYear(Dobject pthis, CallContext *cc, Dobject othis,
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.yearFromTime(n);
+        n = yearFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -481,7 +482,7 @@ void* Ddate_prototype_getUTCFullYear(Dobject pthis, CallContext *cc, Dobject oth
         return checkdate(ret, TEXT_getUTCFullYear, othis);
     if(getThisTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.yearFromTime(n);
+        n = yearFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -497,7 +498,7 @@ void* Ddate_prototype_getMonth(Dobject pthis, CallContext *cc, Dobject othis, Va
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.monthFromTime(n);
+        n = monthFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -513,7 +514,7 @@ void* Ddate_prototype_getUTCMonth(Dobject pthis, CallContext *cc, Dobject othis,
 
     if(getThisTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.monthFromTime(n);
+        n = monthFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -530,8 +531,8 @@ void* Ddate_prototype_getDate(Dobject pthis, CallContext *cc, Dobject othis, Val
     if(getThisLocalTime(ret, othis, n) == 0)
     {
         //printf("LocalTime = %.16g\n", n);
-        //printf("DaylightSavingTA(n) = %d\n", dmdscript.date.daylightSavingTA(n));
-        n = dmdscript.date.dateFromTime(n);
+        //printf("DaylightSavingTA(n) = %d\n", daylightSavingTA(n));
+        n = dateFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -547,7 +548,7 @@ void* Ddate_prototype_getUTCDate(Dobject pthis, CallContext *cc, Dobject othis, 
 
     if(getThisTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.dateFromTime(n);
+        n = dateFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -563,7 +564,7 @@ void* Ddate_prototype_getDay(Dobject pthis, CallContext *cc, Dobject othis, Valu
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.weekDay(n);
+        n = weekDay(n);
         ret.putVtime(n);
     }
     return null;
@@ -579,7 +580,7 @@ void* Ddate_prototype_getUTCDay(Dobject pthis, CallContext *cc, Dobject othis, V
 
     if(getThisTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.weekDay(n);
+        n = weekDay(n);
         ret.putVtime(n);
     }
     return null;
@@ -595,7 +596,7 @@ void* Ddate_prototype_getHours(Dobject pthis, CallContext *cc, Dobject othis, Va
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.hourFromTime(n);
+        n = hourFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -611,7 +612,7 @@ void* Ddate_prototype_getUTCHours(Dobject pthis, CallContext *cc, Dobject othis,
 
     if(getThisTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.hourFromTime(n);
+        n = hourFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -627,7 +628,7 @@ void* Ddate_prototype_getMinutes(Dobject pthis, CallContext *cc, Dobject othis, 
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.minFromTime(n);
+        n = minFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -643,7 +644,7 @@ void* Ddate_prototype_getUTCMinutes(Dobject pthis, CallContext *cc, Dobject othi
 
     if(getThisTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.minFromTime(n);
+        n = minFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -659,7 +660,7 @@ void* Ddate_prototype_getSeconds(Dobject pthis, CallContext *cc, Dobject othis, 
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.secFromTime(n);
+        n = secFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -675,7 +676,7 @@ void* Ddate_prototype_getUTCSeconds(Dobject pthis, CallContext *cc, Dobject othi
 
     if(getThisTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.secFromTime(n);
+        n = secFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -691,7 +692,7 @@ void* Ddate_prototype_getMilliseconds(Dobject pthis, CallContext *cc, Dobject ot
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.msFromTime(n);
+        n = msFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -707,7 +708,7 @@ void* Ddate_prototype_getUTCMilliseconds(Dobject pthis, CallContext *cc, Dobject
 
     if(getThisTime(ret, othis, n) == 0)
     {
-        n = dmdscript.date.msFromTime(n);
+        n = msFromTime(n);
         ret.putVtime(n);
     }
     return null;
@@ -723,7 +724,7 @@ void* Ddate_prototype_getTimezoneOffset(Dobject pthis, CallContext *cc, Dobject 
 
     if(getThisTime(ret, othis, n) == 0)
     {
-        n = (n - dmdscript.date.UTCtoLocalTime(n)) / (60 * 1000);
+        n = (n - UTCtoLocalTime(n)) / (60 * 1000);
         ret.putVtime(n);
     }
     return null;
@@ -741,7 +742,7 @@ void* Ddate_prototype_setTime(Dobject pthis, CallContext *cc, Dobject othis, Val
         n = d_time_nan;
     else
         n = arglist[0].toDtime();
-    n = dmdscript.date.timeClip(n);
+    n = timeClip(n);
     othis.value.putVtime(n);
     ret.putVtime(n);
     return null;
@@ -765,8 +766,8 @@ void* Ddate_prototype_setMilliseconds(Dobject pthis, CallContext *cc, Dobject ot
             ms = d_time_nan;
         else
             ms = arglist[0].toDtime();
-        time = dmdscript.date.makeTime(dmdscript.date.hourFromTime(t), dmdscript.date.minFromTime(t), dmdscript.date.secFromTime(t), ms);
-        n = dmdscript.date.timeClip(dmdscript.date.localTimetoUTC(dmdscript.date.makeDate(dmdscript.date.day(t), time)));
+        time = makeTime(hourFromTime(t), minFromTime(t), secFromTime(t), ms);
+        n = timeClip(localTimetoUTC(makeDate(day(t), time)));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -790,8 +791,8 @@ void* Ddate_prototype_setUTCMilliseconds(Dobject pthis, CallContext *cc, Dobject
             ms = d_time_nan;
         else
             ms = arglist[0].toDtime();
-        time = dmdscript.date.makeTime(dmdscript.date.hourFromTime(t), dmdscript.date.minFromTime(t), dmdscript.date.secFromTime(t), ms);
-        n = dmdscript.date.timeClip(dmdscript.date.makeDate(dmdscript.date.day(t), time));
+        time = makeTime(hourFromTime(t), minFromTime(t), secFromTime(t), ms);
+        n = timeClip(makeDate(day(t), time));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -821,17 +822,17 @@ void* Ddate_prototype_setSeconds(Dobject pthis, CallContext *cc, Dobject othis, 
             break;
 
         case 1:
-            ms = dmdscript.date.msFromTime(t);
+            ms = msFromTime(t);
             seconds = arglist[0].toDtime();
             break;
 
         case 0:
-            ms = dmdscript.date.msFromTime(t);
+            ms = msFromTime(t);
             seconds = d_time_nan;
             break;
         }
-        time = dmdscript.date.makeTime(dmdscript.date.hourFromTime(t), dmdscript.date.minFromTime(t), seconds, ms);
-        n = dmdscript.date.timeClip(dmdscript.date.localTimetoUTC(dmdscript.date.makeDate(dmdscript.date.day(t), time)));
+        time = makeTime(hourFromTime(t), minFromTime(t), seconds, ms);
+        n = timeClip(localTimetoUTC(makeDate(day(t), time)));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -861,17 +862,17 @@ void* Ddate_prototype_setUTCSeconds(Dobject pthis, CallContext *cc, Dobject othi
             break;
 
         case 1:
-            ms = dmdscript.date.msFromTime(t);
+            ms = msFromTime(t);
             seconds = arglist[0].toDtime();
             break;
 
         case 0:
-            ms = dmdscript.date.msFromTime(t);
+            ms = msFromTime(t);
             seconds = d_time_nan;
             break;
         }
-        time = dmdscript.date.makeTime(dmdscript.date.hourFromTime(t), dmdscript.date.minFromTime(t), seconds, ms);
-        n = dmdscript.date.timeClip(dmdscript.date.makeDate(dmdscript.date.day(t), time));
+        time = makeTime(hourFromTime(t), minFromTime(t), seconds, ms);
+        n = timeClip(makeDate(day(t), time));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -903,25 +904,25 @@ void* Ddate_prototype_setMinutes(Dobject pthis, CallContext *cc, Dobject othis, 
             break;
 
         case 2:
-            ms = dmdscript.date.msFromTime(t);
+            ms = msFromTime(t);
             seconds = arglist[1].toDtime();
             minutes = arglist[0].toDtime();
             break;
 
         case 1:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
             minutes = arglist[0].toDtime();
             break;
 
         case 0:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
             minutes = d_time_nan;
             break;
         }
-        time = dmdscript.date.makeTime(dmdscript.date.hourFromTime(t), minutes, seconds, ms);
-        n = dmdscript.date.timeClip(dmdscript.date.localTimetoUTC(dmdscript.date.makeDate(dmdscript.date.day(t), time)));
+        time = makeTime(hourFromTime(t), minutes, seconds, ms);
+        n = timeClip(localTimetoUTC(makeDate(day(t), time)));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -953,25 +954,25 @@ void* Ddate_prototype_setUTCMinutes(Dobject pthis, CallContext *cc, Dobject othi
             break;
 
         case 2:
-            ms = dmdscript.date.msFromTime(t);
+            ms = msFromTime(t);
             seconds = arglist[1].toDtime();
             minutes = arglist[0].toDtime();
             break;
 
         case 1:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
             minutes = arglist[0].toDtime();
             break;
 
         case 0:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
             minutes = d_time_nan;
             break;
         }
-        time = dmdscript.date.makeTime(dmdscript.date.hourFromTime(t), minutes, seconds, ms);
-        n = dmdscript.date.timeClip(dmdscript.date.makeDate(dmdscript.date.day(t), time));
+        time = makeTime(hourFromTime(t), minutes, seconds, ms);
+        n = timeClip(makeDate(day(t), time));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -1005,35 +1006,35 @@ void* Ddate_prototype_setHours(Dobject pthis, CallContext *cc, Dobject othis, Va
             break;
 
         case 3:
-            ms = dmdscript.date.msFromTime(t);
+            ms = msFromTime(t);
             seconds = arglist[2].toDtime();
             minutes = arglist[1].toDtime();
             hours = arglist[0].toDtime();
             break;
 
         case 2:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
             minutes = arglist[1].toDtime();
             hours = arglist[0].toDtime();
             break;
 
         case 1:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
-            minutes = dmdscript.date.minFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
+            minutes = minFromTime(t);
             hours = arglist[0].toDtime();
             break;
 
         case 0:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
-            minutes = dmdscript.date.minFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
+            minutes = minFromTime(t);
             hours = d_time_nan;
             break;
         }
-        time = dmdscript.date.makeTime(hours, minutes, seconds, ms);
-        n = dmdscript.date.timeClip(dmdscript.date.localTimetoUTC(dmdscript.date.makeDate(dmdscript.date.day(t), time)));
+        time = makeTime(hours, minutes, seconds, ms);
+        n = timeClip(localTimetoUTC(makeDate(day(t), time)));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -1067,35 +1068,35 @@ void* Ddate_prototype_setUTCHours(Dobject pthis, CallContext *cc, Dobject othis,
             break;
 
         case 3:
-            ms = dmdscript.date.msFromTime(t);
+            ms = msFromTime(t);
             seconds = arglist[2].toDtime();
             minutes = arglist[1].toDtime();
             hours = arglist[0].toDtime();
             break;
 
         case 2:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
             minutes = arglist[1].toDtime();
             hours = arglist[0].toDtime();
             break;
 
         case 1:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
-            minutes = dmdscript.date.minFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
+            minutes = minFromTime(t);
             hours = arglist[0].toDtime();
             break;
 
         case 0:
-            ms = dmdscript.date.msFromTime(t);
-            seconds = dmdscript.date.secFromTime(t);
-            minutes = dmdscript.date.minFromTime(t);
+            ms = msFromTime(t);
+            seconds = secFromTime(t);
+            minutes = minFromTime(t);
             hours = d_time_nan;
             break;
         }
-        time = dmdscript.date.makeTime(hours, minutes, seconds, ms);
-        n = dmdscript.date.timeClip(dmdscript.date.makeDate(dmdscript.date.day(t), time));
+        time = makeTime(hours, minutes, seconds, ms);
+        n = timeClip(makeDate(day(t), time));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -1119,8 +1120,8 @@ void* Ddate_prototype_setDate(Dobject pthis, CallContext *cc, Dobject othis, Val
             date = d_time_nan;
         else
             date = arglist[0].toDtime();
-        day = dmdscript.date.makeDay(dmdscript.date.yearFromTime(t), dmdscript.date.monthFromTime(t), date);
-        n = dmdscript.date.timeClip(dmdscript.date.localTimetoUTC(dmdscript.date.makeDate(day, dmdscript.date.timeWithinDay(t))));
+        day = makeDay(yearFromTime(t), monthFromTime(t), date);
+        n = timeClip(localTimetoUTC(makeDate(day, timeWithinDay(t))));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -1144,8 +1145,8 @@ void* Ddate_prototype_setUTCDate(Dobject pthis, CallContext *cc, Dobject othis, 
             date = d_time_nan;
         else
             date = arglist[0].toDtime();
-        day = dmdscript.date.makeDay(dmdscript.date.yearFromTime(t), dmdscript.date.monthFromTime(t), date);
-        n = dmdscript.date.timeClip(dmdscript.date.makeDate(day, dmdscript.date.timeWithinDay(t)));
+        day = makeDay(yearFromTime(t), monthFromTime(t), date);
+        n = timeClip(makeDate(day, timeWithinDay(t)));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -1176,16 +1177,16 @@ void* Ddate_prototype_setMonth(Dobject pthis, CallContext *cc, Dobject othis, Va
 
         case 1:
             month = arglist[0].toDtime();
-            date = dmdscript.date.dateFromTime(t);
+            date = dateFromTime(t);
             break;
 
         case 0:
             month = d_time_nan;
-            date = dmdscript.date.dateFromTime(t);
+            date = dateFromTime(t);
             break;
         }
-        day = dmdscript.date.makeDay(dmdscript.date.yearFromTime(t), month, date);
-        n = dmdscript.date.timeClip(dmdscript.date.localTimetoUTC(dmdscript.date.makeDate(day, dmdscript.date.timeWithinDay(t))));
+        day = makeDay(yearFromTime(t), month, date);
+        n = timeClip(localTimetoUTC(makeDate(day, timeWithinDay(t))));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -1216,16 +1217,16 @@ void* Ddate_prototype_setUTCMonth(Dobject pthis, CallContext *cc, Dobject othis,
 
         case 1:
             month = arglist[0].toDtime();
-            date = dmdscript.date.dateFromTime(t);
+            date = dateFromTime(t);
             break;
 
         case 0:
             month = d_time_nan;
-            date = dmdscript.date.dateFromTime(t);
+            date = dateFromTime(t);
             break;
         }
-        day = dmdscript.date.makeDay(dmdscript.date.yearFromTime(t), month, date);
-        n = dmdscript.date.timeClip(dmdscript.date.makeDate(day, dmdscript.date.timeWithinDay(t)));
+        day = makeDay(yearFromTime(t), month, date);
+        n = timeClip(makeDate(day, timeWithinDay(t)));
         othis.value.putVtime(n);
         ret.putVtime(n);
     }
@@ -1258,25 +1259,25 @@ void* Ddate_prototype_setFullYear(Dobject pthis, CallContext *cc, Dobject othis,
         break;
 
     case 2:
-        date = dmdscript.date.dateFromTime(t);
+        date = dateFromTime(t);
         month = arglist[1].toDtime();
         year = arglist[0].toDtime();
         break;
 
     case 1:
-        date = dmdscript.date.dateFromTime(t);
-        month = dmdscript.date.monthFromTime(t);
+        date = dateFromTime(t);
+        month = monthFromTime(t);
         year = arglist[0].toDtime();
         break;
 
     case 0:
-        date = dmdscript.date.dateFromTime(t);
-        month = dmdscript.date.monthFromTime(t);
+        date = dateFromTime(t);
+        month = monthFromTime(t);
         year = d_time_nan;
         break;
     }
-    day = dmdscript.date.makeDay(year, month, date);
-    n = dmdscript.date.timeClip(dmdscript.date.localTimetoUTC(dmdscript.date.makeDate(day, dmdscript.date.timeWithinDay(t))));
+    day = makeDay(year, month, date);
+    n = timeClip(localTimetoUTC(makeDate(day, timeWithinDay(t))));
     othis.value.putVtime(n);
     ret.putVtime(n);
     return null;
@@ -1308,25 +1309,25 @@ void* Ddate_prototype_setUTCFullYear(Dobject pthis, CallContext *cc, Dobject oth
         break;
 
     case 2:
-        month = dmdscript.date.monthFromTime(t);
+        month = monthFromTime(t);
         date = arglist[1].toDtime();
         year = arglist[0].toDtime();
         break;
 
     case 1:
-        month = dmdscript.date.monthFromTime(t);
-        date = dmdscript.date.dateFromTime(t);
+        month = monthFromTime(t);
+        date = dateFromTime(t);
         year = arglist[0].toDtime();
         break;
 
     case 0:
-        month = dmdscript.date.monthFromTime(t);
-        date = dmdscript.date.dateFromTime(t);
+        month = monthFromTime(t);
+        date = dateFromTime(t);
         year = d_time_nan;
         break;
     }
-    day = dmdscript.date.makeDay(year, month, date);
-    n = dmdscript.date.timeClip(dmdscript.date.makeDate(day, dmdscript.date.timeWithinDay(t)));
+    day = makeDay(year, month, date);
+    n = timeClip(makeDate(day, timeWithinDay(t)));
     othis.value.putVtime(n);
     ret.putVtime(n);
     return null;
@@ -1351,13 +1352,13 @@ void* Ddate_prototype_setYear(Dobject pthis, CallContext *cc, Dobject othis, Val
     {
     default:
     case 1:
-        month = dmdscript.date.monthFromTime(t);
-        date = dmdscript.date.dateFromTime(t);
+        month = monthFromTime(t);
+        date = dateFromTime(t);
         year = arglist[0].toDtime();
         if(0 <= year && year <= 99)
             year += 1900;
-        day = dmdscript.date.makeDay(year, month, date);
-        n = dmdscript.date.timeClip(dmdscript.date.localTimetoUTC(dmdscript.date.makeDate(day, dmdscript.date.timeWithinDay(t))));
+        day = makeDay(year, month, date);
+        n = timeClip(localTimetoUTC(makeDate(day, timeWithinDay(t))));
         break;
 
     case 0:

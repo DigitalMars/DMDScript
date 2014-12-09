@@ -17,12 +17,12 @@
 
 module dmdscript.value;
 
+import undead.date;
 import std.math;
 import std.string;
 import std.stdio;
 import std.c.string;
 
-import dmdscript.date;
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.iterator;

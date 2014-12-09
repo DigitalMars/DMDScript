@@ -136,19 +136,19 @@ class Wrap(Which,string ClassName,Base=Dobject): Base{
             name = ClassName;
         }
 
-        void *Construct(CallContext *cc, Value *ret, Value[] arglist){
+        override void *Construct(CallContext *cc, Value *ret, Value[] arglist){
             fitArray!(ConstructorArgs)(arglist);
             Dobject o = new Wrap(convertAll!(UConstructorArgs)(arglist).expand);
             ret.putVobject(o);
             return null;
         }
 
-        void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist){
+        override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist){
             return Construct(cc,ret,arglist);
         }
     
     }
-    static void init(){
+    static void initialize(){
          _prototype = new Wrap(Base.getPrototype());
         _constructor = new Constructor();
         _prototype.Put("constructor", _constructor, DontEnum);
@@ -156,7 +156,7 @@ class Wrap(Which,string ClassName,Base=Dobject): Base{
         ctorTable[ClassName] = _constructor;
     }
     static this(){
-        threadInitTable ~= &init;
+        threadInitTable ~= &initialize;
     }
     private this(Dobject prototype){ 
         super(prototype); 
