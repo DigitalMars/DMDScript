@@ -119,7 +119,7 @@ enum
     TOKpackage, TOKprivate,
     TOKprotected, TOKpublic,
     TOKshort, TOKstatic,
-    TOKsynchronized, TOKthrows,
+    TOKsynchronized,
     TOKtransient,
 
     TOKmax
@@ -1587,7 +1587,6 @@ class Lexer
                 case "return":              return TOKreturn;
                 case "static":              return TOKstatic;
                 case "switch":              return TOKswitch;
-                case "throws":              return TOKthrows;
                 case "typeof":              return TOKtypeof;
                 default:
                     break;
@@ -1723,7 +1722,6 @@ static Keyword keywords[] =
     { "short", TOKshort },
     { "static", TOKstatic },
     { "synchronized", TOKsynchronized },
-    { "throws", TOKthrows },
     { "transient", TOKtransient },
 ];
 
