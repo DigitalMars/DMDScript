@@ -359,7 +359,7 @@ void* Dstring_prototype_lastIndexOf(Dobject pthis, CallContext *cc, Dobject othi
         Value *v = &arglist[1];
 
         n = v.toNumber();
-        if(std.math.isnan(n) || n > sUCSdim)
+        if(std.math.isNaN(n) || n > sUCSdim)
             pos = sUCSdim;
         else if(n < 0)
             pos = 0;
@@ -834,14 +834,14 @@ void *dstring_substring(d_string s, size_t sUCSdim, d_number start, d_number end
     d_string sb;
     d_int32 sb_len;
 
-    if(std.math.isnan(start))
+    if(std.math.isNaN(start))
         start = 0;
     else if(start > sUCSdim)
         start = sUCSdim;
     else if(start < 0)
         start = 0;
 
-    if(std.math.isnan(end))
+    if(std.math.isNaN(end))
         end = 0;
     else if(end > sUCSdim)
         end = sUCSdim;
@@ -885,7 +885,7 @@ void* Dstring_prototype_substr(Dobject pthis, CallContext *cc, Dobject othis, Va
         if(arglist.length >= 2)
         {
             length = arglist[1].toInteger();
-            if(std.math.isnan(length) || length < 0)
+            if(std.math.isNaN(length) || length < 0)
                 length = 0;
         }
         else

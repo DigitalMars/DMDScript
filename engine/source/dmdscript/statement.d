@@ -1074,7 +1074,7 @@ class ForStatement : Statement
                 b = irs.alloc(1);
                 be.e1.toIR(irs, b);
                 re = cast(RealExpression )be.e2;
-                if(be.e2.op == TOKreal && !isnan(re.value))
+                if(be.e2.op == TOKreal && !isNaN(re.value))
                 {
                     u2 = irs.getIP();
                     irs.gen(loc, (condition.op == TOKless) ? IRjltc : IRjlec, 4, 0, b, re.value);

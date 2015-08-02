@@ -478,7 +478,7 @@ void* Dglobal_isNaN(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, V
     else
         v = &vundefined;
     n = v.toNumber();
-    b = isnan(n) ? true : false;
+    b = isNaN(n) ? true : false;
     ret.putVboolean(b);
     return null;
 }
@@ -497,7 +497,7 @@ void* Dglobal_isFinite(Dobject pthis, CallContext *cc, Dobject othis, Value* ret
     else
         v = &vundefined;
     n = v.toNumber();
-    b = isfinite(n) ? true : false;
+    b = isFinite(n) ? true : false;
     ret.putVboolean(b);
     return null;
 }

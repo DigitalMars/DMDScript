@@ -269,7 +269,7 @@ class DregexpConstructor : Dfunction
         {
             ptrdiff_t i;
 
-            i = std.string.indexOf(from[], s[1]);
+            i = std.algorithm.countUntil(from[], cast(ubyte)s[1]);
             if(i >= 0)
                 t = to[i];
         }

@@ -169,20 +169,6 @@ struct Token
 
     static d_string tochars[TOKmax];
 
-    static Token*   alloc(Lexer* lex)
-    {
-        Token *t;
-
-        if(lex.freelist)
-        {
-            t = lex.freelist;
-            lex.freelist = t.next;
-            return t;
-        }
-
-        return new Token();
-    }
-
     void print()
     {
         writefln(toString());
@@ -255,6 +241,22 @@ class Lexer
 
     ErrInfo errinfo;            // syntax error information
     static bool inited;
+
+
+    Token*  allocToken()
+    {
+        Token *t;
+
+        if(freelist)
+        {
+            t = freelist;
+            freelist = t.next;
+            return t;
+        }
+
+        return new Token();
+    }
+
 
     this(d_string sourcename, d_string base, int useStringtable)
     {
@@ -452,7 +454,7 @@ class Lexer
             t = ct.next;
         else
         {
-            t = Token.alloc(&this);
+            t = allocToken();
             scan(t);
             t.next = null;
             ct.next = t;
@@ -466,7 +468,7 @@ class Lexer
         // create a new current token that is a semicolon
         Token *t;
 
-        t = Token.alloc(&this);
+        t = allocToken();
         *t = token;
         token.next = t;
         token.value = TOKsemicolon;

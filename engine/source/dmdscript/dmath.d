@@ -151,7 +151,7 @@ void* Dmath_max(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     foreach(Value v; arglist)
     {
         n = v.toNumber();
-        if(isnan(n))
+        if(isNaN(n))
         {
             result = d_number.nan;
             break;
@@ -180,7 +180,7 @@ void* Dmath_min(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     foreach(Value v; arglist)
     {
         n = v.toNumber();
-        if(isnan(n))
+        if(isNaN(n))
         {
             result = d_number.nan;
             break;
@@ -246,7 +246,7 @@ void* Dmath_round(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Val
     d_number result;
 
     result = math_helper(arglist);
-    if(!isnan(result))
+    if(!isNaN(result))
         result = copysign(std.math.floor(result + .5), result);
     ret.putVnumber(result);
     return null;

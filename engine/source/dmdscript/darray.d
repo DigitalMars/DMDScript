@@ -615,7 +615,7 @@ extern (C) int compare_value(const void* x, const void* y)
     {
         if(comparefn)
         {
-            Value arglist[2];
+            Value[2] arglist;
             Value ret;
             Value* v;
             d_number n;
@@ -961,7 +961,7 @@ class DarrayPrototype : Darray
 
         Put(TEXT_constructor, Darray_constructor, DontEnum);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Darray_prototype_toString, 0 },
             { TEXT_toLocaleString, &Darray_prototype_toLocaleString, 0 },

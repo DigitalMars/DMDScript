@@ -243,7 +243,7 @@ void* Dnumber_prototype_toFixed(Dobject pthis, CallContext *cc, Dobject othis, V
     }
     v = &othis.value;
     x = v.toNumber();
-    if(isnan(x))
+    if(isNaN(x))
     {
         result = TEXT_NaN;              // return "NaN"
     }
@@ -355,7 +355,7 @@ void* Dnumber_prototype_toExponential(Dobject pthis, CallContext *cc, Dobject ot
 		fractionDigits = FIXED_DIGITS;
     v = &othis.value;
     x = v.toNumber();
-    if(isnan(x))
+    if(isNaN(x))
     {
         result = TEXT_NaN;              // return "NaN"
     }
@@ -498,7 +498,7 @@ void* Dnumber_prototype_toPrecision(Dobject pthis, CallContext *cc, Dobject othi
     }
     else
     {
-        if(isnan(x))
+        if(isNaN(x))
             result = TEXT_NaN;
         else
         {

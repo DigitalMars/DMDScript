@@ -181,7 +181,7 @@ struct Value
     body
  
     {
-        version(all /*UseAsm*/)
+        /+version(all /*UseAsm*/)
         {
             asm
             { naked;
@@ -198,7 +198,7 @@ struct Value
               pop ESI;
               ret     4; }
         }
-        else
+        else+/
         {
             *to = *from;
             //(cast(uint *)to)[0] = (cast(uint *)from)[0];
@@ -258,7 +258,7 @@ struct Value
         case V_BOOLEAN:
             return dbool;
         case V_NUMBER:
-            return !(number == 0.0 || isnan(number));
+            return !(number == 0.0 || isNaN(number));
         case V_STRING:
             return string.length ? true : false;
         case V_OBJECT:
@@ -353,7 +353,7 @@ struct Value
         { d_number number;
 
           number = toNumber();
-          if(isnan(number))
+          if(isNaN(number))
               number = 0;
           else if(number == 0 || std.math.isinf(number))
           {
@@ -387,7 +387,7 @@ struct Value
           long ll;
 
           number = toNumber();
-          if(isnan(number))
+          if(isNaN(number))
               int32 = 0;
           else if(number == 0 || std.math.isinf(number))
               int32 = 0;
@@ -426,7 +426,7 @@ struct Value
           long ll;
 
           number = toNumber();
-          if(isnan(number))
+          if(isNaN(number))
               uint32 = 0;
           else if(number == 0 || std.math.isinf(number))
               uint32 = 0;
@@ -463,7 +463,7 @@ struct Value
           d_number number;
 
           number = toNumber();
-          if(isnan(number))
+          if(isNaN(number))
               uint16 = 0;
           else if(number == 0 || std.math.isinf(number))
               uint16 = 0;
@@ -501,7 +501,7 @@ struct Value
                       TEXT_5, TEXT_6, TEXT_7, TEXT_8, TEXT_9 ];
 
           //writefln("Vnumber.tostr(%g)", number);
-          if(isnan(number))
+          if(isNaN(number))
               str = TEXT_NaN;
           else if(number >= 0 && number <= 9 && number == cast(int)number)
               str = strs[cast(int)number];
@@ -725,7 +725,7 @@ struct Value
             {
                 if(number == v.number)
                     return 0;
-                if(isnan(number) && isnan(v.number))
+                if(isNaN(number) && isNaN(v.number))
                     return 0;
                 if(number > v.number)
                     return 1;
