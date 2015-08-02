@@ -1004,9 +1004,9 @@ struct IR
                     }
                     else
                     {
-                        char vtmpb[Value.sizeof];
+                        char[Value.sizeof] vtmpb;
                         Value* vb = cast(Value*)vtmpb;
-                        char vtmpc[Value.sizeof];
+                        char[Value.sizeof] vtmpc;
                         Value* vc = cast(Value*)vtmpc;
 
                         b.toPrimitive(vb, null);

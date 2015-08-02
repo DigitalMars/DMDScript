@@ -82,7 +82,7 @@ class DstringConstructor : Dfunction
         super(1, Dfunction_prototype);
         name = "String";
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_fromCharCode, &Dstring_fromCharCode, 1 },
         ];
@@ -1145,7 +1145,7 @@ class DstringPrototype : Dstring
 
         Put(TEXT_constructor, Dstring_constructor, DontEnum);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Dstring_prototype_toString, 0 },
             { TEXT_valueOf, &Dstring_prototype_valueOf, 0 },

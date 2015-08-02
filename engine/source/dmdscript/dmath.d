@@ -297,7 +297,7 @@ class Dmath : Dobject
         { d_string name;
           d_number  value; }
 
-        static enum MathConst table[] =
+        static enum MathConst[] table =
         [
             { TEXT_E, std.math.E },
             { TEXT_LN10, std.math.LN10 },
@@ -319,7 +319,7 @@ class Dmath : Dobject
 
         classname = TEXT_Math;
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_abs, &Dmath_abs, 1 },
             { TEXT_acos, &Dmath_acos, 1 },

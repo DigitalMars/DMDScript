@@ -321,7 +321,7 @@ int ISURIALNUM(dchar c)
            (c >= '0' && c <= '9');
 }
 
-tchar TOHEX[16 + 1] = "0123456789ABCDEF";
+tchar[16 + 1] TOHEX = "0123456789ABCDEF";
 
 void* Dglobal_escape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
 {
@@ -738,7 +738,7 @@ class Dglobal : Dobject
         Put(TEXT_NaN, d_number.nan, DontEnum | DontDelete);
         Put(TEXT_Infinity, d_number.infinity, DontEnum| DontDelete);
 		Put(TEXT_undefined, &vundefined, DontEnum| DontDelete);
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             // Function properties
             { TEXT_eval, &Dglobal_eval, 1 },

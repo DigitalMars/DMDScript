@@ -689,7 +689,7 @@ class Dobject
 
         op.Put(TEXT_constructor, Dobject_constructor, DontEnum);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Dobject_prototype_toString, 0 },
             { TEXT_toLocaleString, &Dobject_prototype_toLocaleString, 0 },

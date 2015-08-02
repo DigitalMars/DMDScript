@@ -110,7 +110,7 @@ class DerrorPrototype : Derror
 
         Put(TEXT_constructor, Derror_constructor, DontEnum);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Derror_prototype_toString, 0 },
         ];

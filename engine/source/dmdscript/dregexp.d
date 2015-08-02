@@ -48,7 +48,7 @@ class DregexpConstructor : Dfunction
     Value* lastParen;
     Value* leftContext;
     Value* rightContext;
-    Value* dollar[10];
+    Value*[10] dollar;
 
     // Extensions
     Value* index;
@@ -391,7 +391,7 @@ class DregexpPrototype : Dregexp
 
         Put(TEXT_constructor, Dregexp_constructor, attributes);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Dregexp_prototype_toString, 0 },
             { TEXT_compile, &Dregexp_prototype_compile, 2 },

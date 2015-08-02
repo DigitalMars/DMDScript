@@ -18,6 +18,8 @@
 
 module dmdscript.iterator;
 
+import std.algorithm.sorting;
+
 import dmdscript.script;
 import dmdscript.dobject;
 import dmdscript.value;
@@ -66,7 +68,7 @@ struct Iterator
         //writef("Iterator: o = %p, p = %p\n", o, p);
         ostart = o;
         this.o = o;
-        keys = o.proptable.table.keys.sort;
+        keys = o.proptable.table.keys.sort().release;
         keyindex = 0;
     }
 
@@ -84,7 +86,7 @@ struct Iterator
                 o = getPrototype(o);
                 if(!o)
                     return null;
-                keys = o.proptable.table.keys.sort;
+                keys = o.proptable.table.keys.sort().release;
                 keyindex = 0;
             }
             Value* key = &keys[keyindex];

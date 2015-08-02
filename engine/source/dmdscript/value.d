@@ -496,7 +496,7 @@ struct Value
             return dbool ? TEXT_true : TEXT_false;
         case V_NUMBER:
         { d_string str;
-          static enum d_string  strs[10] =
+          static enum d_string[10]  strs =
           [   TEXT_0, TEXT_1, TEXT_2, TEXT_3, TEXT_4,
                       TEXT_5, TEXT_6, TEXT_7, TEXT_8, TEXT_9 ];
 

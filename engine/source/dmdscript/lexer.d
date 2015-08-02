@@ -167,7 +167,7 @@ struct Token
         Identifier *ident;
     };
 
-    static d_string tochars[TOKmax];
+    static d_string[TOKmax] tochars;
 
     void print()
     {
@@ -1659,10 +1659,12 @@ class Lexer
  */
 
 struct Keyword
-{ string name;
-  TOK    value; }
+{
+    string name;
+    TOK    value;
+}
 
-static Keyword keywords[] =
+static Keyword[] keywords =
 [
 //    {	"",		TOK		},
 
