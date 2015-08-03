@@ -48,7 +48,7 @@ class DregexpConstructor : Dfunction
     Value* lastParen;
     Value* leftContext;
     Value* rightContext;
-    Value* dollar[10];
+    Value*[10] dollar;
 
     // Extensions
     Value* index;
@@ -253,7 +253,7 @@ class DregexpConstructor : Dfunction
     {
         d_string t;
 
-        static tchar[6] from = "_*&+`'";
+        static immutable tchar[] from = "_*&+`'";
         static enum d_string[] to =
         [
             TEXT_input,
@@ -269,7 +269,7 @@ class DregexpConstructor : Dfunction
         {
             ptrdiff_t i;
 
-            i = std.string.indexOf(from[], s[1]);
+            i = std.algorithm.countUntil(from, s[1]);
             if(i >= 0)
                 t = to[i];
         }
@@ -391,7 +391,7 @@ class DregexpPrototype : Dregexp
 
         Put(TEXT_constructor, Dregexp_constructor, attributes);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Dregexp_prototype_toString, 0 },
             { TEXT_compile, &Dregexp_prototype_compile, 2 },

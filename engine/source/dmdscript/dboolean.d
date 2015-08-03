@@ -123,7 +123,7 @@ class DbooleanPrototype : Dboolean
 
         Put(TEXT_constructor, Dboolean_constructor, DontEnum);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Dboolean_prototype_toString, 0 },
             { TEXT_valueOf, &Dboolean_prototype_valueOf, 0 },

@@ -37,7 +37,7 @@ private
 
 class OutBuffer
 {
-    void data[];
+    void[] data;
     uint offset;
 
     invariant()

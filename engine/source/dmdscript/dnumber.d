@@ -181,7 +181,7 @@ const int FIXED_DIGITS = 20;    // ECMA says >= 20
 
 // power of tens array, indexed by power
 
-static d_number tens[FIXED_DIGITS + 1] =
+static d_number[FIXED_DIGITS + 1] tens =
 [
     1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
     1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19,
@@ -243,7 +243,7 @@ void* Dnumber_prototype_toFixed(Dobject pthis, CallContext *cc, Dobject othis, V
     }
     v = &othis.value;
     x = v.toNumber();
-    if(isnan(x))
+    if(isNaN(x))
     {
         result = TEXT_NaN;              // return "NaN"
     }
@@ -268,7 +268,7 @@ void* Dnumber_prototype_toFixed(Dobject pthis, CallContext *cc, Dobject othis, V
         else
         {
             number_t n;
-            tchar buffer[32 + 1];
+            tchar[32 + 1] buffer;
             d_number tenf;
             int f;
 
@@ -355,7 +355,7 @@ void* Dnumber_prototype_toExponential(Dobject pthis, CallContext *cc, Dobject ot
 		fractionDigits = FIXED_DIGITS;
     v = &othis.value;
     x = v.toNumber();
-    if(isnan(x))
+    if(isNaN(x))
     {
         result = TEXT_NaN;              // return "NaN"
     }
@@ -369,7 +369,7 @@ void* Dnumber_prototype_toExponential(Dobject pthis, CallContext *cc, Dobject ot
             sign = 1;
             x = -x;
         }
-        if(std.math.isinf(x))
+        if(std.math.isInfinity(x))
         {
             result = sign ? TEXT_negInfinity : TEXT_Infinity;
         }
@@ -380,7 +380,7 @@ void* Dnumber_prototype_toExponential(Dobject pthis, CallContext *cc, Dobject ot
             int e;
             tchar[] m;
             int i;
-            tchar buffer[32 + 1];
+            tchar[32 + 1] buffer;
 
             if(fractionDigits < 0 || fractionDigits > FIXED_DIGITS)
             {
@@ -498,7 +498,7 @@ void* Dnumber_prototype_toPrecision(Dobject pthis, CallContext *cc, Dobject othi
     }
     else
     {
-        if(isnan(x))
+        if(isNaN(x))
             result = TEXT_NaN;
         else
         {
@@ -508,7 +508,7 @@ void* Dnumber_prototype_toPrecision(Dobject pthis, CallContext *cc, Dobject othi
             int i;
             tchar[] m;
             number_t n;
-            tchar buffer[32 + 1];
+            tchar[32 + 1] buffer;
 
             sign = 0;
             if(x < 0)
@@ -517,7 +517,7 @@ void* Dnumber_prototype_toPrecision(Dobject pthis, CallContext *cc, Dobject othi
                 x = -x;
             }
 
-            if(std.math.isinf(x))
+            if(std.math.isInfinity(x))
             {
                 result = sign ? TEXT_negInfinity : TEXT_Infinity;
                 goto Ldone;
@@ -625,7 +625,7 @@ class DnumberPrototype : Dnumber
 
         Put(TEXT_constructor, Dnumber_constructor, attributes);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Dnumber_prototype_toString, 1 },
             // Permissible to use toString()

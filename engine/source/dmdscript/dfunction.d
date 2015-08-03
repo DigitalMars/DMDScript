@@ -269,7 +269,7 @@ class DfunctionPrototype : Dfunction
         name = "prototype";
         Put(TEXT_constructor, Dfunction_constructor, attributes);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Dfunction_prototype_toString, 0 },
             { TEXT_apply, &Dfunction_prototype_apply, 2 },

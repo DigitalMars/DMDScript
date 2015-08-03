@@ -192,7 +192,7 @@ class DdateConstructor : Dfunction
         super(7, Dfunction_prototype);
         name = "Date";
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_parse, &Ddate_parse, 1 },
             { TEXT_UTC, &Ddate_UTC, 7 },
@@ -1448,7 +1448,7 @@ class DdatePrototype : Ddate
 
         Put(TEXT_constructor, Ddate_constructor, DontEnum);
 
-        static enum NativeFunctionData nfd[] =
+        static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Ddate_prototype_toString, 0 },
             { TEXT_toDateString, &Ddate_prototype_toDateString, 0 },
