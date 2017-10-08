@@ -300,12 +300,12 @@ class Lexer
         return base.ptr + idx;
     }
 
-    void error(int msgnum)
+    void error(ARGS...)(int msgnum, ARGS args)
     {
-        error(errmsgtbl[msgnum]);
+        error(errmsgtbl[msgnum], args);
     }
 
-    void error(...)
+    void error(ARGS...)(.string fmt, ARGS args)
     {
         uint linnum = 1;
         immutable(tchar) * s;
@@ -351,7 +351,7 @@ class Lexer
             dmdscript.utf.encode(buf, c);
         }
 
-        std.format.doFormat(&putc, _arguments, _argptr);
+        std.format.formattedWrite(&putc, fmt, args);
 
         if(!errinfo.message)
         {

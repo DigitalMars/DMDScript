@@ -206,6 +206,8 @@ int StringToIndex(d_string name, out d_uint32 index)
 
 d_number StringNumericLiteral(d_string string, out size_t endidx, int parsefloat)
 {
+    import core.stdc.stdlib : strtod;
+
     // Convert StringNumericLiteral using ECMA 9.3.1
     d_number number;
     int sign = 0;
@@ -289,11 +291,11 @@ d_number StringNumericLiteral(d_string string, out size_t endidx, int parsefloat
     }
     else
     {
-        char* endptr;
+        const(char)* endptr;
         const (char) * s = std.string.toStringz(string[i .. len]);
 
         //endptr = s;//Fixed: No need to fill endptr prior to stdtod
-        number = std.c.stdlib.strtod(s, &endptr);
+        number = strtod(s, &endptr);
         endidx = (endptr - s) + i;
 
         //printf("s = '%s', endidx = %d, eoff = %d, number = %g\n", s, endidx, eoff, number);

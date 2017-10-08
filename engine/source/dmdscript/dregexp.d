@@ -213,7 +213,7 @@ class DregexpConstructor : Dfunction
     }
 
 
-    override Value* Get(d_string PropertyName) const
+    override Value* Get(d_string PropertyName)
     {
         return Dfunction.Get(perlAlias(PropertyName));
     }

@@ -355,7 +355,7 @@ struct Value
           number = toNumber();
           if(isNaN(number))
               number = 0;
-          else if(number == 0 || std.math.isinf(number))
+          else if(number == 0 || std.math.isInfinity(number))
           {
           }
           else if(number > 0)
@@ -389,7 +389,7 @@ struct Value
           number = toNumber();
           if(isNaN(number))
               int32 = 0;
-          else if(number == 0 || std.math.isinf(number))
+          else if(number == 0 || std.math.isInfinity(number))
               int32 = 0;
           else
           {
@@ -428,7 +428,7 @@ struct Value
           number = toNumber();
           if(isNaN(number))
               uint32 = 0;
-          else if(number == 0 || std.math.isinf(number))
+          else if(number == 0 || std.math.isInfinity(number))
               uint32 = 0;
           else
           {
@@ -465,7 +465,7 @@ struct Value
           number = toNumber();
           if(isNaN(number))
               uint16 = 0;
-          else if(number == 0 || std.math.isinf(number))
+          else if(number == 0 || std.math.isInfinity(number))
               uint16 = 0;
           else
           {
@@ -505,7 +505,7 @@ struct Value
               str = TEXT_NaN;
           else if(number >= 0 && number <= 9 && number == cast(int)number)
               str = strs[cast(int)number];
-          else if(std.math.isinf(number))
+          else if(std.math.isInfinity(number))
           {
               if(number < 0)
                   str = TEXT_negInfinity;
