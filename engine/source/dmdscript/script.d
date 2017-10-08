@@ -19,8 +19,8 @@ module dmdscript.script;
 
 import std.ascii;
 import std.string;
-import std.c.stdlib;
-import std.c.stdarg;
+import core.stdc.stdlib;
+import core.stdc.stdarg;
 
 /* =================== Configuration ======================= */
 
@@ -115,14 +115,12 @@ Global global;
 
 string banner()
 {
-    return std.string.format(
-               "DMDSsript-2 v0.1rc1\n",
-               "Compiled by Digital Mars DMD D compiler\n"
-               "http://www.digitalmars.com\n",
-               "Fork of the original DMDScript 1.16\n",
-               global.written,"\n",
-               global.copyright
-               );
+    return  "DMDSsript-2 v0.1rc1\n" ~
+            "Compiled by Digital Mars DMD D compiler\n" ~
+            "http://www.digitalmars.com\n" ~
+            "Fork of the original DMDScript 1.16\n" ~
+            global.written ~ "\n" ~
+            global.copyright;
 }
 
 int isStrWhiteSpaceChar(dchar c)
@@ -206,6 +204,8 @@ int StringToIndex(d_string name, out d_uint32 index)
 
 d_number StringNumericLiteral(d_string string, out size_t endidx, int parsefloat)
 {
+    import core.stdc.stdlib : strtod;
+
     // Convert StringNumericLiteral using ECMA 9.3.1
     d_number number;
     int sign = 0;
@@ -289,11 +289,11 @@ d_number StringNumericLiteral(d_string string, out size_t endidx, int parsefloat
     }
     else
     {
-        char* endptr;
+        const(char)* endptr;
         const (char) * s = std.string.toStringz(string[i .. len]);
 
         //endptr = s;//Fixed: No need to fill endptr prior to stdtod
-        number = std.c.stdlib.strtod(s, &endptr);
+        number = strtod(s, &endptr);
         endidx = (endptr - s) + i;
 
         //printf("s = '%s', endidx = %d, eoff = %d, number = %g\n", s, endidx, eoff, number);

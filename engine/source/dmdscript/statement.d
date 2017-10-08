@@ -84,13 +84,16 @@ class TopStatement
         writefln("TopStatement.toIR(%p)", this);
     }
 
-    void error(Scope *sc, int msgnum)
+    void error(ARGS...)(Scope *sc, int msgnum, ARGS args)
     {
-        error(sc, errmsgtbl[msgnum]);
+        error(sc, errmsgtbl[msgnum], args);
     }
 
-    void error(Scope *sc, ...)
+    void error(ARGS...)(Scope *sc, string fmt, ARGS args)
     {
+        static import dmdscript.utf;
+        import std.format : formattedWrite;
+
         d_string buf;
         d_string sourcename;
 
@@ -108,7 +111,7 @@ class TopStatement
             dmdscript.utf.encode(buf, c);
         }
 
-        std.format.doFormat(&putc, _arguments, _argptr);
+        formattedWrite(&putc, fmt, args);
 
 
         if(!sc.errinfo.message)

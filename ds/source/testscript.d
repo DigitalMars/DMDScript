@@ -21,7 +21,7 @@ import std.path;
 import std.file;
 import std.stdio;
 import std.exception;
-import std.c.stdlib;
+import core.stdc.stdlib;
 import core.memory;
 
 import dmdscript.script;

@@ -20,8 +20,8 @@
 // Generates:
 //	text.d
 
-import std.c.stdio;
-import std.c.stdlib;
+import core.stdc.stdio;
+import core.stdc.stdlib;
 //import std.stdio;
 import std.string;
 

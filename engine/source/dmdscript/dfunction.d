@@ -19,7 +19,7 @@
 module dmdscript.dfunction;
 
 import std.string;
-import std.c.stdlib;
+import core.stdc.stdlib;
 
 import dmdscript.script;
 import dmdscript.dobject;

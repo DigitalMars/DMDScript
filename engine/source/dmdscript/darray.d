@@ -23,7 +23,7 @@ module dmdscript.darray;
 version =  SliceSpliceExtension;
 
 import std.string;
-import std.c.stdlib;
+import core.stdc.stdlib;
 import std.math;
 
 import dmdscript.script;
@@ -596,7 +596,7 @@ else{//Canonical ECMA all kinds of infinity maped to 0
 static Dobject comparefn;
 static CallContext *comparecc;
 
-extern (C) int compare_value(const void* x, const void* y)
+extern (C) int compare_value(scope const void* x, scope const void* y)
 {
     Value* vx = cast(Value*)x;
     Value* vy = cast(Value*)y;
@@ -739,7 +739,7 @@ void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value
         }
 
         // Sort pvalues[]
-        std.c.stdlib.qsort(pvalues.ptr, nprops, Value.sizeof, &compare_value);
+        core.stdc.stdlib.qsort(pvalues.ptr, nprops, Value.sizeof, &compare_value);
 
         comparefn = null;
         comparecc = null;

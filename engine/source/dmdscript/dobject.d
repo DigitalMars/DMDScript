@@ -18,8 +18,8 @@
 module dmdscript.dobject;
 
 import std.string;
-import std.c.stdarg;
-import std.c.string;
+import core.stdc.stdarg;
+import core.stdc.string;
 import std.exception;
 
 import dmdscript.script;
@@ -584,13 +584,15 @@ class Dobject
             *perrinfo = errinfo;
     }
 
-    static Value* RuntimeError(ErrInfo *perrinfo, int msgnum)
+    static Value* RuntimeError(ARGS...)(ErrInfo *perrinfo, int msgnum, ARGS args)
     {
-        return RuntimeError(perrinfo, errmsgtbl[msgnum]);
+        return RuntimeError(perrinfo, errmsgtbl[msgnum], args);
     }
 
-    static Value* RuntimeError(ErrInfo *perrinfo, ...)
+    static Value* RuntimeError(ARGS...)(ErrInfo *perrinfo, string fmt, ARGS args)
     {
+        import std.format : formattedWrite;
+
         Dobject o;
 
         //perrinfo.message = null;
@@ -601,22 +603,29 @@ class Dobject
             std.utf.encode(buffer, c);
         }
 
-        std.format.doFormat(&putc, _arguments, _argptr);
+        formattedWrite(&putc, fmt, args);
         perrinfo.message = assumeUnique(buffer);
         o = new typeerror.D0(perrinfo);
         Value* v = new Value;
         v.putVobject(o);
         return v;
     }
-    static Value* ReferenceError(ErrInfo *perrinfo, int msgnum)
+    static Value* ReferenceError(ARGS...)(ErrInfo *perrinfo, int msgnum, ARGS args)
     {
-        return ReferenceError(perrinfo, errmsgtbl[msgnum]);
+        return ReferenceError(perrinfo, errmsgtbl[msgnum], args);
     }
 
-    static Value* ReferenceError(...)
+    static Value* ReferenceError(ARGS...)(string fmt, ARGS args)
     {
-        Dobject o;
         ErrInfo errinfo;
+        return ReferenceError(&errinfo, fmt, args);
+    }
+
+    static Value* ReferenceError(ARGS...)(ErrInfo* perrinfo, string fmt, ARGS args)
+    {
+        import std.format : formattedWrite;
+
+        Dobject o;
         //perrinfo.message = null;
         d_string buffer = null;
 
@@ -625,21 +634,24 @@ class Dobject
             dmdscript.utf.encode(buffer, c);
         }
 
-        std.format.doFormat(&putc, _arguments, _argptr);
-        errinfo.message = buffer;
+        formattedWrite(&putc, fmt, args);
+        perrinfo.message = buffer;
 
-        o = new referenceerror.D0(&errinfo);
+        o = new referenceerror.D0(perrinfo);
         Value* v = new Value;
         v.putVobject(o);
+
         return v;
     }
-    static Value* RangeError(ErrInfo *perrinfo, int msgnum)
+    static Value* RangeError(ARGS...)(ErrInfo *perrinfo, int msgnum, ARGS args)
     {
-        return RangeError(perrinfo, errmsgtbl[msgnum]);
+        return RangeError(perrinfo, errmsgtbl[msgnum], args);
     }
 
-    static Value* RangeError(ErrInfo *perrinfo, ...)
+    static Value* RangeError(ARGS...)(ErrInfo *perrinfo, string fmt, ARGS args)
     {
+        import std.format : formattedWrite;
+
         Dobject o;
 
         //perrinfo.message = null;
@@ -650,7 +662,7 @@ class Dobject
             dmdscript.utf.encode(buffer, c);
         }
 
-        std.format.doFormat(&putc, _arguments, _argptr);
+        formattedWrite(&putc, fmt, args);
         perrinfo.message = buffer;
 
         o = new rangeerror.D0(perrinfo);

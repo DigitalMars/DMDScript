@@ -213,7 +213,7 @@ class DregexpConstructor : Dfunction
     }
 
 
-    override Value* Get(d_string PropertyName) const
+    override Value* Get(d_string PropertyName)
     {
         return Dfunction.Get(perlAlias(PropertyName));
     }
@@ -251,6 +251,8 @@ class DregexpConstructor : Dfunction
     // Translate Perl property names to script property names
     static d_string perlAlias(d_string s)
     {
+        import std.algorithm.searching : countUntil;
+
         d_string t;
 
         static immutable tchar[] from = "_*&+`'";
@@ -269,7 +271,7 @@ class DregexpConstructor : Dfunction
         {
             ptrdiff_t i;
 
-            i = std.algorithm.countUntil(from, s[1]);
+            i = countUntil(from, s[1]);
             if(i >= 0)
                 t = to[i];
         }
