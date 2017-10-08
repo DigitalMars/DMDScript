@@ -23,7 +23,7 @@ module dmdscript.darray;
 version =  SliceSpliceExtension;
 
 import std.string;
-import std.c.stdlib;
+import core.stdc.stdlib;
 import std.math;
 
 import dmdscript.script;
@@ -739,7 +739,7 @@ void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value
         }
 
         // Sort pvalues[]
-        std.c.stdlib.qsort(pvalues.ptr, nprops, Value.sizeof, &compare_value);
+        core.stdc.stdlib.qsort(pvalues.ptr, nprops, Value.sizeof, &compare_value);
 
         comparefn = null;
         comparecc = null;

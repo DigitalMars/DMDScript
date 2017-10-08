@@ -279,6 +279,9 @@ class NullExpression : Expression
 
 class StringExpression : Expression
 {
+    static import std.ascii;
+    import std.format : format;
+
     d_string string;
 
     this(Loc loc, d_string string)
@@ -302,11 +305,11 @@ class StringExpression : Expression
             default:
                 Ldefault:
                 if(c & ~0xFF)
-                    buf ~= std.string.format("\\u%04x", c);
+                    buf ~= format("\\u%04x", c);
                 else if(std.ascii.isPrintable(c))
                     buf ~= cast(tchar)c;
                 else
-                    buf ~= std.string.format("\\x%02x", c);
+                    buf ~= format("\\x%02x", c);
                 break;
             }
         }

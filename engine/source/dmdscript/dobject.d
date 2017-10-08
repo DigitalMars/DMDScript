@@ -18,8 +18,8 @@
 module dmdscript.dobject;
 
 import std.string;
-import std.c.stdarg;
-import std.c.string;
+import core.stdc.stdarg;
+import core.stdc.string;
 import std.exception;
 
 import dmdscript.script;
@@ -591,6 +591,8 @@ class Dobject
 
     static Value* RuntimeError(ARGS...)(ErrInfo *perrinfo, string fmt, ARGS args)
     {
+        import std.format : formattedWrite;
+
         Dobject o;
 
         //perrinfo.message = null;
@@ -601,7 +603,7 @@ class Dobject
             std.utf.encode(buffer, c);
         }
 
-        std.format.formattedWrite(&putc, fmt, args);
+        formattedWrite(&putc, fmt, args);
         perrinfo.message = assumeUnique(buffer);
         o = new typeerror.D0(perrinfo);
         Value* v = new Value;
@@ -621,6 +623,8 @@ class Dobject
 
     static Value* ReferenceError(ARGS...)(ErrInfo* perrinfo, string fmt, ARGS args)
     {
+        import std.format : formattedWrite;
+
         Dobject o;
         //perrinfo.message = null;
         d_string buffer = null;
@@ -630,7 +634,7 @@ class Dobject
             dmdscript.utf.encode(buffer, c);
         }
 
-        std.format.formattedWrite(&putc, fmt, args);
+        formattedWrite(&putc, fmt, args);
         perrinfo.message = buffer;
 
         o = new referenceerror.D0(perrinfo);
@@ -646,6 +650,8 @@ class Dobject
 
     static Value* RangeError(ARGS...)(ErrInfo *perrinfo, string fmt, ARGS args)
     {
+        import std.format : formattedWrite;
+
         Dobject o;
 
         //perrinfo.message = null;
@@ -656,7 +662,7 @@ class Dobject
             dmdscript.utf.encode(buffer, c);
         }
 
-        std.format.formattedWrite(&putc, fmt, args);
+        formattedWrite(&putc, fmt, args);
         perrinfo.message = buffer;
 
         o = new rangeerror.D0(perrinfo);

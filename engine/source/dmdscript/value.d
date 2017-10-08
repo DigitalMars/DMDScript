@@ -21,7 +21,7 @@ import undead.date;
 import std.math;
 import std.string;
 import std.stdio;
-import std.c.string;
+import core.stdc.string;
 
 import dmdscript.script;
 import dmdscript.dobject;
@@ -524,7 +524,7 @@ struct Value
               // 16 digits, which is all the GCC library will round correctly.
 
               std.string.sformat(buffer, "%.16g\0", number);
-              //std.c.stdio.sprintf(buffer.ptr, "%.16g", number);
+              //core.stdc.stdio.sprintf(buffer.ptr, "%.16g", number);
 
               // Trim leading spaces
               for(p = buffer.ptr; *p == ' '; p++)
@@ -561,7 +561,7 @@ struct Value
                       }
                   }
               }
-              str = p[0 .. std.c.string.strlen(p)].idup;
+              str = p[0 .. core.stdc.string.strlen(p)].idup;
           }
           //writefln("str = '%s'", str);
           return str; }
@@ -593,12 +593,14 @@ struct Value
 
     d_string toString(int radix)
     {
+        import std.conv : to;
+
         if(vtype == V_NUMBER)
         {
             assert(2 <= radix && radix <= 36);
             if(!isFinite(number))
                 return toString();
-            return number >= 0.0 ? std.conv.to!(d_string)(cast(long)number, radix) : "-"~std.conv.to!(d_string)(cast(long)-number,radix);
+            return number >= 0.0 ? to!(d_string)(cast(long)number, radix) : "-"~to!(d_string)(cast(long)-number,radix);
         }
         else
         {

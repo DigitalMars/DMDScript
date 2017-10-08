@@ -19,8 +19,8 @@ module dmdscript.script;
 
 import std.ascii;
 import std.string;
-import std.c.stdlib;
-import std.c.stdarg;
+import core.stdc.stdlib;
+import core.stdc.stdarg;
 
 /* =================== Configuration ======================= */
 
@@ -117,7 +117,7 @@ string banner()
 {
     return std.string.format(
                "DMDSsript-2 v0.1rc1\n",
-               "Compiled by Digital Mars DMD D compiler\n"
+               "Compiled by Digital Mars DMD D compiler\n" ~
                "http://www.digitalmars.com\n",
                "Fork of the original DMDScript 1.16\n",
                global.written,"\n",

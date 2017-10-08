@@ -24,7 +24,7 @@ import dmdscript.identifier;
 
 import dmdscript.RandAA;
 
-import std.c.string;
+import core.stdc.string;
 import std.stdio;
 
 // attribute flags

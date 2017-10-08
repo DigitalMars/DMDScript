@@ -18,8 +18,8 @@
 module dmdscript.dglobal;
 
 import std.uri;
-import std.c.stdlib;
-import std.c.string;
+import core.stdc.stdlib;
+import core.stdc.string;
 import std.stdio;
 import std.algorithm;
 import std.math;
@@ -178,6 +178,8 @@ Lsyntaxerror:
 
 void* Dglobal_parseInt(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
 {
+    static import std.utf;
+
     // ECMA 15.1.2.2
     Value* v2;
     immutable(char) * s;
@@ -325,6 +327,8 @@ tchar[16 + 1] TOHEX = "0123456789ABCDEF";
 
 void* Dglobal_escape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
 {
+    import std.string : indexOf;
+
     // ECMA 15.1.2.4
     d_string s;
     uint escapes;
@@ -340,7 +344,7 @@ void* Dglobal_escape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, 
         if(c >= 0x100)
             unicodes++;
         else
-        if(c == 0 || c >= 0x80 || (!ISURIALNUM(c) && std.string.indexOf("*@-_+./", c) == -1))
+        if(c == 0 || c >= 0x80 || (!ISURIALNUM(c) && indexOf("*@-_+./", c) == -1))
             escapes++;
     }
     if((escapes + unicodes) == 0)
@@ -365,7 +369,7 @@ void* Dglobal_escape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, 
                 r[5] = TOHEX[c & 15];
                 r += 6;
             }
-            else if(c == 0 || c >= 0x80 || (!ISURIALNUM(c) && std.string.indexOf("*@-_+./", c) == -1))
+            else if(c == 0 || c >= 0x80 || (!ISURIALNUM(c) && indexOf("*@-_+./", c) == -1))
             {
                 r[0] = '%';
                 r[1] = TOHEX[c >> 4];
@@ -388,6 +392,8 @@ void* Dglobal_escape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, 
 
 void* Dglobal_unescape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
 {
+    static import dmdscript.utf;
+
     // ECMA 15.1.2.5
     d_string s;
     d_string R;
@@ -629,6 +635,8 @@ void* Dglobal_println(Dobject pthis, CallContext *cc, Dobject othis, Value* ret,
 
 void* Dglobal_readln(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
 {
+    static import dmdscript.utf;
+
     // Our own extension
     dchar c;
     d_string s;
@@ -637,25 +645,25 @@ void* Dglobal_readln(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, 
     {
         version(linux)
         {
-            c = std.c.stdio.getchar();
+            c = core.stdc.stdio.getchar();
             if(c == EOF)
                 break;
         }
         else version(Windows)
         {
-            c = std.c.stdio.getchar();
+            c = core.stdc.stdio.getchar();
             if(c == EOF)
                 break;
         }
         else version(OSX)
         {
-            c = std.c.stdio.getchar();
+            c = core.stdc.stdio.getchar();
             if(c == EOF)
                 break;
         }
         else version(FreeBSD)
         {
-            c = std.c.stdio.getchar();
+            c = core.stdc.stdio.getchar();
             if(c == EOF)
                 break;
         }
@@ -675,12 +683,14 @@ void* Dglobal_readln(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, 
 
 void* Dglobal_getenv(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
 {
+    import std.string : toStringz;
+
     // Our own extension
     ret.putVundefined();
     if(arglist.length)
     {
         d_string s = arglist[0].toString();
-        char* p = getenv(std.string.toStringz(s));
+        char* p = getenv(toStringz(s));
         if(p)
             ret.putVstring(p[0 .. strlen(p)].idup);
         else

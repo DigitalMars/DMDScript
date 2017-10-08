@@ -27,7 +27,7 @@ import std.string;
 import std.utf;
 import std.outbuffer;
 import std.ascii;
-import std.c.stdlib;
+import core.stdc.stdlib;
 
 import dmdscript.script;
 import dmdscript.text;
@@ -260,11 +260,12 @@ class Lexer
 
     this(d_string sourcename, d_string base, int useStringtable)
     {
+        import core.stdc.string : memset;
         //writefln("Lexer::Lexer(base = '%s')\n",base);
         if(!inited)
             init();
 
-        std.c.string.memset(&token, 0, token.sizeof);
+        memset(&token, 0, token.sizeof);
         this.useStringtable = useStringtable;
         this.sourcename = sourcename;
         if(!base.length || (base[$ - 1] != 0 && base[$ - 1] != 0x1A))
@@ -307,6 +308,8 @@ class Lexer
 
     void error(ARGS...)(.string fmt, ARGS args)
     {
+        import std.format : format, formattedWrite;
+
         uint linnum = 1;
         immutable(tchar) * s;
         immutable(tchar) * slinestart;
@@ -344,14 +347,14 @@ class Lexer
         }
         slineend = s;
 
-        buf = std.string.format("%s(%d) : Error: ", sourcename, linnum);
+        buf = format("%s(%d) : Error: ", sourcename, linnum);
 
         void putc(dchar c)
         {
             dmdscript.utf.encode(buf, c);
         }
 
-        std.format.formattedWrite(&putc, fmt, args);
+        formattedWrite(&putc, fmt, args);
 
         if(!errinfo.message)
         {
@@ -496,6 +499,9 @@ class Lexer
 
     void scan(Token *t)
     {
+        static import std.ascii;
+        static import std.uni;
+
         tchar c;
         dchar d;
         d_string id;
@@ -1452,7 +1458,7 @@ class Lexer
 
                 Ldouble:
                 // convert double
-                realvalue = std.c.stdlib.strtod(toStringz(start[0 .. p - start]), null);
+                realvalue = core.stdc.stdlib.strtod(toStringz(start[0 .. p - start]), null);
                 t.realvalue = realvalue;
                 return TOKreal;
             }

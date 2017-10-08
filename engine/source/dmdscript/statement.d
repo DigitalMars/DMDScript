@@ -91,6 +91,9 @@ class TopStatement
 
     void error(ARGS...)(Scope *sc, string fmt, ARGS args)
     {
+        static import dmdscript.utf;
+        import std.format : formattedWrite;
+
         d_string buf;
         d_string sourcename;
 
@@ -108,7 +111,7 @@ class TopStatement
             dmdscript.utf.encode(buf, c);
         }
 
-        std.format.formattedWrite(&putc, fmt, args);
+        formattedWrite(&putc, fmt, args);
 
 
         if(!sc.errinfo.message)

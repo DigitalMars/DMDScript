@@ -20,8 +20,8 @@ module dmdscript.dstring;
 
 import undead.regexp;
 import std.utf;
-import std.c.stdlib;
-import std.c.string;
+import core.stdc.stdlib;
+import core.stdc.string;
 import std.exception;
 import std.algorithm;
 import std.range;
@@ -45,6 +45,8 @@ import dmdscript.dnative;
 
 void* Dstring_fromCharCode(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
+    static import dmdscript.utf;
+
     // ECMA 15.5.3.2
     d_string s;
 
@@ -273,6 +275,9 @@ void* Dstring_prototype_concat(Dobject pthis, CallContext *cc, Dobject othis, Va
 
 void* Dstring_prototype_indexOf(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
+    import std.string : indexOf;
+    import std.utf : toUCSindex, toUTFindex;
+
     // ECMA 15.5.4.6
     // String.prototype.indexOf(searchString, position)
 
@@ -289,7 +294,7 @@ void* Dstring_prototype_indexOf(Dobject pthis, CallContext *cc, Dobject othis, V
     Value xx;
     xx.putVobject(othis);
     s = xx.toString();
-    sUCSdim = std.utf.toUCSindex(s, s.length);
+    sUCSdim = toUCSindex(s, s.length);
 
     v1 = arglist.length ? &arglist[0] : &vundefined;
     v2 = (arglist.length >= 2) ? &arglist[1] : &vundefined;
@@ -306,10 +311,10 @@ void* Dstring_prototype_indexOf(Dobject pthis, CallContext *cc, Dobject othis, V
         k = pos;
     else
     {
-        pos = std.utf.toUTFindex(s, pos);
-        k = std.string.indexOf(s[pos .. $], searchString);
+        pos = toUTFindex(s, pos);
+        k = indexOf(s[pos .. $], searchString);
         if(k != -1)
-            k = std.utf.toUCSindex(s, pos + k);
+            k = toUCSindex(s, pos + k);
     }
 
     ret.putVnumber(k);
@@ -320,6 +325,10 @@ void* Dstring_prototype_indexOf(Dobject pthis, CallContext *cc, Dobject othis, V
 
 void* Dstring_prototype_lastIndexOf(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
+    import std.math : isNaN;
+    import std.string : lastIndexOf;
+    import std.utf : toUCSindex, toUTFindex;
+
     // ECMA v3 15.5.4.8
     // String.prototype.lastIndexOf(searchString, position)
 
@@ -349,7 +358,7 @@ void* Dstring_prototype_lastIndexOf(Dobject pthis, CallContext *cc, Dobject othi
         // the 'builtin' version
         s = othis.value.toString();
     }
-    sUCSdim = std.utf.toUCSindex(s, s.length);
+    sUCSdim = toUCSindex(s, s.length);
 
     v1 = arglist.length ? &arglist[0] : &vundefined;
     searchString = v1.toString();
@@ -359,7 +368,7 @@ void* Dstring_prototype_lastIndexOf(Dobject pthis, CallContext *cc, Dobject othi
         Value *v = &arglist[1];
 
         n = v.toNumber();
-        if(std.math.isNaN(n) || n > sUCSdim)
+        if(isNaN(n) || n > sUCSdim)
             pos = sUCSdim;
         else if(n < 0)
             pos = 0;
@@ -377,14 +386,14 @@ void* Dstring_prototype_lastIndexOf(Dobject pthis, CallContext *cc, Dobject othi
         k = pos;
     else
     {
-        pos = std.utf.toUTFindex(s, pos);
+        pos = toUTFindex(s, pos);
         pos += searchString.length;
         if(pos > s.length)
             pos = s.length;
-        k = std.string.lastIndexOf(s[0 .. pos], searchString);
+        k = lastIndexOf(s[0 .. pos], searchString);
         //writefln("s = '%s', pos = %s, searchString = '%s', k = %d", s, pos, searchString, k);
         if(k != -1)
-            k = std.utf.toUCSindex(s, k);
+            k = toUCSindex(s, k);
     }
     ret.putVnumber(k);
     return null;
@@ -468,6 +477,7 @@ void* Dstring_prototype_match(Dobject pthis, CallContext *cc, Dobject othis, Val
 
 void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
+    import std.string : indexOf;
     // ECMA v3 15.5.4.11
     // String.prototype.replace(searchValue, replaceValue)
 
@@ -557,7 +567,7 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
     else
     {
         searchString = searchValue.toString();
-        ptrdiff_t match = std.string.indexOf(string, searchString);
+        ptrdiff_t match = indexOf(string, searchString);
         if(match >= 0)
         {
             pmatch[0].rm_so = match;
@@ -831,17 +841,20 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
 
 void *dstring_substring(d_string s, size_t sUCSdim, d_number start, d_number end, Value *ret)
 {
+    import std.math : isNaN;
+    import std.utf : toUTFindex;
+
     d_string sb;
     d_int32 sb_len;
 
-    if(std.math.isNaN(start))
+    if(isNaN(start))
         start = 0;
     else if(start > sUCSdim)
         start = sUCSdim;
     else if(start < 0)
         start = 0;
 
-    if(std.math.isNaN(end))
+    if(isNaN(end))
         end = 0;
     else if(end > sUCSdim)
         end = sUCSdim;
@@ -857,8 +870,8 @@ void *dstring_substring(d_string s, size_t sUCSdim, d_number start, d_number end
         end = t;
     }
 
-    size_t st = std.utf.toUTFindex(s, cast(size_t)start);
-    size_t en = std.utf.toUTFindex(s, cast(size_t)end);
+    size_t st = toUTFindex(s, cast(size_t)start);
+    size_t en = toUTFindex(s, cast(size_t)end);
     sb = s[st .. en];
 
     ret.putVstring(sb);
@@ -867,6 +880,9 @@ void *dstring_substring(d_string s, size_t sUCSdim, d_number start, d_number end
 
 void* Dstring_prototype_substr(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
+    import std.math : isNaN;
+    import std.utf : toUCSindex;
+
     // Javascript: TDG pg. 689
     // String.prototype.substr(start, length)
     d_number start;
@@ -874,7 +890,7 @@ void* Dstring_prototype_substr(Dobject pthis, CallContext *cc, Dobject othis, Va
     d_string s;
 
     s = othis.value.toString();
-    size_t sUCSdim = std.utf.toUCSindex(s, s.length);
+    size_t sUCSdim = toUCSindex(s, s.length);
     start = 0;
     length = 0;
     if(arglist.length >= 1)
@@ -885,7 +901,7 @@ void* Dstring_prototype_substr(Dobject pthis, CallContext *cc, Dobject othis, Va
         if(arglist.length >= 2)
         {
             length = arglist[1].toInteger();
-            if(std.math.isNaN(length) || length < 0)
+            if(isNaN(length) || length < 0)
                 length = 0;
         }
         else
@@ -899,6 +915,8 @@ void* Dstring_prototype_substr(Dobject pthis, CallContext *cc, Dobject othis, Va
 
 void* Dstring_prototype_substring(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
+    import std.utf : toUCSindex;
+
     // ECMA 15.5.4.9
     // String.prototype.substring(start)
     // String.prototype.substring(start, end)
@@ -908,7 +926,7 @@ void* Dstring_prototype_substring(Dobject pthis, CallContext *cc, Dobject othis,
 
     //writefln("String.prototype.substring()");
     s = othis.value.toString();
-    size_t sUCSdim = std.utf.toUCSindex(s, s.length);
+    size_t sUCSdim = toUCSindex(s, s.length);
     start = 0;
     end = sUCSdim;
     if(arglist.length >= 1)
@@ -935,22 +953,24 @@ enum CASE
 
 void *tocase(Dobject othis, Value *ret, CASE caseflag)
 {
+    import std.string : toLower, toUpper;
+
     d_string s;
 
     s = othis.value.toString();
     switch(caseflag)
     {
     case CASE.Lower:
-        s = std.string.toLower(s);
+        s = toLower(s);
         break;
     case CASE.Upper:
-        s = std.string.toUpper(s);
+        s = toUpper(s);
         break;
     case CASE.LocaleLower:
-        s = std.string.toLower(s);
+        s = toLower(s);
         break;
     case CASE.LocaleUpper:
-        s = std.string.toUpper(s);
+        s = toUpper(s);
         break;
     default:
         assert(0);
