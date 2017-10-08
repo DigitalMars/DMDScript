@@ -115,14 +115,12 @@ Global global;
 
 string banner()
 {
-    return std.string.format(
-               "DMDSsript-2 v0.1rc1\n",
-               "Compiled by Digital Mars DMD D compiler\n" ~
-               "http://www.digitalmars.com\n",
-               "Fork of the original DMDScript 1.16\n",
-               global.written,"\n",
-               global.copyright
-               );
+    return  "DMDSsript-2 v0.1rc1\n" ~
+            "Compiled by Digital Mars DMD D compiler\n" ~
+            "http://www.digitalmars.com\n" ~
+            "Fork of the original DMDScript 1.16\n" ~
+            global.written ~ "\n" ~
+            global.copyright;
 }
 
 int isStrWhiteSpaceChar(dchar c)
