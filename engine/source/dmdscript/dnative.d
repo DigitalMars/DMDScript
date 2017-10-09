@@ -64,7 +64,7 @@ class DnativeFunction : Dfunction
 
     static void initialize(Dobject o, CallContext* cc, NativeFunctionData[] nfd, uint attributes)
     {
-        Dobject f = Dfunction.getPrototype();
+        Dobject f = Dfunction.getPrototype(cc);
 
         for(size_t i = 0; i < nfd.length; i++)
         {

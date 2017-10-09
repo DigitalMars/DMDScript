@@ -288,7 +288,7 @@ class Dmath : Dobject
 {
     this(CallContext* cc)
     {
-        super(cc, Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
 
         //writef("Dmath::Dmath(%x)\n", this);
         uint attributes = DontEnum | DontDelete | ReadOnly;
@@ -346,7 +346,7 @@ class Dmath : Dobject
 
     static void initialize(CallContext* cc)
     {
-        Dmath_object = new Dmath(cc);
+        cc.tc.Dmath_object = new Dmath(cc);
     }
 }
 

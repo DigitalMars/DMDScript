@@ -41,7 +41,7 @@ class DfunctionConstructor : Dfunction
 {
     this(CallContext* cc)
     {
-        super(cc, 1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
 
         // Actually put in later by Dfunction::initialize()
         //unsigned attributes = DontEnum | DontDelete | ReadOnly;
@@ -261,13 +261,13 @@ class DfunctionPrototype : Dfunction
 {
     this(CallContext* cc)
     {
-        super(cc, 0, Dobject_prototype);
+        super(cc, 0, cc.tc.Dobject_prototype);
 
         uint attributes = DontEnum;
 
         classname = TEXT_Function;
         name = "prototype";
-        Put(cc, TEXT_constructor, Dfunction_constructor, attributes);
+        Put(cc, TEXT_constructor, cc.tc.Dfunction_constructor, attributes);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -297,7 +297,7 @@ class Dfunction : Dobject
 
   this(CallContext* cc, d_uint32 length)
   {
-      this(cc, length, Dfunction.getPrototype());
+      this(cc, length, Dfunction.getPrototype(cc));
   }
 
   this(CallContext* cc, d_uint32 length, Dobject prototype)
@@ -375,24 +375,24 @@ class Dfunction : Dobject
   }
 
 
-  static Dfunction getConstructor()
+  static Dfunction getConstructor(CallContext* cc)
   {
-      return Dfunction_constructor;
+      return cc.tc.Dfunction_constructor;
   }
 
-  static Dobject getPrototype()
+  static Dobject getPrototype(CallContext* cc)
   {
-      return Dfunction_prototype;
+      return cc.tc.Dfunction_prototype;
   }
 
   static void initialize(CallContext* cc)
   {
-      Dfunction_constructor = new DfunctionConstructor(cc);
-      Dfunction_prototype = new DfunctionPrototype(cc);
+      cc.tc.Dfunction_constructor = new DfunctionConstructor(cc);
+      cc.tc.Dfunction_prototype = new DfunctionPrototype(cc);
 
-      Dfunction_constructor.Put(cc, TEXT_prototype, Dfunction_prototype, DontEnum | DontDelete | ReadOnly);
+      cc.tc.Dfunction_constructor.Put(cc, TEXT_prototype, cc.tc.Dfunction_prototype, DontEnum | DontDelete | ReadOnly);
 
-      Dfunction_constructor.internal_prototype = Dfunction_prototype;
-      Dfunction_constructor.proptable.previous = Dfunction_prototype.proptable;
+      cc.tc.Dfunction_constructor.internal_prototype = cc.tc.Dfunction_prototype;
+      cc.tc.Dfunction_constructor.proptable.previous = cc.tc.Dfunction_prototype.proptable;
   }
 }

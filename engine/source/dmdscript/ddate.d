@@ -189,7 +189,7 @@ class DdateConstructor : Dfunction
 {
     this(CallContext* cc)
     {
-        super(cc, 7, Dfunction_prototype);
+        super(cc, 7, cc.tc.Dfunction_prototype);
         name = "Date";
 
         static enum NativeFunctionData[] nfd =
@@ -1442,11 +1442,11 @@ class DdatePrototype : Ddate
 {
     this(CallContext* cc)
     {
-        super(cc, Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
 
-        Dobject f = Dfunction_prototype;
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        Put(cc, TEXT_constructor, Ddate_constructor, DontEnum);
+        Put(cc, TEXT_constructor, cc.tc.Ddate_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -1511,14 +1511,14 @@ class Ddate : Dobject
 {
     this(CallContext* cc, d_number n)
     {
-        super(cc, Ddate.getPrototype());
+        super(cc, Ddate.getPrototype(cc));
         classname = TEXT_Date;
         value.putVnumber(n);
     }
 
     this(CallContext* cc, d_time n)
     {
-        super(cc, Ddate.getPrototype());
+        super(cc, Ddate.getPrototype(cc));
         classname = TEXT_Date;
         value.putVtime(n);
     }
@@ -1532,23 +1532,23 @@ class Ddate : Dobject
 
     static void initialize(CallContext* cc)
     {
-        Ddate_constructor = new DdateConstructor(cc);
-        Ddate_prototype = new DdatePrototype(cc);
+        cc.tc.Ddate_constructor = new DdateConstructor(cc);
+        cc.tc.Ddate_prototype = new DdatePrototype(cc);
 
-        Ddate_constructor.Put(cc, TEXT_prototype, Ddate_prototype,
+        cc.tc.Ddate_constructor.Put(cc, TEXT_prototype, cc.tc.Ddate_prototype,
                                  DontEnum | DontDelete | ReadOnly);
 
-        assert(Ddate_prototype.proptable.table.length != 0);
+        assert(cc.tc.Ddate_prototype.proptable.table.length != 0);
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Ddate_constructor;
+        return cc.tc.Ddate_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Ddate_prototype;
+        return cc.tc.Ddate_prototype;
     }
 }
 
