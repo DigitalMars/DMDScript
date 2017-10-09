@@ -50,6 +50,7 @@ struct Iterator
     size_t  keyindex;
     Dobject o;
     Dobject ostart;
+    CallContext* callcontext;
 
     debug
     {
@@ -62,13 +63,14 @@ struct Iterator
         debug assert(foo == ITERATOR_VALUE);
     }
 
-    void ctor(Dobject o)
+    void ctor(CallContext* cc, Dobject o)
     {
         debug foo = ITERATOR_VALUE;
         //writef("Iterator: o = %p, p = %p\n", o, p);
         ostart = o;
         this.o = o;
-        keys = o.proptable.table.keys.sort().release;
+        this.callcontext = cc;
+        keys = o.proptable.table.keys.sort!((a, b) => a.compare(cc, b) < 0).release;
         keyindex = 0;
     }
 
@@ -86,7 +88,7 @@ struct Iterator
                 o = getPrototype(o);
                 if(!o)
                     return null;
-                keys = o.proptable.table.keys.sort().release;
+                keys = o.proptable.table.keys.sort!((a, b) => a.compare(this.callcontext, b) < 0).release;
                 keyindex = 0;
             }
             Value* key = &keys[keyindex];
