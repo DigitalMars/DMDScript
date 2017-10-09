@@ -45,7 +45,7 @@ class Darguments : Dobject
          Identifier *[] parameters, Value[] arglist)
 
     {
-        super(cc, Dobject.getPrototype());
+        super(cc, Dobject.getPrototype(cc));
 
         this.actobj = actobj;
         this.parameters = parameters;

@@ -33,7 +33,7 @@ class DbooleanConstructor : Dfunction
 {
     this(CallContext* cc)
     {
-        super(cc, 1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
         name = "Boolean";
     }
 
@@ -118,10 +118,10 @@ class DbooleanPrototype : Dboolean
 {
     this(CallContext* cc)
     {
-        super(cc, Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
         //Dobject f = Dfunction_prototype;
 
-        Put(cc, TEXT_constructor, Dboolean_constructor, DontEnum);
+        Put(cc, TEXT_constructor, cc.tc.Dboolean_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -140,7 +140,7 @@ class Dboolean : Dobject
 {
     this(CallContext* cc, d_boolean b)
     {
-        super(cc, Dboolean.getPrototype());
+        super(cc, Dboolean.getPrototype(cc));
         value.putVboolean(b);
         classname = TEXT_Boolean;
     }
@@ -152,22 +152,22 @@ class Dboolean : Dobject
         classname = TEXT_Boolean;
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Dboolean_constructor;
+        return cc.tc.Dboolean_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Dboolean_prototype;
+        return cc.tc.Dboolean_prototype;
     }
 
     static void initialize(CallContext* cc)
     {
-        Dboolean_constructor = new DbooleanConstructor(cc);
-        Dboolean_prototype = new DbooleanPrototype(cc);
+        cc.tc.Dboolean_constructor = new DbooleanConstructor(cc);
+        cc.tc.Dboolean_prototype = new DbooleanPrototype(cc);
 
-        Dboolean_constructor.Put(cc, TEXT_prototype, Dboolean_prototype, DontEnum | DontDelete | ReadOnly);
+        cc.tc.Dboolean_constructor.Put(cc, TEXT_prototype, cc.tc.Dboolean_prototype, DontEnum | DontDelete | ReadOnly);
     }
 }
 

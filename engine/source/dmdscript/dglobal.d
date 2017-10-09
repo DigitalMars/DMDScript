@@ -732,11 +732,11 @@ class Dglobal : Dobject
 {
     this(CallContext* cc, tchar[][] argv)
     {
-        super(cc, Dobject.getPrototype());  // Dglobal.prototype is implementation-dependent
+        super(cc, Dobject.getPrototype(cc));  // Dglobal.prototype is implementation-dependent
 
         //writef("Dglobal.Dglobal(%x)\n", this);
 
-        Dobject f = Dfunction.getPrototype();
+        Dobject f = Dfunction.getPrototype(cc);
 
         classname = TEXT_global;
 
@@ -783,25 +783,25 @@ class Dglobal : Dobject
 
         // Constructor properties
 
-        Put(cc, TEXT_Object, Dobject_constructor, DontEnum);
-        Put(cc, TEXT_Function, Dfunction_constructor, DontEnum);
-        Put(cc, TEXT_Array, Darray_constructor, DontEnum);
-        Put(cc, TEXT_String, Dstring_constructor, DontEnum);
-        Put(cc, TEXT_Boolean, Dboolean_constructor, DontEnum);
-        Put(cc, TEXT_Number, Dnumber_constructor, DontEnum);
-        Put(cc, TEXT_Date, Ddate_constructor, DontEnum);
-        Put(cc, TEXT_RegExp, Dregexp_constructor, DontEnum);
-        Put(cc, TEXT_Error, Derror_constructor, DontEnum);
+        Put(cc, TEXT_Object, cc.tc.Dobject_constructor, DontEnum);
+        Put(cc, TEXT_Function, cc.tc.Dfunction_constructor, DontEnum);
+        Put(cc, TEXT_Array, cc.tc.Darray_constructor, DontEnum);
+        Put(cc, TEXT_String, cc.tc.Dstring_constructor, DontEnum);
+        Put(cc, TEXT_Boolean, cc.tc.Dboolean_constructor, DontEnum);
+        Put(cc, TEXT_Number, cc.tc.Dnumber_constructor, DontEnum);
+        Put(cc, TEXT_Date, cc.tc.Ddate_constructor, DontEnum);
+        Put(cc, TEXT_RegExp, cc.tc.Dregexp_constructor, DontEnum);
+        Put(cc, TEXT_Error, cc.tc.Derror_constructor, DontEnum);
 
-        foreach(d_string key, Dfunction ctor; ctorTable)
+        foreach(d_string key, Dfunction ctor; cc.tc.ctorTable)
         {
             Put(cc, key, ctor, DontEnum);
         }
 
         // Other properties
 
-        assert(Dmath_object);
-        Put(cc, TEXT_Math, Dmath_object, DontEnum);
+        assert(cc.tc.Dmath_object);
+        Put(cc, TEXT_Math, cc.tc.Dmath_object, DontEnum);
 
         // Build an "arguments" property out of argv[],
         // and add it to the global object.

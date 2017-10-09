@@ -134,7 +134,7 @@ class Wrap(Which,string ClassName,Base=Dobject): Base{
     static Constructor _constructor;
     static class Constructor: Dfunction{
         this(CallContext* cc){
-            super(cc, ConstructorArgs.length, Dfunction_prototype);
+            super(cc, ConstructorArgs.length, cc.tc.Dfunction_prototype);
             name = ClassName;
         }
 
@@ -151,7 +151,7 @@ class Wrap(Which,string ClassName,Base=Dobject): Base{
     
     }
     static void initialize(CallContext* cc){
-         _prototype = new Wrap(cc, Base.getPrototype());
+         _prototype = new Wrap(cc, Base.getPrototype(cc));
         _constructor = new Constructor(cc);
         _prototype.Put(cc, "constructor", _constructor, DontEnum);
         _constructor.Put(cc, "prototype", _prototype, DontEnum | DontDelete | ReadOnly);

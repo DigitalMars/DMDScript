@@ -40,15 +40,15 @@ class DdeclaredFunction : Dfunction
 
     this(CallContext* cc, FunctionDefinition fd)
     {
-        super(cc, cast(uint)fd.parameters.length, Dfunction.getPrototype());
-        assert(Dfunction.getPrototype());
+        super(cc, cast(uint)fd.parameters.length, Dfunction.getPrototype(cc));
+        assert(Dfunction.getPrototype(cc));
         assert(internal_prototype);
         this.fd = fd;
 
         Dobject o;
 
         // ECMA 3 13.2
-        o = new Dobject(cc, Dobject.getPrototype());        // step 9
+        o = new Dobject(cc, Dobject.getPrototype(cc));        // step 9
         Put(cc, TEXT_prototype, o, DontEnum);               // step 11
         o.Put(cc, TEXT_constructor, this, DontEnum);        // step 10
     }
@@ -193,7 +193,7 @@ class DdeclaredFunction : Dfunction
 
         v = Get(TEXT_prototype);
         if(v.isPrimitive())
-            proto = Dobject.getPrototype();
+            proto = Dobject.getPrototype(cc);
         else
             proto = v.toObject(cc);
         othis = new Dobject(cc, proto);
