@@ -38,16 +38,16 @@ class DnativeFunction : Dfunction
 {
     PCall pcall;
 
-    this(PCall func, d_string name, d_uint32 length)
+    this(CallContext* cc, PCall func, d_string name, d_uint32 length)
     {
-        super(length);
+        super(cc, length);
         this.name = name;
         pcall = func;
     }
 
-    this(PCall func, d_string name, d_uint32 length, Dobject o)
+    this(CallContext* cc, PCall func, d_string name, d_uint32 length, Dobject o)
     {
-        super(length, o);
+        super(cc, length, o);
         this.name = name;
         pcall = func;
     }
@@ -62,7 +62,7 @@ class DnativeFunction : Dfunction
      * to go in as properties of o.
      */
 
-    static void initialize(Dobject o, NativeFunctionData[] nfd, uint attributes)
+    static void initialize(Dobject o, CallContext* cc, NativeFunctionData[] nfd, uint attributes)
     {
         Dobject f = Dfunction.getPrototype();
 
@@ -70,8 +70,8 @@ class DnativeFunction : Dfunction
         {
             NativeFunctionData* n = &nfd[i];
 
-            o.Put(n.string,
-                  new DnativeFunction(n.pcall, n.string, n.length, f),
+            o.Put(cc, n.string,
+                  new DnativeFunction(cc, n.pcall, n.string, n.length, f),
                   attributes);
         }
     }

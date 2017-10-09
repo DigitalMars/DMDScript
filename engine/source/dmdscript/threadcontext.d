@@ -63,4 +63,4 @@ Dobject Denumerator_prototype;
 
 Dmath Dmath_object;
 
-void function ()[] threadInitTable;
+void function (CallContext*)[] threadInitTable;

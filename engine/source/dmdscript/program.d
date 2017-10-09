@@ -40,7 +40,6 @@ class Program
     uint errors;        // if any errors in file
     CallContext *callcontext;
     FunctionDefinition globalfunction;
-    static Program program;//per thread global associated data
 
     // Locale info
     uint lcid;          // current locale
@@ -62,12 +61,12 @@ class Program
         CallContext *cc = callcontext;
 
         // Do object inits
-        dobject_init();
+        dobject_init(cc);
 
         cc.prog = this;
 
         // Create global object
-        cc.global = new Dglobal(null);
+        cc.global = new Dglobal(cc, null);
 
         Dobject[] scopex;
         scopex ~= cc.global;
@@ -179,12 +178,12 @@ class Program
         //Program program_save;
 
         // Set argv and argc for execute
-        arguments = new Darray();
-        dglobal.Put(TEXT_arguments, arguments, DontDelete | DontEnum);
+        arguments = new Darray(cc);
+        dglobal.Put(cc, TEXT_arguments, arguments, DontDelete | DontEnum);
         arguments.length.putVnumber(args.length);
         for(int i = 0; i < args.length; i++)
         {
-            arguments.Put(i, args[i], DontEnum);
+            arguments.Put(cc, i, args[i], DontEnum);
         }
 
         Value[] p1;
@@ -204,23 +203,17 @@ class Program
 
         // Instantiate global variables as properties of global
         // object with 0 attributes
-        globalfunction.instantiate(cc.scopex, cc.variable, DontDelete);
+        globalfunction.instantiate(cc, cc.scopex, cc.variable, DontDelete);
 
 //	cc.scopex.reserve(globalfunction.withdepth + 1);
 
-        // The 'this' value is the global object
-        //FIXED: NOT any longer in D 2.0, any global data is actually thread-local, so stripped all this 'saving global object' crap
-        //printf("cc.scopex.ptr = %x, cc.scopex.length = %d\n", cc.scopex.ptr, cc.scopex.length);
-        //program_save = getProgram();
-
-        setProgram(this);
         ret.putVundefined();
         result = cast(Value*)IR.call(cc, cc.global, globalfunction.code, &ret, locals.ptr);
         if(result)
         {
             ErrInfo errinfo;
 
-            result.getErrInfo(&errinfo, cc.linnum);
+            result.getErrInfo(cc, &errinfo, cc.linnum);
             cc.linnum = 0;
             delete p1;
             throw new ScriptException(&errinfo);
@@ -235,23 +228,5 @@ class Program
     {
         if(globalfunction)
             globalfunction.toBuffer(buf);
-    }
-
-    /***********************************************
-     * Get/Set Program associated with this thread.
-     * This enables multiple scripts (Programs) running simultaneously
-     * in different threads.
-     * It is needed because which Program is being run is essentially
-     * global data - and this makes it thread local data.
-     */
-
-    static Program getProgram()
-    {
-        return program;
-    }
-
-    static void setProgram(Program p)
-    {
-        program = p;
     }
 }

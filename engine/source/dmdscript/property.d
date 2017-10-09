@@ -54,8 +54,16 @@ struct PropTable
 {
     RandAA!(Value, Property) table;
     PropTable* previous;
+    CallContext* callcontext;
 
-    int        opApply(int delegate(ref Property) dg)
+    @disable this();
+
+    this(CallContext* cc)
+    {
+        callcontext = cc;
+    }
+
+    int opApply(int delegate(ref Property) dg)
     {
         initialize();
         int result;
@@ -109,7 +117,7 @@ struct PropTable
         PropTable *t;
 
         //writefln("get(key = '%s', hash = x%x)", key.toString(), hash);
-        assert(key.toHash() == hash);
+        assert(key.toHash(null) == hash);
         t = &this;
         do
         {
@@ -310,7 +318,7 @@ struct PropTable
 
         v.putVstring(name);
 
-        return canput(&v, v.toHash());
+        return canput(&v, v.hashString());
     }
 
     int del(Value* key)
@@ -351,7 +359,7 @@ struct PropTable
     void initialize()
     {
         if(!table)
-            table = new RandAA!(Value, Property);
+            table = new RandAA!(Value, Property)(callcontext);
     }
 }
 

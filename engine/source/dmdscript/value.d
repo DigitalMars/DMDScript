@@ -78,12 +78,12 @@ struct Value
 
         Iterator* iter;         // V_ITER
     }
-    void checkReference(){
+    void checkReference(CallContext* cc){
         if(vtype == V_REF_ERROR)
-            throwRefError();
+            throwRefError(cc);
     }
-    void throwRefError() const{
-        throw new ErrorValue(Dobject.ReferenceError(errmsgtbl[ERR_UNDEFINED_VAR],string));
+    void throwRefError(CallContext* cc) const{
+        throw new ErrorValue(Dobject.ReferenceError(cc,errmsgtbl[ERR_UNDEFINED_VAR],string));
     }
     
     void putSignalingUndefined(d_string id){
@@ -208,7 +208,7 @@ struct Value
         }
     }
 
-    void* toPrimitive(Value* v, d_string PreferredType)
+    void* toPrimitive(CallContext* cc, Value* v, d_string PreferredType)
     {
         if(vtype == V_OBJECT)
         {
@@ -226,7 +226,7 @@ struct Value
             void* a;
 
             assert(object);
-            a = object.DefaultValue(v, PreferredType);
+            a = object.DefaultValue(cc, v, PreferredType);
             if(a)
                 throw new ErrorValue(cast(Value*)a);
             if(!v.isPrimitive())
@@ -234,7 +234,7 @@ struct Value
                 ErrInfo errinfo;
 
                 v.putVundefined();
-                throw new ErrorValue(Dobject.RuntimeError(&errinfo, errmsgtbl[ERR_OBJECT_CANNOT_BE_PRIMITIVE]));
+                throw new ErrorValue(Dobject.RuntimeError(&errinfo, cc, errmsgtbl[ERR_OBJECT_CANNOT_BE_PRIMITIVE]));
             }
         }
         else
@@ -245,12 +245,12 @@ struct Value
     }
 
 
-    d_boolean toBoolean()
+    d_boolean toBoolean(CallContext* cc)
     {
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
         case V_NULL:
@@ -270,12 +270,12 @@ struct Value
     }
 
 
-    d_number toNumber()
+    d_number toNumber(CallContext* cc)
     {
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
             return d_number.nan;
@@ -314,11 +314,11 @@ struct Value
 
           //writefln("Vobject.toNumber()");
           v = &val;
-          a = toPrimitive(v, TypeNumber);
+          a = toPrimitive(cc, v, TypeNumber);
           /*if(a)//rerr
                   return d_number.nan;*/
           if(v.isPrimitive())
-              return v.toNumber();
+              return v.toNumber(cc);
           else
               return d_number.nan;
         }
@@ -329,18 +329,18 @@ struct Value
     }
 
 
-    d_time toDtime()
+    d_time toDtime(CallContext* cc)
     {
-        return cast(d_time)toNumber();
+        return cast(d_time)toNumber(cc);
     }
 
 
-    d_number toInteger()
+    d_number toInteger(CallContext* cc)
     {
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
             return d_number.nan;
@@ -352,7 +352,7 @@ struct Value
         default:
         { d_number number;
 
-          number = toNumber();
+          number = toNumber(cc);
           if(isNaN(number))
               number = 0;
           else if(number == 0 || std.math.isInfinity(number))
@@ -368,12 +368,12 @@ struct Value
     }
 
 
-    d_int32 toInt32()
+    d_int32 toInt32(CallContext* cc)
     {
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
         case V_NULL:
@@ -386,7 +386,7 @@ struct Value
           d_number number;
           long ll;
 
-          number = toNumber();
+          number = toNumber(cc);
           if(isNaN(number))
               int32 = 0;
           else if(number == 0 || std.math.isInfinity(number))
@@ -407,12 +407,12 @@ struct Value
     }
 
 
-    d_uint32 toUint32()
+    d_uint32 toUint32(CallContext* cc)
     {
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
         case V_NULL:
@@ -425,7 +425,7 @@ struct Value
           d_number number;
           long ll;
 
-          number = toNumber();
+          number = toNumber(cc);
           if(isNaN(number))
               uint32 = 0;
           else if(number == 0 || std.math.isInfinity(number))
@@ -445,12 +445,12 @@ struct Value
         assert(0);
     }
 
-    d_uint16 toUint16()
+    d_uint16 toUint16(CallContext* cc)
     {
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
         case V_NULL:
@@ -462,7 +462,7 @@ struct Value
         { d_uint16 uint16;
           d_number number;
 
-          number = toNumber();
+          number = toNumber(cc);
           if(isNaN(number))
               uint16 = 0;
           else if(number == 0 || std.math.isInfinity(number))
@@ -481,12 +481,12 @@ struct Value
         assert(0);
     }
 
-    d_string toString()
+    d_string toString(CallContext* cc)
     {
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
             return TEXT_undefined;
@@ -573,12 +573,12 @@ struct Value
           void* a;
 
           //writef("Vobject.toString()\n");
-          a = toPrimitive(v, TypeString);
+          a = toPrimitive(cc, v, TypeString);
           //assert(!a);
           if(v.isPrimitive())
-              return v.toString();
+              return v.toString(cc);
           else
-              return v.toObject().classname;
+              return v.toObject(cc).classname;
         }
         default:
             assert(0);
@@ -586,12 +586,12 @@ struct Value
         assert(0);
     }
 
-    d_string toLocaleString()
+    d_string toLocaleString(CallContext* cc)
     {
-        return toString();
+        return toString(cc);
     }
 
-    d_string toString(int radix)
+    d_string toString(CallContext* cc, int radix)
     {
         import std.conv : to;
 
@@ -599,16 +599,16 @@ struct Value
         {
             assert(2 <= radix && radix <= 36);
             if(!isFinite(number))
-                return toString();
+                return toString(cc);
             return number >= 0.0 ? to!(d_string)(cast(long)number, radix) : "-"~to!(d_string)(cast(long)-number,radix);
         }
         else
         {
-            return toString();
+            return toString(cc);
         }
     }
 
-    d_string toSource()
+    d_string toSource(CallContext* cc)
     {
         switch(vtype)
         {
@@ -621,21 +621,19 @@ struct Value
         { Value* v;
 
           //writefln("Vobject.toSource()");
-          v = Get(TEXT_toSource);
+          v = Get(cc, TEXT_toSource);
           if(!v)
               v = &vundefined;
           if(v.isPrimitive())
-              return v.toSource();
+              return v.toSource(cc);
           else          // it's an Object
           {
               void* a;
-              CallContext *cc;
               Dobject o;
               Value* ret;
               Value val;
 
               o = v.object;
-              cc = Program.getProgram().callcontext;
               ret = &val;
               a = o.Call(cc, this.object, ret, null);
               if(a)                             // if exception was thrown
@@ -644,21 +642,21 @@ struct Value
                   writef("Vobject.toSource() failed with %x\n", a);
               }
               else if(ret.isPrimitive())
-                  return ret.toString();
+                  return ret.toString(cc);
           }
           return TEXT_undefined; }
         default:
-            return toString();
+            return toString(cc);
         }
         assert(0);
     }
 
-    Dobject toObject()
+    Dobject toObject(CallContext* cc)
     {
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
             //RuntimeErrorx("cannot convert undefined to Object");
@@ -667,11 +665,11 @@ struct Value
             //RuntimeErrorx("cannot convert null to Object");
             return null;
         case V_BOOLEAN:
-            return new Dboolean(dbool);
+            return new Dboolean(cc, dbool);
         case V_NUMBER:
-            return new Dnumber(number);
+            return new Dnumber(cc, number);
         case V_STRING:
-            return new Dstring(string);
+            return new Dstring(cc, string);
         case V_OBJECT:
             return object;
         default:
@@ -680,9 +678,11 @@ struct Value
         assert(0);
     }
 
-    const bool opEquals(ref const (Value)v)
+    @disable bool opEquals(ref const(Value) v) const { assert(false); }
+
+    const bool isEqual(CallContext* cc, ref const (Value)v)
     {
-        return(opCmp(v) == 0);
+        return compare(cc, v) == 0;
     }
 
     /*********************************
@@ -703,12 +703,14 @@ struct Value
         return c;
     }
 
-    int opCmp(const (Value)v) const
+    @disable int opCmp(const(Value) v) const { assert(false); }
+
+    int compare(CallContext* cc, const (Value)v) const
     {
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
             if(vtype == v.vtype)
@@ -734,7 +736,7 @@ struct Value
             }
             else if(v.vtype == V_STRING)
             {
-                return stringcmp((cast(Value*)&this).toString(), v.string);    //TODO: remove this hack!
+                return stringcmp((cast(Value*)&this).toString(cc), v.string);    //TODO: remove this hack!
             }
             break;
         case V_STRING:
@@ -753,7 +755,7 @@ struct Value
             else if(v.vtype == V_NUMBER)
             {
                 //writefln("'%s'.compareTo(%g)\n", string, v.number);
-                return stringcmp(string, (cast(Value*)&v).toString());    //TODO: remove this hack!
+                return stringcmp(string, (cast(Value*)&v).toString(cc));    //TODO: remove this hack!
             }
             break;
         case V_OBJECT:
@@ -850,12 +852,12 @@ struct Value
         return vtype != V_OBJECT;
     }
 
-    int isArrayIndex(out d_uint32 index)
+    int isArrayIndex(CallContext* cc, out d_uint32 index)
     {
         switch(vtype)
         {
         case V_NUMBER:
-            index = toUint32();
+            index = toUint32(cc);
             return true;
         case V_STRING:
             return StringToIndex(string, index);
@@ -947,14 +949,27 @@ struct Value
         return calcHash(hash);
     }
 
-    uint toHash()
+    @disable uint toHash();
+
+    uint hashString()
+    {
+        assert(vtype == V_STRING);
+
+        // Since strings are immutable, if we've already
+        // computed the hash, use previous value
+        if(!hash)
+            hash = calcHash(string);
+        return hash;
+    }
+
+    uint toHash(CallContext* cc)
     {
         uint h;
 
         switch(vtype)
         {
         case V_REF_ERROR:
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         case V_UNDEFINED:
         case V_NULL:
@@ -967,11 +982,7 @@ struct Value
             h = calcHash(number);
             break;
         case V_STRING:
-            // Since strings are immutable, if we've already
-            // computed the hash, use previous value
-            if(!hash)
-                hash = calcHash(string);
-            h = hash;
+            h = hashString();
             break;
         case V_OBJECT:
             /* Uses the address of the object as the hash.
@@ -988,37 +999,39 @@ struct Value
         return h;
     }
 
-    Value* Put(d_string PropertyName, Value* value)
+    Value* Put(CallContext* cc, d_string PropertyName, Value* value)
     {
         if(vtype == V_OBJECT)
-            return object.Put(PropertyName, value, 0);
+            return object.Put(cc, PropertyName, value, 0);
         else
         {
             ErrInfo errinfo;
 
             return Dobject.RuntimeError(&errinfo,
+                                        cc,
                                         errmsgtbl[ERR_CANNOT_PUT_TO_PRIMITIVE],
-                                        PropertyName, value.toString(),
+                                        PropertyName, value.toString(cc),
                                         getType());
         }
     }
 
-    Value* Put(d_uint32 index, Value* vindex, Value* value)
+    Value* Put(CallContext* cc, d_uint32 index, Value* vindex, Value* value)
     {
         if(vtype == V_OBJECT)
-            return object.Put(index, vindex, value, 0);
+            return object.Put(cc, index, vindex, value, 0);
         else
         {
             ErrInfo errinfo;
 
             return Dobject.RuntimeError(&errinfo,
+                                        cc,
                                         errmsgtbl[ERR_CANNOT_PUT_INDEX_TO_PRIMITIVE],
                                         index,
-                                        value.toString(), getType());
+                                        value.toString(cc), getType());
         }
     }
 
-    Value* Get(d_string PropertyName)
+    Value* Get(CallContext* cc, d_string PropertyName)
     {
         if(vtype == V_OBJECT)
             return object.Get(PropertyName);
@@ -1028,13 +1041,13 @@ struct Value
             d_string msg;
 
             msg = std.string.format(errmsgtbl[ERR_CANNOT_GET_FROM_PRIMITIVE],
-                                    PropertyName, getType(), toString());
+                                    PropertyName, getType(), toString(cc));
             throw new ScriptException(msg);
             //return &vundefined;
         }
     }
 
-    Value* Get(d_uint32 index)
+    Value* Get(CallContext* cc,d_uint32 index)
     {
         if(vtype == V_OBJECT)
             return object.Get(index);
@@ -1044,18 +1057,18 @@ struct Value
             d_string msg;
 
             msg = std.string.format(errmsgtbl[ERR_CANNOT_GET_INDEX_FROM_PRIMITIVE],
-                                    index, getType(), toString());
+                                    index, getType(), toString(cc));
             throw new ScriptException(msg);
             //return &vundefined;
         }
     }
 
-    Value* Get(Identifier *id)
+    Value* Get(CallContext* cc,Identifier *id)
     {
         if(vtype == V_OBJECT)
             return object.Get(id);
         else if(vtype == V_REF_ERROR){
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         }
         else
@@ -1064,7 +1077,7 @@ struct Value
             d_string msg;
 
             msg = std.string.format(errmsgtbl[ERR_CANNOT_GET_FROM_PRIMITIVE],
-                                    id.toString(), getType(), toString());
+                                    id.toString(), getType(), toString(cc));
             throw new ScriptException(msg);
             //return &vundefined;
         }
@@ -1091,14 +1104,14 @@ struct Value
         if(vtype == V_OBJECT)
             return object.Construct(cc, ret, arglist);
         else if(vtype == V_REF_ERROR){
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         }
         else
         {
             ErrInfo errinfo;
             ret.putVundefined();
-            return Dobject.RuntimeError(&errinfo,
+            return Dobject.RuntimeError(&errinfo, cc,
                                         errmsgtbl[ERR_PRIMITIVE_NO_CONSTRUCT], getType());
         }
     }
@@ -1114,7 +1127,7 @@ struct Value
             return a;
         }
         else if(vtype == V_REF_ERROR){
-            throwRefError();
+            throwRefError(cc);
             assert(0);
         }
         else
@@ -1122,36 +1135,36 @@ struct Value
             ErrInfo errinfo;
             //PRINTF("Call method not implemented for primitive %p (%s)\n", this, d_string_ptr(toString()));
             ret.putVundefined();
-            return Dobject.RuntimeError(&errinfo,
+            return Dobject.RuntimeError(&errinfo, cc,
                                         errmsgtbl[ERR_PRIMITIVE_NO_CALL], getType());
         }
     }
 
-    Value* putIterator(Value* v)
+    Value* putIterator(CallContext* cc, Value* v)
     {
         if(vtype == V_OBJECT)
-            return object.putIterator(v);
+            return object.putIterator(cc, v);
         else
         {
             ErrInfo errinfo;
             v.putVundefined();
-            return Dobject.RuntimeError(&errinfo,
+            return Dobject.RuntimeError(&errinfo, cc,
                                         errmsgtbl[ERR_FOR_IN_MUST_BE_OBJECT]);
         }
     }
 
 
-    void getErrInfo(ErrInfo *perrinfo, int linnum)
+    void getErrInfo(CallContext* cc, ErrInfo *perrinfo, int linnum)
     {
         if(vtype == V_OBJECT)
-            object.getErrInfo(perrinfo, linnum);
+            object.getErrInfo(cc, perrinfo, linnum);
         else
         {
             ErrInfo errinfo;
 
             if(linnum && errinfo.linnum == 0)
                 errinfo.linnum = linnum;
-            errinfo.message = "Unhandled exception: " ~ toString();
+            errinfo.message = "Unhandled exception: " ~ toString(cc);
             if(perrinfo)
                 *perrinfo = errinfo;
         }

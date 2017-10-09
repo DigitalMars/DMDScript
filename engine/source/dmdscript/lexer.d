@@ -629,7 +629,7 @@ class Lexer
                           i = id in stringtable;
                       }
                       i.value.putVstring(id);
-                      i.value.toHash();
+                      i.value.hashString();
                       t.ident = i;
                   }
                   else
