@@ -238,7 +238,7 @@ class FunctionDefinition : TopStatement
         nlocals = irs.nlocals;
     }
 
-    void instantiate(Dobject[] scopex, Dobject actobj, uint attributes)
+    void instantiate(CallContext* cc, Dobject[] scopex, Dobject actobj, uint attributes)
     {
         //writefln("FunctionDefinition.instantiate() %s nestDepth = %d", name ? name.toString() : "", nestDepth);
 
@@ -247,20 +247,20 @@ class FunctionDefinition : TopStatement
         {
             // If name is already declared, don't override it
             //writefln("\tVar Put(%s)", name.toString());
-            actobj.Put(name.toString(), &vundefined, Instantiate | DontOverride | attributes);
+            actobj.Put(cc, name.toString(), &vundefined, Instantiate | DontOverride | attributes);
         }
 
         // Instantiate the Function's per 10.1.3
         foreach(FunctionDefinition fd; functiondefinitions)
         {
             // Set [[Scope]] property per 13.2 step 7
-            Dfunction fobject = new DdeclaredFunction(fd);
+            Dfunction fobject = new DdeclaredFunction(cc, fd);
             fobject.scopex = scopex;
 
             if(fd.name !is null && !fd.isliteral)        // skip anonymous functions
             {
                 //writefln("\tFunction Put(%s)", fd.name.toString());
-                actobj.Put(fd.name.toString(), fobject, Instantiate | attributes);
+                actobj.Put(cc, fd.name.toString(), fobject, Instantiate | attributes);
             }
         }
         //writefln("-FunctionDefinition.instantiate()");
