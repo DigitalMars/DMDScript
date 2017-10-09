@@ -1172,14 +1172,14 @@ else
 Value vundefined = { V_UNDEFINED };
 Value vnull = { V_NULL };
 
-string TypeUndefined = "Undefined";
-string TypeNull = "Null";
-string TypeBoolean = "Boolean";
-string TypeNumber = "Number";
-string TypeString = "String";
-string TypeObject = "Object";
+immutable string TypeUndefined = "Undefined";
+immutable string TypeNull = "Null";
+immutable string TypeBoolean = "Boolean";
+immutable string TypeNumber = "Number";
+immutable string TypeString = "String";
+immutable string TypeObject = "Object";
 
-string TypeIterator = "Iterator";
+immutable string TypeIterator = "Iterator";
 
 
 Value* signalingUndefined(string id){

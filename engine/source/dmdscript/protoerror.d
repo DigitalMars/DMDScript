@@ -26,8 +26,6 @@ import dmdscript.text;
 import dmdscript.dfunction;
 import dmdscript.property;
 
-int foo;        // cause this module to be linked in
-
 /* ===================== D0_constructor ==================== */
 
 class D0_constructor : Dfunction

@@ -100,7 +100,7 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
     Value[] p1 = null;
 
     Value* v1 = null;
-    static ntry = 0;
+    static immutable ntry = 0;
 
     if(fd.nlocals < 128)
         v1 = cast(Value*)alloca(fd.nlocals * Value.sizeof);
@@ -323,7 +323,7 @@ int ISURIALNUM(dchar c)
            (c >= '0' && c <= '9');
 }
 
-tchar[16 + 1] TOHEX = "0123456789ABCDEF";
+immutable tchar[16 + 1] TOHEX = "0123456789ABCDEF";
 
 void* Dglobal_escape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
 {

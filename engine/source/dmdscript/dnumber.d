@@ -181,7 +181,7 @@ const int FIXED_DIGITS = 20;    // ECMA says >= 20
 
 // power of tens array, indexed by power
 
-static d_number[FIXED_DIGITS + 1] tens =
+static immutable d_number[FIXED_DIGITS + 1] tens =
 [
     1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
     1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19,
