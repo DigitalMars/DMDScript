@@ -111,7 +111,7 @@ struct Global
     string written = "by Walter Bright";
 }
 
-Global global;
+immutable Global global;
 
 string banner()
 {
