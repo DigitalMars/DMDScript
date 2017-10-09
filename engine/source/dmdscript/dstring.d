@@ -82,7 +82,7 @@ class DstringConstructor : Dfunction
 {
     this(CallContext* cc)
     {
-        super(cc, 1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
         name = "String";
 
         static enum NativeFunctionData[] nfd =
@@ -437,7 +437,7 @@ void* Dstring_prototype_match(Dobject pthis, CallContext *cc, Dobject othis, Val
         Value regret;
 
         regret.putVobject(null);
-        Dregexp.getConstructor().Construct(cc, &regret, arglist);
+        Dregexp.getConstructor(cc).Construct(cc, &regret, arglist);
         o = regret.object;
     }
 
@@ -622,7 +622,7 @@ void* Dstring_prototype_search(Dobject pthis, CallContext *cc, Dobject othis, Va
         Value regret;
 
         regret.putVobject(null);
-        Dregexp.getConstructor().Construct(cc, &regret, arglist);
+        Dregexp.getConstructor(cc).Construct(cc, &regret, arglist);
         o = regret.object;
     }
 
@@ -1164,9 +1164,9 @@ class DstringPrototype : Dstring
 {
     this(CallContext* cc)
     {
-        super(cc, Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
 
-        Put(cc, TEXT_constructor, Dstring_constructor, DontEnum);
+        Put(cc, TEXT_constructor, cc.tc.Dstring_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -1214,7 +1214,7 @@ class Dstring : Dobject
 {
     this(CallContext* cc, d_string s)
     {
-        super(cc, getPrototype());
+        super(cc, getPrototype(cc));
         classname = TEXT_String;
 
         Put(cc, TEXT_length, std.utf.toUCSindex(s, s.length), DontEnum | DontDelete | ReadOnly);
@@ -1232,19 +1232,19 @@ class Dstring : Dobject
 
     static void initialize(CallContext* cc)
     {
-        Dstring_constructor = new DstringConstructor(cc);
-        Dstring_prototype = new DstringPrototype(cc);
+        cc.tc.Dstring_constructor = new DstringConstructor(cc);
+        cc.tc.Dstring_prototype = new DstringPrototype(cc);
 
-        Dstring_constructor.Put(cc, TEXT_prototype, Dstring_prototype, DontEnum | DontDelete | ReadOnly);
+        cc.tc.Dstring_constructor.Put(cc, TEXT_prototype, cc.tc.Dstring_prototype, DontEnum | DontDelete | ReadOnly);
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Dstring_constructor;
+        return cc.tc.Dstring_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Dstring_prototype;
+        return cc.tc.Dstring_prototype;
     }
 }

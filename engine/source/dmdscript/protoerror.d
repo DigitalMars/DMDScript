@@ -35,7 +35,7 @@ class D0_constructor : Dfunction
 
     this(CallContext* cc, d_string text_d1, Dobject function(CallContext* cc, d_string) newD0)
     {
-        super(cc, 1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
         this.text_d1 = text_d1;
         this.newD0 = newD0;
     }
@@ -74,11 +74,11 @@ template proto(alias TEXT_D1)
     {
         this(CallContext* cc)
         {
-            super(cc, Derror_prototype);
+            super(cc, cc.tc.Derror_prototype);
 
             d_string s;
 
-            Put(cc, TEXT_constructor, ctorTable[TEXT_D1], DontEnum);
+            Put(cc, TEXT_constructor, cc.tc.ctorTable[TEXT_D1], DontEnum);
             Put(cc, TEXT_name, TEXT_D1, 0);
             s = TEXT_D1 ~ ".prototype.message";
             Put(cc, TEXT_message, s, 0);
@@ -101,7 +101,7 @@ template proto(alias TEXT_D1)
 
         this(CallContext* cc, d_string m)
         {
-            this(cc, D0.getPrototype());
+            this(cc, D0.getPrototype(cc));
             Put(cc, TEXT_message, m, 0);
             Put(cc, TEXT_description, m, 0);
             Put(cc, TEXT_number, cast(d_number)0, 0);
@@ -124,14 +124,14 @@ template proto(alias TEXT_D1)
             //writefln("getErrInfo(linnum = %d), errinfo.linnum = %d", linnum, errinfo.linnum);
         }
 
-        static Dfunction getConstructor()
+        static Dfunction getConstructor(CallContext* cc)
         {
-            return ctorTable[TEXT_D1];
+            return cc.tc.ctorTable[TEXT_D1];
         }
 
-        static Dobject getPrototype()
+        static Dobject getPrototype(CallContext* cc)
         {
-            return protoTable[TEXT_D1];
+            return cc.tc.protoTable[TEXT_D1];
         }
 
         static Dobject newD0(CallContext* cc, d_string s)
@@ -142,10 +142,10 @@ template proto(alias TEXT_D1)
         static void init(CallContext* cc)
         {
             Dfunction constructor = new D0_constructor(cc, TEXT_D1, &newD0);
-            ctorTable[TEXT_D1] = constructor;
+            cc.tc.ctorTable[TEXT_D1] = constructor;
 
             Dobject prototype = new D0_prototype(cc);
-            protoTable[TEXT_D1] = prototype;
+            cc.tc.protoTable[TEXT_D1] = prototype;
 
             constructor.Put(cc, TEXT_prototype, prototype, DontEnum | DontDelete | ReadOnly);
         }
@@ -163,12 +163,12 @@ alias proto!(TEXT_URIError) urierror;
  * Register initializer for each class.
  */
 
-static this()
+void initErrors(CallContext* cc)
 {
-    threadInitTable ~= &syntaxerror.D0.init;
-    threadInitTable ~= &evalerror.D0.init;
-    threadInitTable ~= &referenceerror.D0.init;
-    threadInitTable ~= &rangeerror.D0.init;
-    threadInitTable ~= &typeerror.D0.init;
-    threadInitTable ~= &urierror.D0.init;
+    cc.tc.threadInitTable ~= &syntaxerror.D0.init;
+    cc.tc.threadInitTable ~= &evalerror.D0.init;
+    cc.tc.threadInitTable ~= &referenceerror.D0.init;
+    cc.tc.threadInitTable ~= &rangeerror.D0.init;
+    cc.tc.threadInitTable ~= &typeerror.D0.init;
+    cc.tc.threadInitTable ~= &urierror.D0.init;
 }

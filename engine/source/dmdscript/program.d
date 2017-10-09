@@ -34,6 +34,7 @@ import dmdscript.parse;
 import dmdscript.scopex;
 import dmdscript.text;
 import dmdscript.property;
+import dmdscript.protoerror;
 
 class Program
 {
@@ -60,6 +61,8 @@ class Program
 
         CallContext *cc = callcontext;
 
+        initErrors(cc);
+
         // Do object inits
         dobject_init(cc);
 
@@ -76,7 +79,7 @@ class Program
         cc.scoperoot++;
         cc.globalroot++;
 
-        assert(Ddate_prototype.proptable.table.length != 0);
+        assert(cc.tc.Ddate_prototype.proptable.table.length != 0);
     }
 
     /**************************************************

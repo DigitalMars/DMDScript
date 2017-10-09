@@ -428,7 +428,7 @@ struct IR
                     {
                         ca = cast(Catch)o;
                         //writef("catch('%s')\n", ca.name);
-                        o = new Dobject(cc, Dobject.getPrototype());
+                        o = new Dobject(cc, Dobject.getPrototype(cc));
                         version(JSCRIPT_CATCH_BUG)
                         {
                             PutValue(cc, ca.name, a);

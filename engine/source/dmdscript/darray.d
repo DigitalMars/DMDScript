@@ -44,7 +44,7 @@ class DarrayConstructor : Dfunction
 {
     this(CallContext* cc)
     {
-        super(cc, 1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
         name = "Array";
     }
 
@@ -951,10 +951,10 @@ class DarrayPrototype : Darray
 {
     this(CallContext* cc)
     {
-        super(cc, Dobject_prototype);
-        Dobject f = Dfunction_prototype;
+        super(cc, cc.tc.Dobject_prototype);
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        Put(cc, TEXT_constructor, Darray_constructor, DontEnum);
+        Put(cc, TEXT_constructor, cc.tc.Darray_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -987,7 +987,7 @@ class Darray : Dobject
 
     this(CallContext* cc)
     {
-        this(cc, getPrototype());
+        this(cc, getPrototype(cc));
     }
 
     this(CallContext* cc, Dobject prototype)
@@ -1193,22 +1193,22 @@ class Darray : Dobject
     }
 
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Darray_constructor;
+        return cc.tc.Darray_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Darray_prototype;
+        return cc.tc.Darray_prototype;
     }
 
     static void initialize(CallContext* cc)
     {
-        Darray_constructor = new DarrayConstructor(cc);
-        Darray_prototype = new DarrayPrototype(cc);
+        cc.tc.Darray_constructor = new DarrayConstructor(cc);
+        cc.tc.Darray_prototype = new DarrayPrototype(cc);
 
-        Darray_constructor.Put(cc, TEXT_prototype, Darray_prototype, DontEnum |  ReadOnly);
+        cc.tc.Darray_constructor.Put(cc, TEXT_prototype, cc.tc.Darray_prototype, DontEnum |  ReadOnly);
     }
 }
 

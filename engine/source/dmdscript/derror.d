@@ -36,7 +36,7 @@ class DerrorConstructor : Dfunction
 {
     this(CallContext* cc)
     {
-        super(cc, 1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
     }
 
     override void* Construct(CallContext *cc, Value *ret, Value[] arglist)
@@ -104,11 +104,11 @@ class DerrorPrototype : Derror
 {
     this(CallContext* cc)
     {
-        super(cc, Dobject_prototype);
-        Dobject f = Dfunction_prototype;
+        super(cc, cc.tc.Dobject_prototype);
+        Dobject f = cc.tc.Dfunction_prototype;
         //d_string m = d_string_ctor(DTEXT("Error.prototype.message"));
 
-        Put(cc, TEXT_constructor, Derror_constructor, DontEnum);
+        Put(cc, TEXT_constructor, cc.tc.Derror_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -131,7 +131,7 @@ class Derror : Dobject
 {
     this(CallContext* cc, Value * m, Value * v2)
     {
-        super(cc, getPrototype());
+        super(cc, getPrototype(cc));
         classname = TEXT_Error;
 
         immutable(char)[] msg;
@@ -166,22 +166,22 @@ class Derror : Dobject
         classname = TEXT_Error;
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Derror_constructor;
+        return cc.tc.Derror_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Derror_prototype;
+        return cc.tc.Derror_prototype;
     }
 
     static void initialize(CallContext* cc)
     {
-        Derror_constructor = new DerrorConstructor(cc);
-        Derror_prototype = new DerrorPrototype(cc);
+        cc.tc.Derror_constructor = new DerrorConstructor(cc);
+        cc.tc.Derror_prototype = new DerrorPrototype(cc);
 
-        Derror_constructor.Put(cc, TEXT_prototype, Derror_prototype, DontEnum | DontDelete | ReadOnly);
+        cc.tc.Derror_constructor.Put(cc, TEXT_prototype, cc.tc.Derror_prototype, DontEnum | DontDelete | ReadOnly);
     }
 }
 

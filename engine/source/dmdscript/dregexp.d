@@ -56,7 +56,7 @@ class DregexpConstructor : Dfunction
 
     this(CallContext* cc)
     {
-        super(cc, 2, Dfunction_prototype);
+        super(cc, 2, cc.tc.Dfunction_prototype);
 
         Value v;
         v.putVstring(null);
@@ -386,12 +386,12 @@ class DregexpPrototype : Dregexp
 {
     this(CallContext* cc)
     {
-        super(cc, Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
         classname = TEXT_Object;
         uint attributes = ReadOnly | DontDelete | DontEnum;
-        Dobject f = Dfunction_prototype;
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        Put(cc, TEXT_constructor, Dregexp_constructor, attributes);
+        Put(cc, TEXT_constructor, cc.tc.Dregexp_constructor, attributes);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -421,7 +421,7 @@ class Dregexp : Dobject
 
     this(CallContext* cc, d_string pattern, d_string attributes)
     {
-        super(cc, getPrototype());
+        super(cc, getPrototype(cc));
 
         Value v;
         v.putVstring(null);
@@ -533,13 +533,13 @@ class Dregexp : Dobject
             {
                 Dfunction df;
 
-                df = Dregexp.getConstructor();
+                df = Dregexp.getConstructor(cc);
                 s = (cast(DregexpConstructor)df).input.string;
             }
 
             dr = cast(Dregexp)othis;
             r = dr.re;
-            dc = cast(DregexpConstructor)Dregexp.getConstructor();
+            dc = cast(DregexpConstructor)Dregexp.getConstructor(cc);
 
             // Decide if we are multiline
             if(dr.multiline.dbool)
@@ -695,31 +695,31 @@ class Dregexp : Dobject
         return null;
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Dregexp_constructor;
+        return cc.tc.Dregexp_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Dregexp_prototype;
+        return cc.tc.Dregexp_prototype;
     }
 
     static void initialize(CallContext* cc)
     {
-        Dregexp_constructor = new DregexpConstructor(cc);
-        Dregexp_prototype = new DregexpPrototype(cc);
+        cc.tc.Dregexp_constructor = new DregexpConstructor(cc);
+        cc.tc.Dregexp_prototype = new DregexpPrototype(cc);
 
         version(none)
         {
-            writef("Dregexp_constructor = %x\n", Dregexp_constructor);
+            writef("Dregexp_constructor = %x\n", cc.tc.Dregexp_constructor);
             uint *p;
-            p = cast(uint *)Dregexp_constructor;
+            p = cast(uint *)cc.tc.Dregexp_constructor;
             writef("p = %x\n", p);
             if(p)
                 writef("*p = %x, %x, %x, %x\n", p[0], p[1], p[2], p[3]);
         }
 
-        Dregexp_constructor.Put(cc, TEXT_prototype, Dregexp_prototype, DontEnum | DontDelete | ReadOnly);
+        cc.tc.Dregexp_constructor.Put(cc, TEXT_prototype, cc.tc.Dregexp_prototype, DontEnum | DontDelete | ReadOnly);
     }
 }
