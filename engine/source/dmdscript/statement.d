@@ -400,7 +400,7 @@ class BlockStatement : Statement
 
     override TopStatement ImpliedReturn()
     {
-        uint i = statements.length;
+        size_t i = statements.length;
 
         if(i)
         {
@@ -1080,7 +1080,7 @@ class ForStatement : Statement
                 if(be.e2.op == TOKreal && !isNaN(re.value))
                 {
                     u2 = irs.getIP();
-                    irs.gen(loc, (condition.op == TOKless) ? IRjltc : IRjlec, 4, 0, b, re.value);
+                    irs.genX(loc, (condition.op == TOKless) ? IRjltc : IRjlec, 0, b, re.value);
                 }
                 else
                 {
@@ -1250,7 +1250,7 @@ class ForInStatement : Statement
         if(opoff == 2)
             irs.gen3(loc, IRnextscope, 0, property.index, iter);
         else
-            irs.gen(loc, IRnext + opoff, 4, 0, base, property.index, iter);
+            irs.genX(loc, IRnext + opoff, 0, base, property.index, iter);
         bdy.toIR(irs);
         irs.gen1(loc, IRjmp, continueIP - irs.getIP());
         irs.patchJmp(continueIP, irs.getIP());
@@ -1419,7 +1419,7 @@ class ContinueStatement : Statement
             irs.pops(w.npops);
         }
         irs.addFixup(irs.getIP());
-        irs.gen1(loc, IRjmp, cast(uint)cast(void*)this);
+        irs.gen1(loc, IRjmp, cast(IRstate.Op)cast(void*)this);
     }
 
     override uint getTarget()
@@ -1494,7 +1494,7 @@ class BreakStatement : Statement
         }
 
         irs.addFixup(irs.getIP());
-        irs.gen1(loc, IRjmp, cast(uint)cast(void*)this);
+        irs.gen1(loc, IRjmp, cast(IRstate.Op)cast(void*)this);
     }
 
     override uint getTarget()
@@ -1554,7 +1554,7 @@ class GotoStatement : Statement
         }
 
         irs.addFixup(irs.getIP());
-        irs.gen1(loc, IRjmp, cast(uint)cast(void*)this);
+        irs.gen1(loc, IRjmp, cast(IRstate.Op)cast(void*)this);
     }
 
     override uint getTarget()
@@ -1806,7 +1806,7 @@ class TryStatement : ScopeStatement
             if(catchbdy)
             {
                 c = irs.getIP();
-                irs.gen2(loc, IRtrycatch, 0, cast(uint)Identifier.build(catchident.toString()));
+                irs.gen2(loc, IRtrycatch, 0, cast(IRstate.Op)Identifier.build(catchident.toString()));
                 bdy.toIR(irs);
                 irs.gen0(loc, IRpop);           // remove catch clause
                 irs.gen0(loc, IRpop);           // call finalbdy
@@ -1843,7 +1843,7 @@ class TryStatement : ScopeStatement
         else // catchbdy only
         {
             c = irs.getIP();
-            irs.gen2(loc, IRtrycatch, 0, cast(uint)Identifier.build(catchident.toString()));
+            irs.gen2(loc, IRtrycatch, 0, cast(IRstate.Op)Identifier.build(catchident.toString()));
             bdy.toIR(irs);
             irs.gen0(loc, IRpop);
             e = irs.getIP();

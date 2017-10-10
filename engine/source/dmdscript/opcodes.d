@@ -116,7 +116,7 @@ class Finally : Dobject
 
 Value* scope_get(Dobject[] scopex, Identifier* id, Dobject *pthis)
 {
-    uint d;
+    size_t d;
     Dobject o;
     Value* v;
 
@@ -146,7 +146,7 @@ Value* scope_get(Dobject[] scopex, Identifier* id, Dobject *pthis)
 
 Value* scope_get_lambda(Dobject[] scopex, Identifier* id, Dobject *pthis)
 {
-    uint d;
+    size_t d;
     Dobject o;
     Value* v;
 
@@ -179,7 +179,7 @@ Value* scope_get_lambda(Dobject[] scopex, Identifier* id, Dobject *pthis)
 
 Value* scope_get(Dobject[] scopex, Identifier* id)
 {
-    uint d;
+    size_t d;
     Dobject o;
     Value* v;
 
@@ -214,7 +214,7 @@ Value* scope_get(Dobject[] scopex, Identifier* id)
 
 Dobject scope_tos(Dobject[] scopex)
 {
-    uint d;
+    size_t d;
     Dobject o;
 
     for(d = scopex.length; d; )
@@ -237,7 +237,7 @@ void PutValue(CallContext *cc, d_string s, Value* a)
     // If we find it, put its value.
     // If we don't find it, put it into the global object
 
-    uint d;
+    size_t d;
     uint hash;
     Value* v;
     Dobject o;
@@ -281,7 +281,7 @@ void PutValue(CallContext *cc, Identifier* id, Value* a)
     // If we find it, put its value.
     // If we don't find it, put it into the global object
 
-    uint d;
+    size_t d;
     Value* v;
     Dobject o;
     //a.checkReference();
@@ -336,6 +336,11 @@ const uint INDEX_FACTOR = 16;   // or 1
 
 struct IR
 {
+    import core.stdc.stdint : uintptr_t;
+    alias Op = uintptr_t;
+
+    static assert(IR.sizeof == Op.sizeof);
+
     union
     {
         struct
@@ -343,19 +348,32 @@ struct IR
             version(LittleEndian)
             {
                 ubyte opcode;
-                ubyte padding;
-                ushort linnum;
+                static if (Op.sizeof == uint.sizeof) {
+                    ubyte padding;
+                    ushort linnum;
+                } else {
+                    ubyte[3] padding;
+                    uint linnum;
+                }
             }
             else
             {
-                ushort linnum;
-                ubyte padding;
-                ubyte opcode;
+                static if (Op.sizeof == uint.sizeof) {
+                    ushort linnum;
+                    ubyte padding;
+                    ubyte opcode;
+                } else {
+                    uint linnum;
+                    ubyte[3] padding;
+                    ubyte opcode;
+                }
             }
         }
                     IR* code;
         Value*      value;
-        uint        index;      // index into local variable table
+        // NOTE: this must be a uintptr_t, because it is frequently used to read
+        // the operand bits for a pointer value when generating the IR
+        uintptr_t        index;      // index into local variable table
         uint        hash;       // cached hash value
         int         offset;
         Identifier* id;
@@ -553,7 +571,7 @@ struct IR
         }
         scopex = cc.scopex;
         //printf("call: scope = %p, length = %d\n", scopex.ptr, scopex.length);
-        dimsave = scopex.length;
+        dimsave = cast(uint)scopex.length;
         //if (logflag)
         //    writef("IR.call(othis = %p, code = %p, locals = %p)\n",othis,code,locals);
 
@@ -588,7 +606,7 @@ struct IR
                 {
                     writef("Scopex len: %d ",scopex.length);
                     writef("%2d:", code - codestart);
-                    print(code - codestart, code);
+                    print(cast(uint)(code - codestart), code);
                     writeln();
                 }
 
@@ -901,7 +919,7 @@ struct IR
 
                 case IRnumber:              // a = number
                     GETa(code).putVnumber(*cast(d_number *)(code + 2));
-                    code += 4;
+                    code += 2 + d_number.sizeof/Op.sizeof;
                     break;
 
                 case IRboolean:             // a = boolean
@@ -1685,7 +1703,7 @@ struct IR
                     if(!res)
                         code += (code + 1).offset;
                     else
-                        code += 5;
+                        code += 3 + d_number.sizeof/Op.sizeof;
                     break;
 
                 case IRjlec:        // if (b <= constant) goto c
@@ -1694,7 +1712,7 @@ struct IR
                     if(!res)
                         code += (code + 1).offset;
                     else
-                        code += 5;
+                        code += 3 + d_number.sizeof/Op.sizeof;
                     break;
 
                 case IRiter:                // a = iter(b)
@@ -1997,7 +2015,7 @@ struct IR
                     break;
                 case IRtrycatch:
                     SCOPECACHE_CLEAR();
-                    offset = (code - codestart) + (code + 1).offset;
+                    offset = cast(uint)(code - codestart) + (code + 1).offset;
                     s = (code + 2).id.value.string;
                     ca = new Catch(offset, s);
                     scopex ~= ca;
@@ -2016,7 +2034,7 @@ struct IR
                 case IRassert:
                 {
                     ErrInfo errinfo;
-                    errinfo.linnum = (code + 1).index;
+                    errinfo.linnum = cast(uint)(code + 1).index;
                     version(all)  // Not supported under some com servers
                     {
                         a = Dobject.RuntimeError(&errinfo, errmsgtbl[ERR_ASSERT], (code + 1).index);
@@ -2573,7 +2591,7 @@ struct IR
             break;
 
         case IRnumber:              // a = number
-            sz = 4;
+            sz = 2 + d_number.sizeof/Op.sizeof;
             break;
 
         case IRboolean:             // a = boolean
@@ -2663,7 +2681,7 @@ struct IR
 
         case IRjltc:                // if (b < constant) goto t
         case IRjlec:                // if (b <= constant) goto t
-            sz = 5;
+            sz = 3 + d_number.sizeof/Op.sizeof;
             break;
 
         case IRjt:                  // if (b) goto t
@@ -2755,7 +2773,7 @@ struct IR
         {
             //writef("%2d(%d):", code - codestart, code.linnum);
             writef("%2d:", code - codestart);
-            print(code - codestart, code);
+            print(cast(uint)(code - codestart), code);
             if(code.opcode == IRend)
                 return;
             code += size(code.opcode);

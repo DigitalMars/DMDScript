@@ -693,14 +693,14 @@ struct Value
 
     static int stringcmp(d_string s1, d_string s2)
     {
-        int c = s1.length - s2.length;
+        sizediff_t c = s1.length - s2.length;
         if(c == 0)
         {
             if(s1.ptr == s2.ptr)
                 return 0;
             c = memcmp(s1.ptr, s2.ptr, s1.length);
         }
-        return c;
+        return cast(int)c;
     }
 
     int opCmp(const (Value)v) const
@@ -741,14 +741,14 @@ struct Value
             if(v.vtype == V_STRING)
             {
                 //writefln("'%s'.compareTo('%s')", string, v.string);
-                int len = string.length - v.string.length;
+                sizediff_t len = string.length - v.string.length;
                 if(len == 0)
                 {
                     if(string.ptr == v.string.ptr)
                         return 0;
                     len = memcmp(string.ptr, v.string.ptr, string.length);
                 }
-                return len;
+                return cast(int)len;
             }
             else if(v.vtype == V_NUMBER)
             {
@@ -904,7 +904,7 @@ struct Value
                 break;
 
             default:
-            { uint len = s.length;
+            { size_t len = s.length;
               ubyte *str = cast(ubyte*)s.ptr;
 
               hash = 0;
