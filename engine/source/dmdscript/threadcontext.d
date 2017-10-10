@@ -66,3 +66,6 @@ struct ThreadContext {
 
 	void function (CallContext*)[] threadInitTable;
 }
+
+// kept for backwards compatibility with the dmdscript.extending module
+void delegate (CallContext*)[] threadInitTable;

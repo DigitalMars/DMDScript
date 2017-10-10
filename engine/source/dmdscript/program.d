@@ -41,6 +41,7 @@ class Program
     uint errors;        // if any errors in file
     CallContext *callcontext;
     FunctionDefinition globalfunction;
+    bool threadInitTableRan = false;
 
     // Locale info
     uint lcid;          // current locale
@@ -90,6 +91,14 @@ class Program
 
     void compile(d_string progIdentifier, d_string srctext, FunctionDefinition *pfd)
     {
+        // initialize methods registered by dscript.extending
+        if (!threadInitTableRan)
+        {
+            threadInitTableRan = true;
+            foreach(fpinit; threadInitTable)
+                fpinit(callcontext);
+        }
+
         TopStatement[] topstatements;
         d_string msg;
 
