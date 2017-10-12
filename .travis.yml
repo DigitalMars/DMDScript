@@ -1,0 +1,7 @@
+language: d
+sudo: false
+
+script:
+  - ./build.sh
+  - ./run-test262.sh
+  - cat dmdscript-test262.log
