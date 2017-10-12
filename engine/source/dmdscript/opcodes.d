@@ -332,7 +332,7 @@ Value* cannotConvert(Value* b, int linnum)
     return b;
 }
 
-const uint INDEX_FACTOR = 16;   // or 1
+const uint INDEX_FACTOR = Value.sizeof;   // or 1
 
 struct IR
 {
@@ -513,23 +513,23 @@ struct IR
             // Eliminate the scale factor of Value.sizeof by computing it at compile time
             Value* GETa(IR* code)
             {
-                return cast(Value*)(cast(void*)locals + (code + 1).index * (16 / INDEX_FACTOR));
+                return cast(Value*)(cast(void*)locals + (code + 1).index * (Value.sizeof / INDEX_FACTOR));
             }
             Value* GETb(IR* code)
             {
-                return cast(Value*)(cast(void*)locals + (code + 2).index * (16 / INDEX_FACTOR));
+                return cast(Value*)(cast(void*)locals + (code + 2).index * (Value.sizeof / INDEX_FACTOR));
             }
             Value* GETc(IR* code)
             {
-                return cast(Value*)(cast(void*)locals + (code + 3).index * (16 / INDEX_FACTOR));
+                return cast(Value*)(cast(void*)locals + (code + 3).index * (Value.sizeof / INDEX_FACTOR));
             }
             Value* GETd(IR* code)
             {
-                return cast(Value*)(cast(void*)locals + (code + 4).index * (16 / INDEX_FACTOR));
+                return cast(Value*)(cast(void*)locals + (code + 4).index * (Value.sizeof / INDEX_FACTOR));
             }
             Value* GETe(IR* code)
             {
-                return cast(Value*)(cast(void*)locals + (code + 5).index * (16 / INDEX_FACTOR));
+                return cast(Value*)(cast(void*)locals + (code + 5).index * (Value.sizeof / INDEX_FACTOR));
             }
         }
         else
@@ -2055,6 +2055,7 @@ struct IR
              }
             catch(ErrorValue err)
             {
+                import std.stdio; writefln("ERROR: %s", err.toString());
                 v = unwindStack(&err.value);
                 if(v)//v is exception that was not caught
                     return v;
