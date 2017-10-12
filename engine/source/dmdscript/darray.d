@@ -42,9 +42,9 @@ import dmdscript.program;
 
 class DarrayConstructor : Dfunction
 {
-    this()
+    this(CallContext* cc)
     {
-        super(1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
         name = "Array";
     }
 
@@ -53,7 +53,7 @@ class DarrayConstructor : Dfunction
         // ECMA 15.4.2
         Darray a;
 
-        a = new Darray();
+        a = new Darray(cc);
         if(arglist.length == 0)
         {
             a.ulength = 0;
@@ -67,13 +67,13 @@ class DarrayConstructor : Dfunction
             {
                 d_uint32 len;
 
-                len = v.toUint32();
+                len = v.toUint32(cc);
                 if(cast(double)len != v.number)
                 {
                     ErrInfo errinfo;
 
                     ret.putVundefined();
-                    return RangeError(&errinfo, ERR_ARRAY_LEN_OUT_OF_BOUNDS, v.number);
+                    return RangeError(&errinfo, cc, ERR_ARRAY_LEN_OUT_OF_BOUNDS, v.number);
                 }
                 else
                 {
@@ -95,7 +95,7 @@ class DarrayConstructor : Dfunction
             {
                 a.ulength = 1;
                 a.length.number = 1;
-                a.Put(cast(d_uint32)0, v, 0);
+                a.Put(cc, cast(d_uint32)0, v, 0);
             }
         }
         else
@@ -112,7 +112,7 @@ class DarrayConstructor : Dfunction
             a.length.number = arglist.length;
             for(uint k = 0; k < arglist.length; k++)
             {
-                a.Put(k, &arglist[k], 0);
+                a.Put(cc, k, &arglist[k], 0);
             }
         }
         Value.copy(ret, &a.value);
@@ -133,7 +133,7 @@ class DarrayConstructor : Dfunction
 void *Darray_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
     //writef("Darray_prototype_toString()\n");
-    array_join(othis, ret, null);
+    array_join(othis, cc, ret, null);
     return null;
 }
 
@@ -154,11 +154,11 @@ void *Darray_prototype_toLocaleString(Dobject pthis, CallContext *cc, Dobject ot
     {
         ret.putVundefined();
         ErrInfo errinfo;
-        return Dobject.RuntimeError(&errinfo, ERR_TLS_NOT_TRANSFERRABLE);
+        return Dobject.RuntimeError(&errinfo, cc, ERR_TLS_NOT_TRANSFERRABLE);
     }
 
     v = othis.Get(TEXT_length);
-    len = v ? v.toUint32() : 0;
+    len = v ? v.toUint32(cc) : 0;
 
     Program prog = cc.prog;
     if(!prog.slist)
@@ -178,7 +178,7 @@ void *Darray_prototype_toLocaleString(Dobject pthis, CallContext *cc, Dobject ot
         {
             Dobject ot;
 
-            ot = v.toObject();
+            ot = v.toObject(cc);
             v = ot.Get(TEXT_toLocaleString);
             if(v && !v.isPrimitive())   // if it's an Object
             {
@@ -191,7 +191,7 @@ void *Darray_prototype_toLocaleString(Dobject pthis, CallContext *cc, Dobject ot
                 a = o.Call(cc, ot, &rt, null);
                 if(a)                   // if exception was thrown
                     return a;
-                r ~= rt.toString();
+                r ~= rt.toString(cc);
             }
         }
     }
@@ -212,7 +212,7 @@ void *Darray_prototype_concat(Dobject pthis, CallContext *cc, Dobject othis, Val
     d_uint32 n;
     d_uint32 a;
 
-    A = new Darray();
+    A = new Darray(cc);
     n = 0;
     v = &othis.value;
     for(a = 0;; a++)
@@ -227,13 +227,13 @@ void *Darray_prototype_concat(Dobject pthis, CallContext *cc, Dobject othis, Val
             {
                 v = E.Get(k);
                 if(v)
-                    A.Put(n, v, 0);
+                    A.Put(cc, n, v, 0);
                 n++;
             }
         }
         else
         {
-            A.Put(n, v, 0);
+            A.Put(cc, n, v, 0);
             n++;
         }
         if(a == arglist.length)
@@ -241,7 +241,7 @@ void *Darray_prototype_concat(Dobject pthis, CallContext *cc, Dobject othis, Val
         v = &arglist[a];
     }
 
-    A.Put(TEXT_length, n,  DontEnum);
+    A.Put(cc, TEXT_length, n,  DontEnum);
     Value.copy(ret, &A.value);
     return null;
 }
@@ -250,11 +250,11 @@ void *Darray_prototype_concat(Dobject pthis, CallContext *cc, Dobject othis, Val
 
 void *Darray_prototype_join(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    array_join(othis, ret, arglist);
+    array_join(othis, cc, ret, arglist);
     return null;
 }
 
-void array_join(Dobject othis, Value* ret, Value[] arglist)
+void array_join(Dobject othis, CallContext* cc, Value* ret, Value[] arglist)
 {
     // ECMA 15.4.4.3
     d_string separator;
@@ -265,11 +265,11 @@ void array_join(Dobject othis, Value* ret, Value[] arglist)
 
     //writef("array_join(othis = %p)\n", othis);
     v = othis.Get(TEXT_length);
-    len = v ? v.toUint32() : 0;
+    len = v ? v.toUint32(cc) : 0;
     if(arglist.length == 0 || arglist[0].isUndefined())
         separator = TEXT_comma;
     else
-        separator = arglist[0].toString();
+        separator = arglist[0].toString(cc);
 
     for(k = 0; k != len; k++)
     {
@@ -277,7 +277,7 @@ void array_join(Dobject othis, Value* ret, Value[] arglist)
             r ~= separator;
         v = othis.Get(k);
         if(v && !v.isUndefinedOrNull())
-            r ~= v.toString();
+            r ~= v.toString(cc);
     }
 
     ret.putVstring(r);
@@ -294,7 +294,7 @@ void *Darray_prototype_toSource(Dobject pthis, CallContext *cc, Dobject othis, V
     Value* v;
 
     v = othis.Get(TEXT_length);
-    len = v ? v.toUint32() : 0;
+    len = v ? v.toUint32(cc) : 0;
     separator = ",";
 
     r = "[".idup;
@@ -304,7 +304,7 @@ void *Darray_prototype_toSource(Dobject pthis, CallContext *cc, Dobject othis, V
             r ~= separator;
         v = othis.Get(k);
         if(v && !v.isUndefinedOrNull())
-            r ~= v.toSource();
+            r ~= v.toSource(cc);
     }
     r ~= "]";
 
@@ -325,10 +325,10 @@ void *Darray_prototype_pop(Dobject pthis, CallContext *cc, Dobject othis, Value 
     v = othis.Get(TEXT_length);
     if(!v)
         v = &vundefined;
-    u = v.toUint32();
+    u = v.toUint32(cc);
     if(u == 0)
     {
-        othis.Put(TEXT_length, 0.0,  DontEnum);
+        othis.Put(cc, TEXT_length, 0.0,  DontEnum);
         ret.putVundefined();
     }
     else
@@ -338,7 +338,7 @@ void *Darray_prototype_pop(Dobject pthis, CallContext *cc, Dobject othis, Value 
             v = &vundefined;
         Value.copy(ret, v);
         othis.Delete(u - 1);
-        othis.Put(TEXT_length, u - 1,  DontEnum);
+        othis.Put(cc, TEXT_length, u - 1,  DontEnum);
     }
     return null;
 }
@@ -356,12 +356,12 @@ void *Darray_prototype_push(Dobject pthis, CallContext *cc, Dobject othis, Value
     v = othis.Get(TEXT_length);
     if(!v)
         v = &vundefined;
-    u = v.toUint32();
+    u = v.toUint32(cc);
     for(a = 0; a < arglist.length; a++)
     {
-        othis.Put(u + a, &arglist[a], 0);
+        othis.Put(cc, u + a, &arglist[a], 0);
     }
-    othis.Put(TEXT_length, u + a,  DontEnum);
+    othis.Put(cc, TEXT_length, u + a,  DontEnum);
     ret.putVnumber(u + a);
     return null;
 }
@@ -381,7 +381,7 @@ void *Darray_prototype_reverse(Dobject pthis, CallContext *cc, Dobject othis, Va
     Value tmp;
 
     v = othis.Get(TEXT_length);
-    len = v ? v.toUint32() : 0;
+    len = v ? v.toUint32(cc) : 0;
     pivot = len / 2;
     for(a = 0; a != pivot; a++)
     {
@@ -392,12 +392,12 @@ void *Darray_prototype_reverse(Dobject pthis, CallContext *cc, Dobject othis, Va
             Value.copy(&tmp, va);
         vb = othis.Get(b);
         if(vb)
-            othis.Put(a, vb, 0);
+            othis.Put(cc, a, vb, 0);
         else
             othis.Delete(a);
 
         if(va)
-            othis.Put(b, &tmp, 0);
+            othis.Put(cc, b, &tmp, 0);
         else
             othis.Delete(b);
     }
@@ -420,7 +420,7 @@ void *Darray_prototype_shift(Dobject pthis, CallContext *cc, Dobject othis, Valu
     v = othis.Get(TEXT_length);
     if(!v)
         v = &vundefined;
-    len = v.toUint32();
+    len = v.toUint32(cc);
     
     if(len)
     {
@@ -431,7 +431,7 @@ void *Darray_prototype_shift(Dobject pthis, CallContext *cc, Dobject othis, Valu
             v = othis.Get(k);
             if(v)
             {
-                othis.Put(k - 1, v, 0);
+                othis.Put(cc, k - 1, v, 0);
             }
             else
             {
@@ -444,7 +444,7 @@ void *Darray_prototype_shift(Dobject pthis, CallContext *cc, Dobject othis, Valu
     else
         Value.copy(ret, &vundefined);
 
-    othis.Put(TEXT_length, len, DontEnum);
+    othis.Put(cc, TEXT_length, len, DontEnum);
     return null;
 }
 
@@ -465,7 +465,7 @@ void *Darray_prototype_slice(Dobject pthis, CallContext *cc, Dobject othis, Valu
     v = othis.Get(TEXT_length);
     if(!v)
         v = &vundefined;
-    len = v.toUint32();
+    len = v.toUint32(cc);
 
 version(SliceSpliceExtension){
     d_number start;
@@ -473,21 +473,21 @@ version(SliceSpliceExtension){
     switch(arglist.length)
     {
     case 0:
-        start = vundefined.toNumber();
+        start = vundefined.toNumber(cc);
         end = len;
         break;
 
     case 1:
-        start = arglist[0].toNumber();
+        start = arglist[0].toNumber(cc);
         end = len;
         break;
 
     default:
-        start = arglist[0].toNumber();
+        start = arglist[0].toNumber(cc);
 		if(arglist[1].isUndefined())
 			end = len;
 		else{
-			end = arglist[1].toNumber();
+			end = arglist[1].toNumber(cc);
 		}
         break;
     }
@@ -575,76 +575,24 @@ else{//Canonical ECMA all kinds of infinity maped to 0
             r8 = len;
     }
 }
-    A = new Darray();
+    A = new Darray(cc);
     for(n = 0; k < r8; k++)
     {
         v = othis.Get(k);
         if(v)
         {
-            A.Put(n, v, 0);
+            A.Put(cc, n, v, 0);
         }
         n++;
     }
 
-    A.Put(TEXT_length, n, DontEnum);
+    A.Put(cc, TEXT_length, n, DontEnum);
     Value.copy(ret, &A.value);
     return null;
 }
 
 /* ===================== Darray_prototype_sort ================= */
 
-static Dobject comparefn;
-static CallContext *comparecc;
-
-extern (C) int compare_value(scope const void* x, scope const void* y)
-{
-    Value* vx = cast(Value*)x;
-    Value* vy = cast(Value*)y;
-    d_string sx;
-    d_string sy;
-    int cmp;
-
-    //writef("compare_value()\n");
-    if(vx.isUndefined())
-    {
-        cmp = (vy.isUndefined()) ? 0 : 1;
-    }
-    else if(vy.isUndefined())
-        cmp = -1;
-    else
-    {
-        if(comparefn)
-        {
-            Value[2] arglist;
-            Value ret;
-            Value* v;
-            d_number n;
-
-            Value.copy(&arglist[0], vx);
-            Value.copy(&arglist[1], vy);
-            ret.putVundefined();
-            comparefn.Call(comparecc, comparefn, &ret, arglist);
-            n = ret.toNumber();
-            if(n < 0)
-                cmp = -1;
-            else if(n > 0)
-                cmp = 1;
-            else
-                cmp = 0;
-        }
-        else
-        {
-            sx = vx.toString();
-            sy = vy.toString();
-            cmp = std.string.cmp(sx, sy);
-            if(cmp < 0)
-                cmp = -1;
-            else if(cmp > 0)
-                cmp = 1;
-        }
-    }
-    return cmp;
-}
 
 void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
@@ -655,7 +603,7 @@ void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value
 
     //writef("Array.prototype.sort()\n");
     v = othis.Get(TEXT_length);
-    len = v ? v.toUint32() : 0;
+    len = v ? v.toUint32(cc) : 0;
 
     // This is not optimal, as isArrayIndex is done at least twice
     // for every array member. Additionally, the qsort() by index
@@ -720,7 +668,7 @@ void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value
     {
         d_uint32 index;
 
-        if(p.attributes == 0 && key.isArrayIndex(index))
+        if(p.attributes == 0 && key.isArrayIndex(cc, index))
         {
             pindices[nprops] = index;
             Value.copy(&pvalues[nprops], &p.value);
@@ -730,19 +678,66 @@ void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value
 
     synchronized
     {
-        comparefn = null;
-        comparecc = cc;
+        Dobject comparefn;
+
         if(arglist.length)
         {
             if(!arglist[0].isPrimitive())
                 comparefn = arglist[0].object;
         }
 
-        // Sort pvalues[]
-        core.stdc.stdlib.qsort(pvalues.ptr, nprops, Value.sizeof, &compare_value);
 
-        comparefn = null;
-        comparecc = null;
+        bool compare_value(ref Value vx, ref Value vy)
+        {
+            d_string sx;
+            d_string sy;
+            int cmp;
+
+            //writef("compare_value()\n");
+            if(vx.isUndefined())
+            {
+                cmp = (vy.isUndefined()) ? 0 : 1;
+            }
+            else if(vy.isUndefined())
+                cmp = -1;
+            else
+            {
+                if(comparefn)
+                {
+                    Value[2] arglist;
+                    Value ret;
+                    Value* v;
+                    d_number n;
+
+                    Value.copy(&arglist[0], &vx);
+                    Value.copy(&arglist[1], &vy);
+                    ret.putVundefined();
+                    comparefn.Call(cc, comparefn, &ret, arglist);
+                    n = ret.toNumber(cc);
+                    if(n < 0)
+                        cmp = -1;
+                    else if(n > 0)
+                        cmp = 1;
+                    else
+                        cmp = 0;
+                }
+                else
+                {
+                    sx = vx.toString(cc);
+                    sy = vy.toString(cc);
+                    cmp = std.string.cmp(sx, sy);
+                    if(cmp < 0)
+                        cmp = -1;
+                    else if(cmp > 0)
+                        cmp = 1;
+                }
+            }
+            return cmp < 0;
+        }
+
+        // Sort pvalues[]
+        import std.algorithm.sorting : sort;
+        pvalues[0 .. nprops].sort!compare_value();
     }
 
     // Stuff the sorted value's back into the array
@@ -750,7 +745,7 @@ void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value
     {
         d_uint32 index;
 
-        othis.Put(u, &pvalues[u], 0);
+        othis.Put(cc, u, &pvalues[u], 0);
         index = pindices[u];
         if(index >= nprops)
         {
@@ -783,7 +778,7 @@ void *Darray_prototype_splice(Dobject pthis, CallContext *cc, Dobject othis, Val
     v = othis.Get(TEXT_length);
     if(!v)
         v = &vundefined;
-    len = v.toUint32();
+    len = v.toUint32(cc);
     
 version(SliceSpliceExtension){
     d_number start;
@@ -792,18 +787,18 @@ version(SliceSpliceExtension){
     switch(arglist.length)
     {
     case 0:
-        start = vundefined.toNumber();
+        start = vundefined.toNumber(cc);
         deleteCount = 0;
         break;
 
     case 1:
-        start = arglist[0].toNumber();
-        deleteCount = vundefined.toNumber();
+        start = arglist[0].toNumber(cc);
+        deleteCount = vundefined.toNumber(cc);
         break;
 
     default:
-        start = arglist[0].toNumber();
-        deleteCount = arglist[1].toNumber();
+        start = arglist[0].toNumber(cc);
+        deleteCount = arglist[1].toNumber(cc);
 		//checked later
         break;
     }
@@ -858,7 +853,7 @@ version(SliceSpliceExtension){
         delcnt = len - startidx;
 }
 	
-    A = new Darray();
+    A = new Darray(cc);
 
     // If deleteCount is not specified, ECMA implies it should
     // be 0, while "JavaScript The Definitive Guide" says it should
@@ -872,10 +867,10 @@ version(SliceSpliceExtension){
     {
         v = othis.Get(startidx + k);
         if(v)
-            A.Put(k, v, 0);
+            A.Put(cc, k, v, 0);
     }
 
-    A.Put(TEXT_length, delcnt, DontEnum);
+    A.Put(cc, TEXT_length, delcnt, DontEnum);
     inscnt = (arglist.length > 2) ? cast(uint)arglist.length - 2 : 0;
     if(inscnt != delcnt)
     {
@@ -885,7 +880,7 @@ version(SliceSpliceExtension){
             {
                 v = othis.Get(k + delcnt);
                 if(v)
-                    othis.Put(k + inscnt, v, 0);
+                    othis.Put(cc, k + inscnt, v, 0);
                 else
                     othis.Delete(k + inscnt);
             }
@@ -899,7 +894,7 @@ version(SliceSpliceExtension){
             {
                 v = othis.Get(k + delcnt - 1);
                 if(v)
-                    othis.Put(k + inscnt - 1, v, 0);
+                    othis.Put(cc, k + inscnt - 1, v, 0);
                 else
                     othis.Delete(k + inscnt - 1);
             }
@@ -909,11 +904,11 @@ version(SliceSpliceExtension){
     for(a = 2; a < arglist.length; a++)
     {
         v = &arglist[a];
-        othis.Put(k, v, 0);
+        othis.Put(cc, k, v, 0);
         k++;
     }
 
-    othis.Put(TEXT_length, len - delcnt + inscnt,  DontEnum);
+    othis.Put(cc, TEXT_length, len - delcnt + inscnt,  DontEnum);
     Value.copy(ret, &A.value);
     return null;
 }
@@ -930,22 +925,22 @@ void *Darray_prototype_unshift(Dobject pthis, CallContext *cc, Dobject othis, Va
     v = othis.Get(TEXT_length);
     if(!v)
         v = &vundefined;
-    len = v.toUint32();
+    len = v.toUint32(cc);
 
     for(k = len; k>0; k--)
     {
         v = othis.Get(k - 1);
         if(v)
-            othis.Put(cast(uint)(k + arglist.length - 1), v, 0);
+            othis.Put(cc, cast(uint)(k + arglist.length - 1), v, 0);
         else
             othis.Delete(cast(uint)(k + arglist.length - 1));
     }
 
     for(k = 0; k < arglist.length; k++)
     {
-        othis.Put(k, &arglist[k], 0);
+        othis.Put(cc, k, &arglist[k], 0);
     }
-    othis.Put(TEXT_length, len + arglist.length,  DontEnum);
+    othis.Put(cc, TEXT_length, len + arglist.length,  DontEnum);
     ret.putVnumber(len + arglist.length);
     return null;
 }
@@ -954,12 +949,12 @@ void *Darray_prototype_unshift(Dobject pthis, CallContext *cc, Dobject othis, Va
 
 class DarrayPrototype : Darray
 {
-    this()
+    this(CallContext* cc)
     {
-        super(Dobject_prototype);
-        Dobject f = Dfunction_prototype;
+        super(cc, cc.tc.Dobject_prototype);
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        Put(TEXT_constructor, Darray_constructor, DontEnum);
+        Put(cc, TEXT_constructor, cc.tc.Darray_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -978,7 +973,7 @@ class DarrayPrototype : Darray
             { TEXT_unshift, &Darray_prototype_unshift, 1 },
         ];
 
-        DnativeFunction.initialize(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, cc, nfd, DontEnum);
     }
 }
 
@@ -990,28 +985,28 @@ class Darray : Dobject
     Value length;               // length property
     d_uint32 ulength;
 
-    this()
+    this(CallContext* cc)
     {
-        this(getPrototype());
+        this(cc, getPrototype(cc));
     }
 
-    this(Dobject prototype)
+    this(CallContext* cc, Dobject prototype)
     {
-        super(prototype);
+        super(cc, prototype);
         length.putVnumber(0);
         ulength = 0;
         classname = TEXT_Array;
     }
 
-    override  Value* Put(Identifier* key, Value* value, uint attributes)
+    override  Value* Put(CallContext* cc, Identifier* key, Value* value, uint attributes)
     {
         Value* result = proptable.put(&key.value, key.value.hash, value, attributes);
         if(!result)
-            Put(key.value.string, value, attributes);
+            Put(cc, key.value.string, value, attributes);
         return null;
     }
 
-    override Value* Put(d_string name, Value* v, uint attributes)
+    override Value* Put(CallContext* cc, d_string name, Value* v, uint attributes)
     {
         d_uint32 i;
         uint c;
@@ -1023,12 +1018,12 @@ class Darray : Dobject
         {
             if(name == TEXT_length)
             {
-                i = v.toUint32();
-                if(i != v.toInteger())
+                i = v.toUint32(cc);
+                if(i != v.toInteger(cc))
                 {
                     ErrInfo errinfo;
 
-                    return Dobject.RangeError(&errinfo, ERR_LENGTH_INT);
+                    return Dobject.RangeError(&errinfo, cc, ERR_LENGTH_INT);
                 }
                 if(i < ulength)
                 {
@@ -1039,7 +1034,7 @@ class Darray : Dobject
                     {
                         d_uint32 j;
 
-                        j = key.toUint32();
+                        j = key.toUint32(cc);
                         if(j >= i)
                             todelete ~= j;
                     }
@@ -1085,28 +1080,28 @@ class Darray : Dobject
         return null;
     }
 
-    override Value* Put(d_string name, Dobject o, uint attributes)
+    override Value* Put(CallContext* cc, d_string name, Dobject o, uint attributes)
     {
-        return Put(name, &o.value, attributes);
+        return Put(cc, name, &o.value, attributes);
     }
 
-    override Value* Put(d_string PropertyName, d_number n, uint attributes)
+    override Value* Put(CallContext* cc, d_string PropertyName, d_number n, uint attributes)
     {
         Value v;
 
         v.putVnumber(n);
-        return Put(PropertyName, &v, attributes);
+        return Put(cc, PropertyName, &v, attributes);
     }
 
-    override Value* Put(d_string PropertyName, d_string string, uint attributes)
+    override Value* Put(CallContext* cc, d_string PropertyName, d_string string, uint attributes)
     {
         Value v;
 
         v.putVstring(string);
-        return Put(PropertyName, &v, attributes);
+        return Put(cc, PropertyName, &v, attributes);
     }
 
-    override Value* Put(d_uint32 index, Value* vindex, Value* value, uint attributes)
+    override Value* Put(CallContext* cc, d_uint32 index, Value* vindex, Value* value, uint attributes)
     {
         if(index >= ulength)
             ulength = index + 1;
@@ -1115,7 +1110,7 @@ class Darray : Dobject
         return null;
     }
 
-    override Value* Put(d_uint32 index, Value* value, uint attributes)
+    override Value* Put(CallContext* cc, d_uint32 index, Value* value, uint attributes)
     {
         if(index >= ulength)
         {
@@ -1127,7 +1122,7 @@ class Darray : Dobject
         return null;
     }
 
-    final Value* Put(d_uint32 index, d_string string, uint attributes)
+    final Value* Put(CallContext* cc, d_uint32 index, d_string string, uint attributes)
     {
         if(index >= ulength)
         {
@@ -1198,22 +1193,22 @@ class Darray : Dobject
     }
 
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Darray_constructor;
+        return cc.tc.Darray_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Darray_prototype;
+        return cc.tc.Darray_prototype;
     }
 
-    static void initialize()
+    static void initialize(CallContext* cc)
     {
-        Darray_constructor = new DarrayConstructor();
-        Darray_prototype = new DarrayPrototype();
+        cc.tc.Darray_constructor = new DarrayConstructor(cc);
+        cc.tc.Darray_prototype = new DarrayPrototype(cc);
 
-        Darray_constructor.Put(TEXT_prototype, Darray_prototype, DontEnum |  ReadOnly);
+        cc.tc.Darray_constructor.Put(cc, TEXT_prototype, cc.tc.Darray_prototype, DontEnum |  ReadOnly);
     }
 }
 

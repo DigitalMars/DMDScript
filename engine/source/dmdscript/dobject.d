@@ -59,11 +59,11 @@ class ErrorValue: Exception {
 
 class DobjectConstructor : Dfunction
 {
-    this()
+    this(CallContext* cc)
     {
-        super(1, Dfunction_prototype);
-        if(Dobject_prototype)
-            Put(TEXT_prototype, Dobject_prototype, DontEnum | DontDelete | ReadOnly);
+        super(cc, 1, cc.tc.Dfunction_prototype);
+        if(cc.tc.Dobject_prototype)
+            Put(cc, TEXT_prototype, cc.tc.Dobject_prototype, DontEnum | DontDelete | ReadOnly);
     }
 
     override void *Construct(CallContext *cc, Value *ret, Value[] arglist)
@@ -74,7 +74,7 @@ class DobjectConstructor : Dfunction
         // ECMA 15.2.2
         if(arglist.length == 0)
         {
-            o = new Dobject(Dobject.getPrototype());
+            o = new Dobject(cc, Dobject.getPrototype(cc));
         }
         else
         {
@@ -83,13 +83,13 @@ class DobjectConstructor : Dfunction
             {
                 if(v.isUndefinedOrNull())
                 {
-                    o = new Dobject(Dobject.getPrototype());
+                    o = new Dobject(cc, Dobject.getPrototype(cc));
                 }
                 else
-                    o = v.toObject();
+                    o = v.toObject(cc);
             }
             else
-                o = v.toObject();
+                o = v.toObject(cc);
         }
         //printf("constructed object o=%p, v=%p,'%s'\n", o, v,v.getType());
         ret.putVobject(o);
@@ -115,7 +115,7 @@ class DobjectConstructor : Dfunction
                 result = Construct(cc, ret, arglist);
             else
             {
-                o = v.toObject();
+                o = v.toObject(cc);
                 ret.putVobject(o);
                 result = null;
             }
@@ -196,9 +196,9 @@ void* Dobject_prototype_toSource(Dobject pthis, CallContext *cc, Dobject othis, 
             if(any)
                 buf ~= ',';
             any = 1;
-            buf ~= key.toString();
+            buf ~= key.toString(cc);
             buf ~= ':';
-            buf ~= p.value.toSource();
+            buf ~= p.value.toSource(cc);
         }
     }
     buf ~= '}';
@@ -230,7 +230,7 @@ void* Dobject_prototype_isPrototypeOf(Dobject pthis, CallContext *cc, Dobject ot
     v = arglist.length ? &arglist[0] : &vundefined;
     if(!v.isPrimitive())
     {
-        o = v.toObject();
+        o = v.toObject(cc);
         for(;; )
         {
             o = o.internal_prototype;
@@ -264,9 +264,9 @@ void* Dobject_prototype_propertyIsEnumerable(Dobject pthis, CallContext *cc, Dob
 
 class DobjectPrototype : Dobject
 {
-    this()
+    this(CallContext* cc)
     {
-        super(null);
+        super(cc, null);
     }
 }
 
@@ -288,11 +288,11 @@ class Dobject
         assert(signature == DOBJECT_SIGNATURE);
     }
 
-    this(Dobject prototype)
+    this(CallContext* cc, Dobject prototype)
     {
         //writef("new Dobject = %x, prototype = %x, line = %d, file = '%s'\n", this, prototype, GC.line, ascii2unicode(GC.file));
         //writef("Dobject(prototype = %p)\n", prototype);
-        proptable = new PropTable;
+        proptable = new PropTable(cc);
         internal_prototype = prototype;
         if(prototype)
             proptable.previous = prototype.proptable;
@@ -351,7 +351,7 @@ class Dobject
         return proptable.get(vindex, Value.calcHash(index));
     }
 
-    Value* Put(d_string PropertyName, Value* value, uint attributes)
+    Value* Put(CallContext* cc, d_string PropertyName, Value* value, uint attributes)
     {
         // ECMA 8.6.2.2
         //writef("Dobject.Put(this = %p)\n", this);
@@ -359,7 +359,7 @@ class Dobject
         return null;
     }
 
-    Value* Put(Identifier* key, Value* value, uint attributes)
+    Value* Put(CallContext* cc, Identifier* key, Value* value, uint attributes)
     {
         // ECMA 8.6.2.2
         //writef("Dobject.Put(this = %p)\n", this);
@@ -367,7 +367,7 @@ class Dobject
         return null;
     }
 
-    Value* Put(d_string PropertyName, Dobject o, uint attributes)
+    Value* Put(CallContext* cc, d_string PropertyName, Dobject o, uint attributes)
     {
         // ECMA 8.6.2.2
         Value v;
@@ -377,7 +377,7 @@ class Dobject
         return null;
     }
 
-    Value* Put(d_string PropertyName, d_number n, uint attributes)
+    Value* Put(CallContext* cc, d_string PropertyName, d_number n, uint attributes)
     {
         // ECMA 8.6.2.2
         Value v;
@@ -387,7 +387,7 @@ class Dobject
         return null;
     }
 
-    Value* Put(d_string PropertyName, d_string s, uint attributes)
+    Value* Put(CallContext* cc, d_string PropertyName, d_string s, uint attributes)
     {
         // ECMA 8.6.2.2
         Value v;
@@ -397,34 +397,34 @@ class Dobject
         return null;
     }
 
-    Value* Put(d_uint32 index, Value* vindex, Value* value, uint attributes)
+    Value* Put(CallContext* cc, d_uint32 index, Value* vindex, Value* value, uint attributes)
     {
         // ECMA 8.6.2.2
         proptable.put(vindex, Value.calcHash(index), value, attributes);
         return null;
     }
 
-    Value* Put(d_uint32 index, Value* value, uint attributes)
+    Value* Put(CallContext* cc, d_uint32 index, Value* value, uint attributes)
     {
         // ECMA 8.6.2.2
         proptable.put(index, value, attributes);
         return null;
     }
 
-    Value* PutDefault(Value* value)
+    Value* PutDefault(CallContext* cc, Value* value)
     {
         // Not ECMA, Microsoft extension
         //writef("Dobject.PutDefault(this = %p)\n", this);
         ErrInfo errinfo;
-        return RuntimeError(&errinfo, ERR_NO_DEFAULT_PUT);
+        return RuntimeError(&errinfo, cc, ERR_NO_DEFAULT_PUT);
     }
 
-    Value* put_Value(Value* ret, Value[] arglist)
+    Value* put_Value(CallContext* cc, Value* ret, Value[] arglist)
     {
         // Not ECMA, Microsoft extension
         //writef("Dobject.put_Value(this = %p)\n", this);
         ErrInfo errinfo;
-        return RuntimeError(&errinfo, ERR_FUNCTION_NOT_LVALUE);
+        return RuntimeError(&errinfo, cc, ERR_FUNCTION_NOT_LVALUE);
     }
 
     int CanPut(d_string PropertyName)
@@ -466,7 +466,7 @@ class Dobject
         return true;
     }
 
-    void *DefaultValue(Value* ret, d_string Hint)
+    void *DefaultValue(CallContext* cc, Value* ret, d_string Hint)
     {
         Dobject o;
         Value* v;
@@ -499,11 +499,9 @@ class Dobject
             if(v && !v.isPrimitive())   // if it's an Object
             {
                 void *a;
-                CallContext *cc;
 
                 //writefln("\tfound default value");
                 o = v.object;
-                cc = Program.getProgram().callcontext;
                 a = o.Call(cc, this, ret, null);
                 if(a)                   // if exception was thrown
                     return a;
@@ -513,7 +511,7 @@ class Dobject
             i ^= 1;
         }
         ErrInfo errinfo;
-        return Dobject.RuntimeError(&errinfo, "No [[DefaultValue]]");
+        return Dobject.RuntimeError(&errinfo, cc, "No [[DefaultValue]]");
         //ErrInfo errinfo;
         //return RuntimeError(&errinfo, DTEXT("no Default Value for object"));
     }
@@ -521,19 +519,19 @@ class Dobject
     void *Construct(CallContext *cc, Value *ret, Value[] arglist)
     {
         ErrInfo errinfo;
-        return RuntimeError(&errinfo, errmsgtbl[ERR_S_NO_CONSTRUCT], classname);
+        return RuntimeError(&errinfo, cc, errmsgtbl[ERR_S_NO_CONSTRUCT], classname);
     }
 
     void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
     {
         ErrInfo errinfo;
-        return RuntimeError(&errinfo, errmsgtbl[ERR_S_NO_CALL], classname);
+        return RuntimeError(&errinfo, cc, errmsgtbl[ERR_S_NO_CALL], classname);
     }
 
-    void *HasInstance(Value* ret, Value* v)
+    void *HasInstance(CallContext* cc, Value* ret, Value* v)
     {   // ECMA v3 8.6.2
         ErrInfo errinfo;
-        return RuntimeError(&errinfo, errmsgtbl[ERR_S_NO_INSTANCE], classname);
+        return RuntimeError(&errinfo, cc, errmsgtbl[ERR_S_NO_INSTANCE], classname);
     }
 
     d_string getTypeof()
@@ -573,23 +571,23 @@ class Dobject
         return false;
     }
 
-    void getErrInfo(ErrInfo *perrinfo, int linnum)
+    void getErrInfo(CallContext* cc, ErrInfo *perrinfo, int linnum)
     {
         ErrInfo errinfo;
         Value v;
         v.putVobject(this);
 
-        errinfo.message = v.toString();
+        errinfo.message = v.toString(cc);
         if(perrinfo)
             *perrinfo = errinfo;
     }
 
-    static Value* RuntimeError(ARGS...)(ErrInfo *perrinfo, int msgnum, ARGS args)
+    static Value* RuntimeError(ARGS...)(ErrInfo *perrinfo, CallContext* cc, int msgnum, ARGS args)
     {
-        return RuntimeError(perrinfo, errmsgtbl[msgnum], args);
+        return RuntimeError(perrinfo, cc, errmsgtbl[msgnum], args);
     }
 
-    static Value* RuntimeError(ARGS...)(ErrInfo *perrinfo, string fmt, ARGS args)
+    static Value* RuntimeError(ARGS...)(ErrInfo *perrinfo, CallContext* cc, string fmt, ARGS args)
     {
         import std.format : formattedWrite;
 
@@ -605,23 +603,23 @@ class Dobject
 
         formattedWrite(&putc, fmt, args);
         perrinfo.message = assumeUnique(buffer);
-        o = new typeerror.D0(perrinfo);
+        o = new typeerror.D0(cc, perrinfo);
         Value* v = new Value;
         v.putVobject(o);
         return v;
     }
-    static Value* ReferenceError(ARGS...)(ErrInfo *perrinfo, int msgnum, ARGS args)
+    static Value* ReferenceError(ARGS...)(ErrInfo *perrinfo, CallContext* cc, int msgnum, ARGS args)
     {
-        return ReferenceError(perrinfo, errmsgtbl[msgnum], args);
+        return ReferenceError(perrinfo, cc, errmsgtbl[msgnum], args);
     }
 
-    static Value* ReferenceError(ARGS...)(string fmt, ARGS args)
+    static Value* ReferenceError(ARGS...)(CallContext* cc, string fmt, ARGS args)
     {
         ErrInfo errinfo;
-        return ReferenceError(&errinfo, fmt, args);
+        return ReferenceError(&errinfo, cc, fmt, args);
     }
 
-    static Value* ReferenceError(ARGS...)(ErrInfo* perrinfo, string fmt, ARGS args)
+    static Value* ReferenceError(ARGS...)(ErrInfo* perrinfo, CallContext* cc, string fmt, ARGS args)
     {
         import std.format : formattedWrite;
 
@@ -637,18 +635,18 @@ class Dobject
         formattedWrite(&putc, fmt, args);
         perrinfo.message = buffer;
 
-        o = new referenceerror.D0(perrinfo);
+        o = new referenceerror.D0(cc, perrinfo);
         Value* v = new Value;
         v.putVobject(o);
 
         return v;
     }
-    static Value* RangeError(ARGS...)(ErrInfo *perrinfo, int msgnum, ARGS args)
+    static Value* RangeError(ARGS...)(ErrInfo *perrinfo, CallContext* cc, int msgnum, ARGS args)
     {
-        return RangeError(perrinfo, errmsgtbl[msgnum], args);
+        return RangeError(perrinfo, cc, errmsgtbl[msgnum], args);
     }
 
-    static Value* RangeError(ARGS...)(ErrInfo *perrinfo, string fmt, ARGS args)
+    static Value* RangeError(ARGS...)(ErrInfo *perrinfo, CallContext* cc, string fmt, ARGS args)
     {
         import std.format : formattedWrite;
 
@@ -665,41 +663,41 @@ class Dobject
         formattedWrite(&putc, fmt, args);
         perrinfo.message = buffer;
 
-        o = new rangeerror.D0(perrinfo);
+        o = new rangeerror.D0(cc, perrinfo);
         Value* v = new Value;
         v.putVobject(o);
         return v;
     }
 
-    Value* putIterator(Value* v)
+    Value* putIterator(CallContext* cc, Value* v)
     {
         Iterator* i = new Iterator;
 
-        i.ctor(this);
+        i.ctor(cc, this);
         v.putViterator(i);
         return null;
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Dobject_constructor;
+        return cc.tc.Dobject_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Dobject_prototype;
+        return cc.tc.Dobject_prototype;
     }
 
-    static void initialize()
+    static void initialize(CallContext* cc)
     {
-        Dobject_prototype = new DobjectPrototype();
-        Dfunction.initialize();
-        Dobject_constructor = new DobjectConstructor();
+        cc.tc.Dobject_prototype = new DobjectPrototype(cc);
+        Dfunction.initialize(cc);
+        cc.tc.Dobject_constructor = new DobjectConstructor(cc);
 
-        Dobject op = Dobject_prototype;
-        Dobject f = Dfunction_prototype;
+        Dobject op = cc.tc.Dobject_prototype;
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        op.Put(TEXT_constructor, Dobject_constructor, DontEnum);
+        op.Put(cc, TEXT_constructor, cc.tc.Dobject_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -712,7 +710,7 @@ class Dobject
             { TEXT_propertyIsEnumerable, &Dobject_prototype_propertyIsEnumerable, 0 },
         ];
 
-        DnativeFunction.initialize(op, nfd, DontEnum);
+        DnativeFunction.initialize(op, cc, nfd, DontEnum);
     }
 }
 
@@ -721,10 +719,10 @@ class Dobject
  * Initialize the built-in's.
  */
 
-void dobject_init()
+void dobject_init(CallContext* cc)
 {
     //writef("dobject_init(tc = %x)\n", cast(uint)tc);
-    if(Dobject_prototype)
+    if(cc.tc.Dobject_prototype)
         return;                 // already initialized for this thread
 
     version(none)
@@ -737,19 +735,19 @@ void dobject_init()
         writef("offsetof(value) = %d\n", offsetof(Dobject, value));
     }
 
-    Dobject.initialize();
-    Dboolean.initialize();
-    Dstring.initialize();
-    Dnumber.initialize();
-    Darray.initialize();
-    Dmath.initialize();
-    Ddate.initialize();
-    Dregexp.initialize();
-    Derror.initialize();
+    Dobject.initialize(cc);
+    Dboolean.initialize(cc);
+    Dstring.initialize(cc);
+    Dnumber.initialize(cc);
+    Darray.initialize(cc);
+    Dmath.initialize(cc);
+    Ddate.initialize(cc);
+    Dregexp.initialize(cc);
+    Derror.initialize(cc);
 	
 	// Call registered initializer for each object type
-    foreach(void function() fpinit; threadInitTable)
-        (*fpinit)();
+    foreach(void function(CallContext*) fpinit; cc.tc.threadInitTable)
+        (*fpinit)(cc);
 	
 }
 /*Not used anyway

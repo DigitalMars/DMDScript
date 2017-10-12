@@ -82,6 +82,7 @@ import dmdscript.value;
 import dmdscript.dobject;
 import dmdscript.program;
 import dmdscript.text;
+import dmdscript.threadcontext;
 import dmdscript.functiondefinition;
 
 struct CallContext
@@ -103,6 +104,9 @@ struct CallContext
     uint               linnum;     // source line number of exception (1 based, 0 if not available)
 
     int                Interrupt;  // !=0 if cancelled due to interrupt
+
+    // these used to be TLS variables and are now tied to the context
+    ThreadContext tc;
 }
 
 struct Global
@@ -111,7 +115,7 @@ struct Global
     string written = "by Walter Bright";
 }
 
-Global global;
+immutable Global global;
 
 string banner()
 {

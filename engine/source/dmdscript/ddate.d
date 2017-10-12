@@ -119,7 +119,7 @@ void* Ddate_parse(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Val
         n = d_time_nan;
     else
     {
-        s = arglist[0].toString();
+        s = arglist[0].toString(cc);
         n = parseDateString(cc, s);
     }
 
@@ -148,26 +148,26 @@ void* Ddate_UTC(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     {
     default:
     case 7:
-        ms = arglist[6].toDtime();
+        ms = arglist[6].toDtime(cc);
         goto case;
     case 6:
-        seconds = arglist[5].toDtime();
+        seconds = arglist[5].toDtime(cc);
         goto case;
     case 5:
-        minutes = arglist[4].toDtime();
+        minutes = arglist[4].toDtime(cc);
         goto case;
     case 4:
-        hours = arglist[3].toDtime();
+        hours = arglist[3].toDtime(cc);
         time = makeTime(hours, minutes, seconds, ms);
         goto case;
     case 3:
-        date = arglist[2].toDtime();
+        date = arglist[2].toDtime(cc);
         goto case;
     case 2:
-        month = arglist[1].toDtime();
+        month = arglist[1].toDtime(cc);
         goto case;
     case 1:
-        year = arglist[0].toDtime();
+        year = arglist[0].toDtime(cc);
 
         if(year != d_time_nan && year >= 0 && year <= 99)
             year += 1900;
@@ -187,9 +187,9 @@ void* Ddate_UTC(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
 
 class DdateConstructor : Dfunction
 {
-    this()
+    this(CallContext* cc)
     {
-        super(7, Dfunction_prototype);
+        super(cc, 7, cc.tc.Dfunction_prototype);
         name = "Date";
 
         static enum NativeFunctionData[] nfd =
@@ -198,7 +198,7 @@ class DdateConstructor : Dfunction
             { TEXT_UTC, &Ddate_UTC, 7 },
         ];
 
-        DnativeFunction.initialize(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, cc, nfd, DontEnum);
     }
 
     override void *Construct(CallContext *cc, Value *ret, Value[] arglist)
@@ -230,28 +230,28 @@ class DdateConstructor : Dfunction
         {
         default:
         case 7:
-            ms = arglist[6].toDtime();
+            ms = arglist[6].toDtime(cc);
             mixin (breakOnNan("ms"));
             goto case;
         case 6:
-            seconds = arglist[5].toDtime();
+            seconds = arglist[5].toDtime(cc);
             mixin (breakOnNan("seconds"));
             goto case;
         case 5:
-            minutes = arglist[4].toDtime();
+            minutes = arglist[4].toDtime(cc);
             mixin (breakOnNan("minutes"));
             goto case;
         case 4:
-            hours = arglist[3].toDtime();
+            hours = arglist[3].toDtime(cc);
             mixin (breakOnNan("hours"));
             time = makeTime(hours, minutes, seconds, ms);
             goto case;
         case 3:
-            date = arglist[2].toDtime();
+            date = arglist[2].toDtime(cc);
             goto case;
         case 2:
-            month = arglist[1].toDtime();
-            year = arglist[0].toDtime();
+            month = arglist[1].toDtime(cc);
+            year = arglist[0].toDtime(cc);
 
             if(year != d_time_nan && year >= 0 && year <= 99)
                 year += 1900;
@@ -260,14 +260,14 @@ class DdateConstructor : Dfunction
             break;
 
         case 1:
-            arglist[0].toPrimitive(ret, null);
+            arglist[0].toPrimitive(cc, ret, null);
             if(ret.getType() == TypeString)
             {
                 n = parseDateString(cc, ret.string);
             }
             else
             {
-                n = ret.toDtime();
+                n = ret.toDtime(cc);
                 n = timeClip(n);
             }
             break;
@@ -277,7 +277,7 @@ class DdateConstructor : Dfunction
             break;
         }
         //writefln("\tn = %s", n);
-        o = new Ddate(n);
+        o = new Ddate(cc, n);
         ret.putVobject(o);
         return null;
     }
@@ -308,11 +308,11 @@ class DdateConstructor : Dfunction
 
 /* ===================== Ddate.prototype functions =============== */
 
-void *checkdate(Value* ret, d_string name, Dobject othis)
+void *checkdate(Value* ret, CallContext* cc, d_string name, Dobject othis)
 {
     ret.putVundefined();
     ErrInfo errinfo;
-    return Dobject.RuntimeError(&errinfo, errmsgtbl[ERR_FUNCTION_WANTS_DATE],
+    return Dobject.RuntimeError(&errinfo, cc, errmsgtbl[ERR_FUNCTION_WANTS_DATE],
                                 name, othis.classname);
 }
 
@@ -347,7 +347,7 @@ void* Ddate_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, Va
 
     //writefln("Ddate_prototype_toString()");
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_toString, othis);
+        return checkdate(ret, cc, TEXT_toString, othis);
 
     version(DATETOSTRING)
     {
@@ -370,7 +370,7 @@ void* Ddate_prototype_toDateString(Dobject pthis, CallContext *cc, Dobject othis
     immutable(char)[] s;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_toDateString, othis);
+        return checkdate(ret, cc, TEXT_toDateString, othis);
 
     version(DATETOSTRING)
     {
@@ -393,7 +393,7 @@ void* Ddate_prototype_toTimeString(Dobject pthis, CallContext *cc, Dobject othis
     immutable(char)[] s;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_toTimeString, othis);
+        return checkdate(ret, cc, TEXT_toTimeString, othis);
 
     version(DATETOSTRING)
     {
@@ -416,7 +416,7 @@ void* Ddate_prototype_valueOf(Dobject pthis, CallContext *cc, Dobject othis, Val
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_valueOf, othis);
+        return checkdate(ret, cc, TEXT_valueOf, othis);
     getThisTime(ret, othis, n);
     return null;
 }
@@ -427,7 +427,7 @@ void* Ddate_prototype_getTime(Dobject pthis, CallContext *cc, Dobject othis, Val
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getTime, othis);
+        return checkdate(ret, cc, TEXT_getTime, othis);
     getThisTime(ret, othis, n);
     return null;
 }
@@ -438,7 +438,7 @@ void* Ddate_prototype_getYear(Dobject pthis, CallContext *cc, Dobject othis, Val
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getYear, othis);
+        return checkdate(ret, cc, TEXT_getYear, othis);
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
@@ -463,7 +463,7 @@ void* Ddate_prototype_getFullYear(Dobject pthis, CallContext *cc, Dobject othis,
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getFullYear, othis);
+        return checkdate(ret, cc, TEXT_getFullYear, othis);
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
@@ -479,7 +479,7 @@ void* Ddate_prototype_getUTCFullYear(Dobject pthis, CallContext *cc, Dobject oth
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getUTCFullYear, othis);
+        return checkdate(ret, cc, TEXT_getUTCFullYear, othis);
     if(getThisTime(ret, othis, n) == 0)
     {
         n = yearFromTime(n);
@@ -494,7 +494,7 @@ void* Ddate_prototype_getMonth(Dobject pthis, CallContext *cc, Dobject othis, Va
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getMonth, othis);
+        return checkdate(ret, cc, TEXT_getMonth, othis);
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
@@ -510,7 +510,7 @@ void* Ddate_prototype_getUTCMonth(Dobject pthis, CallContext *cc, Dobject othis,
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getUTCMonth, othis);
+        return checkdate(ret, cc, TEXT_getUTCMonth, othis);
 
     if(getThisTime(ret, othis, n) == 0)
     {
@@ -526,7 +526,7 @@ void* Ddate_prototype_getDate(Dobject pthis, CallContext *cc, Dobject othis, Val
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getDate, othis);
+        return checkdate(ret, cc, TEXT_getDate, othis);
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
@@ -544,7 +544,7 @@ void* Ddate_prototype_getUTCDate(Dobject pthis, CallContext *cc, Dobject othis, 
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getUTCDate, othis);
+        return checkdate(ret, cc, TEXT_getUTCDate, othis);
 
     if(getThisTime(ret, othis, n) == 0)
     {
@@ -560,7 +560,7 @@ void* Ddate_prototype_getDay(Dobject pthis, CallContext *cc, Dobject othis, Valu
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getDay, othis);
+        return checkdate(ret, cc, TEXT_getDay, othis);
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
@@ -576,7 +576,7 @@ void* Ddate_prototype_getUTCDay(Dobject pthis, CallContext *cc, Dobject othis, V
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getUTCDay, othis);
+        return checkdate(ret, cc, TEXT_getUTCDay, othis);
 
     if(getThisTime(ret, othis, n) == 0)
     {
@@ -592,7 +592,7 @@ void* Ddate_prototype_getHours(Dobject pthis, CallContext *cc, Dobject othis, Va
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getHours, othis);
+        return checkdate(ret, cc, TEXT_getHours, othis);
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
@@ -608,7 +608,7 @@ void* Ddate_prototype_getUTCHours(Dobject pthis, CallContext *cc, Dobject othis,
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getUTCHours, othis);
+        return checkdate(ret, cc, TEXT_getUTCHours, othis);
 
     if(getThisTime(ret, othis, n) == 0)
     {
@@ -624,7 +624,7 @@ void* Ddate_prototype_getMinutes(Dobject pthis, CallContext *cc, Dobject othis, 
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getMinutes, othis);
+        return checkdate(ret, cc, TEXT_getMinutes, othis);
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
@@ -640,7 +640,7 @@ void* Ddate_prototype_getUTCMinutes(Dobject pthis, CallContext *cc, Dobject othi
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getUTCMinutes, othis);
+        return checkdate(ret, cc, TEXT_getUTCMinutes, othis);
 
     if(getThisTime(ret, othis, n) == 0)
     {
@@ -656,7 +656,7 @@ void* Ddate_prototype_getSeconds(Dobject pthis, CallContext *cc, Dobject othis, 
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getSeconds, othis);
+        return checkdate(ret, cc, TEXT_getSeconds, othis);
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
@@ -672,7 +672,7 @@ void* Ddate_prototype_getUTCSeconds(Dobject pthis, CallContext *cc, Dobject othi
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getUTCSeconds, othis);
+        return checkdate(ret, cc, TEXT_getUTCSeconds, othis);
 
     if(getThisTime(ret, othis, n) == 0)
     {
@@ -688,7 +688,7 @@ void* Ddate_prototype_getMilliseconds(Dobject pthis, CallContext *cc, Dobject ot
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getMilliseconds, othis);
+        return checkdate(ret, cc, TEXT_getMilliseconds, othis);
 
     if(getThisLocalTime(ret, othis, n) == 0)
     {
@@ -704,7 +704,7 @@ void* Ddate_prototype_getUTCMilliseconds(Dobject pthis, CallContext *cc, Dobject
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getUTCMilliseconds, othis);
+        return checkdate(ret, cc, TEXT_getUTCMilliseconds, othis);
 
     if(getThisTime(ret, othis, n) == 0)
     {
@@ -720,7 +720,7 @@ void* Ddate_prototype_getTimezoneOffset(Dobject pthis, CallContext *cc, Dobject 
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_getTimezoneOffset, othis);
+        return checkdate(ret, cc, TEXT_getTimezoneOffset, othis);
 
     if(getThisTime(ret, othis, n) == 0)
     {
@@ -736,12 +736,12 @@ void* Ddate_prototype_setTime(Dobject pthis, CallContext *cc, Dobject othis, Val
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setTime, othis);
+        return checkdate(ret, cc, TEXT_setTime, othis);
 
     if(!arglist.length)
         n = d_time_nan;
     else
-        n = arglist[0].toDtime();
+        n = arglist[0].toDtime(cc);
     n = timeClip(n);
     othis.value.putVtime(n);
     ret.putVtime(n);
@@ -758,14 +758,14 @@ void* Ddate_prototype_setMilliseconds(Dobject pthis, CallContext *cc, Dobject ot
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setMilliseconds, othis);
+        return checkdate(ret, cc, TEXT_setMilliseconds, othis);
 
     if(getThisLocalTime(ret, othis, t) == 0)
     {
         if(!arglist.length)
             ms = d_time_nan;
         else
-            ms = arglist[0].toDtime();
+            ms = arglist[0].toDtime(cc);
         time = makeTime(hourFromTime(t), minFromTime(t), secFromTime(t), ms);
         n = timeClip(localTimetoUTC(makeDate(day(t), time)));
         othis.value.putVtime(n);
@@ -783,14 +783,14 @@ void* Ddate_prototype_setUTCMilliseconds(Dobject pthis, CallContext *cc, Dobject
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setUTCMilliseconds, othis);
+        return checkdate(ret, cc, TEXT_setUTCMilliseconds, othis);
 
     if(getThisTime(ret, othis, t) == 0)
     {
         if(!arglist.length)
             ms = d_time_nan;
         else
-            ms = arglist[0].toDtime();
+            ms = arglist[0].toDtime(cc);
         time = makeTime(hourFromTime(t), minFromTime(t), secFromTime(t), ms);
         n = timeClip(makeDate(day(t), time));
         othis.value.putVtime(n);
@@ -809,7 +809,7 @@ void* Ddate_prototype_setSeconds(Dobject pthis, CallContext *cc, Dobject othis, 
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setSeconds, othis);
+        return checkdate(ret, cc, TEXT_setSeconds, othis);
 
     if(getThisLocalTime(ret, othis, t) == 0)
     {
@@ -817,13 +817,13 @@ void* Ddate_prototype_setSeconds(Dobject pthis, CallContext *cc, Dobject othis, 
         {
         default:
         case 2:
-            ms = arglist[1].toDtime();
-            seconds = arglist[0].toDtime();
+            ms = arglist[1].toDtime(cc);
+            seconds = arglist[0].toDtime(cc);
             break;
 
         case 1:
             ms = msFromTime(t);
-            seconds = arglist[0].toDtime();
+            seconds = arglist[0].toDtime(cc);
             break;
 
         case 0:
@@ -849,7 +849,7 @@ void* Ddate_prototype_setUTCSeconds(Dobject pthis, CallContext *cc, Dobject othi
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setUTCSeconds, othis);
+        return checkdate(ret, cc, TEXT_setUTCSeconds, othis);
 
     if(getThisTime(ret, othis, t) == 0)
     {
@@ -857,13 +857,13 @@ void* Ddate_prototype_setUTCSeconds(Dobject pthis, CallContext *cc, Dobject othi
         {
         default:
         case 2:
-            ms = arglist[1].toDtime();
-            seconds = arglist[0].toDtime();
+            ms = arglist[1].toDtime(cc);
+            seconds = arglist[0].toDtime(cc);
             break;
 
         case 1:
             ms = msFromTime(t);
-            seconds = arglist[0].toDtime();
+            seconds = arglist[0].toDtime(cc);
             break;
 
         case 0:
@@ -890,7 +890,7 @@ void* Ddate_prototype_setMinutes(Dobject pthis, CallContext *cc, Dobject othis, 
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setMinutes, othis);
+        return checkdate(ret, cc, TEXT_setMinutes, othis);
 
     if(getThisLocalTime(ret, othis, t) == 0)
     {
@@ -898,21 +898,21 @@ void* Ddate_prototype_setMinutes(Dobject pthis, CallContext *cc, Dobject othis, 
         {
         default:
         case 3:
-            ms = arglist[2].toDtime();
-            seconds = arglist[1].toDtime();
-            minutes = arglist[0].toDtime();
+            ms = arglist[2].toDtime(cc);
+            seconds = arglist[1].toDtime(cc);
+            minutes = arglist[0].toDtime(cc);
             break;
 
         case 2:
             ms = msFromTime(t);
-            seconds = arglist[1].toDtime();
-            minutes = arglist[0].toDtime();
+            seconds = arglist[1].toDtime(cc);
+            minutes = arglist[0].toDtime(cc);
             break;
 
         case 1:
             ms = msFromTime(t);
             seconds = secFromTime(t);
-            minutes = arglist[0].toDtime();
+            minutes = arglist[0].toDtime(cc);
             break;
 
         case 0:
@@ -940,7 +940,7 @@ void* Ddate_prototype_setUTCMinutes(Dobject pthis, CallContext *cc, Dobject othi
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setUTCMinutes, othis);
+        return checkdate(ret, cc, TEXT_setUTCMinutes, othis);
 
     if(getThisTime(ret, othis, t) == 0)
     {
@@ -948,21 +948,21 @@ void* Ddate_prototype_setUTCMinutes(Dobject pthis, CallContext *cc, Dobject othi
         {
         default:
         case 3:
-            ms = arglist[2].toDtime();
-            seconds = arglist[1].toDtime();
-            minutes = arglist[0].toDtime();
+            ms = arglist[2].toDtime(cc);
+            seconds = arglist[1].toDtime(cc);
+            minutes = arglist[0].toDtime(cc);
             break;
 
         case 2:
             ms = msFromTime(t);
-            seconds = arglist[1].toDtime();
-            minutes = arglist[0].toDtime();
+            seconds = arglist[1].toDtime(cc);
+            minutes = arglist[0].toDtime(cc);
             break;
 
         case 1:
             ms = msFromTime(t);
             seconds = secFromTime(t);
-            minutes = arglist[0].toDtime();
+            minutes = arglist[0].toDtime(cc);
             break;
 
         case 0:
@@ -991,7 +991,7 @@ void* Ddate_prototype_setHours(Dobject pthis, CallContext *cc, Dobject othis, Va
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setHours, othis);
+        return checkdate(ret, cc, TEXT_setHours, othis);
 
     if(getThisLocalTime(ret, othis, t) == 0)
     {
@@ -999,31 +999,31 @@ void* Ddate_prototype_setHours(Dobject pthis, CallContext *cc, Dobject othis, Va
         {
         default:
         case 4:
-            ms = arglist[3].toDtime();
-            seconds = arglist[2].toDtime();
-            minutes = arglist[1].toDtime();
-            hours = arglist[0].toDtime();
+            ms = arglist[3].toDtime(cc);
+            seconds = arglist[2].toDtime(cc);
+            minutes = arglist[1].toDtime(cc);
+            hours = arglist[0].toDtime(cc);
             break;
 
         case 3:
             ms = msFromTime(t);
-            seconds = arglist[2].toDtime();
-            minutes = arglist[1].toDtime();
-            hours = arglist[0].toDtime();
+            seconds = arglist[2].toDtime(cc);
+            minutes = arglist[1].toDtime(cc);
+            hours = arglist[0].toDtime(cc);
             break;
 
         case 2:
             ms = msFromTime(t);
             seconds = secFromTime(t);
-            minutes = arglist[1].toDtime();
-            hours = arglist[0].toDtime();
+            minutes = arglist[1].toDtime(cc);
+            hours = arglist[0].toDtime(cc);
             break;
 
         case 1:
             ms = msFromTime(t);
             seconds = secFromTime(t);
             minutes = minFromTime(t);
-            hours = arglist[0].toDtime();
+            hours = arglist[0].toDtime(cc);
             break;
 
         case 0:
@@ -1053,7 +1053,7 @@ void* Ddate_prototype_setUTCHours(Dobject pthis, CallContext *cc, Dobject othis,
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setUTCHours, othis);
+        return checkdate(ret, cc, TEXT_setUTCHours, othis);
 
     if(getThisTime(ret, othis, t) == 0)
     {
@@ -1061,31 +1061,31 @@ void* Ddate_prototype_setUTCHours(Dobject pthis, CallContext *cc, Dobject othis,
         {
         default:
         case 4:
-            ms = arglist[3].toDtime();
-            seconds = arglist[2].toDtime();
-            minutes = arglist[1].toDtime();
-            hours = arglist[0].toDtime();
+            ms = arglist[3].toDtime(cc);
+            seconds = arglist[2].toDtime(cc);
+            minutes = arglist[1].toDtime(cc);
+            hours = arglist[0].toDtime(cc);
             break;
 
         case 3:
             ms = msFromTime(t);
-            seconds = arglist[2].toDtime();
-            minutes = arglist[1].toDtime();
-            hours = arglist[0].toDtime();
+            seconds = arglist[2].toDtime(cc);
+            minutes = arglist[1].toDtime(cc);
+            hours = arglist[0].toDtime(cc);
             break;
 
         case 2:
             ms = msFromTime(t);
             seconds = secFromTime(t);
-            minutes = arglist[1].toDtime();
-            hours = arglist[0].toDtime();
+            minutes = arglist[1].toDtime(cc);
+            hours = arglist[0].toDtime(cc);
             break;
 
         case 1:
             ms = msFromTime(t);
             seconds = secFromTime(t);
             minutes = minFromTime(t);
-            hours = arglist[0].toDtime();
+            hours = arglist[0].toDtime(cc);
             break;
 
         case 0:
@@ -1112,14 +1112,14 @@ void* Ddate_prototype_setDate(Dobject pthis, CallContext *cc, Dobject othis, Val
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setDate, othis);
+        return checkdate(ret, cc, TEXT_setDate, othis);
 
     if(getThisLocalTime(ret, othis, t) == 0)
     {
         if(!arglist.length)
             date = d_time_nan;
         else
-            date = arglist[0].toDtime();
+            date = arglist[0].toDtime(cc);
         day = makeDay(yearFromTime(t), monthFromTime(t), date);
         n = timeClip(localTimetoUTC(makeDate(day, timeWithinDay(t))));
         othis.value.putVtime(n);
@@ -1137,14 +1137,14 @@ void* Ddate_prototype_setUTCDate(Dobject pthis, CallContext *cc, Dobject othis, 
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setUTCDate, othis);
+        return checkdate(ret, cc, TEXT_setUTCDate, othis);
 
     if(getThisTime(ret, othis, t) == 0)
     {
         if(!arglist.length)
             date = d_time_nan;
         else
-            date = arglist[0].toDtime();
+            date = arglist[0].toDtime(cc);
         day = makeDay(yearFromTime(t), monthFromTime(t), date);
         n = timeClip(makeDate(day, timeWithinDay(t)));
         othis.value.putVtime(n);
@@ -1163,7 +1163,7 @@ void* Ddate_prototype_setMonth(Dobject pthis, CallContext *cc, Dobject othis, Va
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setMonth, othis);
+        return checkdate(ret, cc, TEXT_setMonth, othis);
 
     if(getThisLocalTime(ret, othis, t) == 0)
     {
@@ -1171,12 +1171,12 @@ void* Ddate_prototype_setMonth(Dobject pthis, CallContext *cc, Dobject othis, Va
         {
         default:
         case 2:
-            month = arglist[0].toDtime();
-            date = arglist[1].toDtime();
+            month = arglist[0].toDtime(cc);
+            date = arglist[1].toDtime(cc);
             break;
 
         case 1:
-            month = arglist[0].toDtime();
+            month = arglist[0].toDtime(cc);
             date = dateFromTime(t);
             break;
 
@@ -1203,7 +1203,7 @@ void* Ddate_prototype_setUTCMonth(Dobject pthis, CallContext *cc, Dobject othis,
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setUTCMonth, othis);
+        return checkdate(ret, cc, TEXT_setUTCMonth, othis);
 
     if(getThisTime(ret, othis, t) == 0)
     {
@@ -1211,12 +1211,12 @@ void* Ddate_prototype_setUTCMonth(Dobject pthis, CallContext *cc, Dobject othis,
         {
         default:
         case 2:
-            month = arglist[0].toDtime();
-            date = arglist[1].toDtime();
+            month = arglist[0].toDtime(cc);
+            date = arglist[1].toDtime(cc);
             break;
 
         case 1:
-            month = arglist[0].toDtime();
+            month = arglist[0].toDtime(cc);
             date = dateFromTime(t);
             break;
 
@@ -1244,7 +1244,7 @@ void* Ddate_prototype_setFullYear(Dobject pthis, CallContext *cc, Dobject othis,
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setFullYear, othis);
+        return checkdate(ret, cc, TEXT_setFullYear, othis);
 
     if(getThisLocalTime(ret, othis, t))
         t = 0;
@@ -1253,21 +1253,21 @@ void* Ddate_prototype_setFullYear(Dobject pthis, CallContext *cc, Dobject othis,
     {
     default:
     case 3:
-        date = arglist[2].toDtime();
-        month = arglist[1].toDtime();
-        year = arglist[0].toDtime();
+        date = arglist[2].toDtime(cc);
+        month = arglist[1].toDtime(cc);
+        year = arglist[0].toDtime(cc);
         break;
 
     case 2:
         date = dateFromTime(t);
-        month = arglist[1].toDtime();
-        year = arglist[0].toDtime();
+        month = arglist[1].toDtime(cc);
+        year = arglist[0].toDtime(cc);
         break;
 
     case 1:
         date = dateFromTime(t);
         month = monthFromTime(t);
-        year = arglist[0].toDtime();
+        year = arglist[0].toDtime(cc);
         break;
 
     case 0:
@@ -1294,7 +1294,7 @@ void* Ddate_prototype_setUTCFullYear(Dobject pthis, CallContext *cc, Dobject oth
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setUTCFullYear, othis);
+        return checkdate(ret, cc, TEXT_setUTCFullYear, othis);
 
     getThisTime(ret, othis, t);
     if(t == d_time_nan)
@@ -1303,21 +1303,21 @@ void* Ddate_prototype_setUTCFullYear(Dobject pthis, CallContext *cc, Dobject oth
     {
     default:
     case 3:
-        month = arglist[2].toDtime();
-        date = arglist[1].toDtime();
-        year = arglist[0].toDtime();
+        month = arglist[2].toDtime(cc);
+        date = arglist[1].toDtime(cc);
+        year = arglist[0].toDtime(cc);
         break;
 
     case 2:
         month = monthFromTime(t);
-        date = arglist[1].toDtime();
-        year = arglist[0].toDtime();
+        date = arglist[1].toDtime(cc);
+        year = arglist[0].toDtime(cc);
         break;
 
     case 1:
         month = monthFromTime(t);
         date = dateFromTime(t);
-        year = arglist[0].toDtime();
+        year = arglist[0].toDtime(cc);
         break;
 
     case 0:
@@ -1344,7 +1344,7 @@ void* Ddate_prototype_setYear(Dobject pthis, CallContext *cc, Dobject othis, Val
     d_time n;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_setYear, othis);
+        return checkdate(ret, cc, TEXT_setYear, othis);
 
     if(getThisLocalTime(ret, othis, t))
         t = 0;
@@ -1354,7 +1354,7 @@ void* Ddate_prototype_setYear(Dobject pthis, CallContext *cc, Dobject othis, Val
     case 1:
         month = monthFromTime(t);
         date = dateFromTime(t);
-        year = arglist[0].toDtime();
+        year = arglist[0].toDtime(cc);
         if(0 <= year && year <= 99)
             year += 1900;
         day = makeDay(year, month, date);
@@ -1377,7 +1377,7 @@ void* Ddate_prototype_toLocaleString(Dobject pthis, CallContext *cc, Dobject oth
     d_time t;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_toLocaleString, othis);
+        return checkdate(ret, cc, TEXT_toLocaleString, othis);
 
     if(getThisLocalTime(ret, othis, t))
         t = 0;
@@ -1394,7 +1394,7 @@ void* Ddate_prototype_toLocaleDateString(Dobject pthis, CallContext *cc, Dobject
     d_time t;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_toLocaleDateString, othis);
+        return checkdate(ret, cc, TEXT_toLocaleDateString, othis);
 
     if(getThisLocalTime(ret, othis, t))
         t = 0;
@@ -1411,7 +1411,7 @@ void* Ddate_prototype_toLocaleTimeString(Dobject pthis, CallContext *cc, Dobject
     d_time t;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_toLocaleTimeString, othis);
+        return checkdate(ret, cc, TEXT_toLocaleTimeString, othis);
 
     if(getThisLocalTime(ret, othis, t))
         t = 0;
@@ -1427,7 +1427,7 @@ void* Ddate_prototype_toUTCString(Dobject pthis, CallContext *cc, Dobject othis,
     d_time t;
 
     if(!othis.isDdate())
-        return checkdate(ret, TEXT_toUTCString, othis);
+        return checkdate(ret, cc, TEXT_toUTCString, othis);
 
     if(getThisTime(ret, othis, t))
         t = 0;
@@ -1440,13 +1440,13 @@ void* Ddate_prototype_toUTCString(Dobject pthis, CallContext *cc, Dobject othis,
 
 class DdatePrototype : Ddate
 {
-    this()
+    this(CallContext* cc)
     {
-        super(Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
 
-        Dobject f = Dfunction_prototype;
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        Put(TEXT_constructor, Ddate_constructor, DontEnum);
+        Put(cc, TEXT_constructor, cc.tc.Ddate_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -1499,7 +1499,7 @@ class DdatePrototype : Ddate
             { TEXT_toGMTString, &Ddate_prototype_toUTCString, 0 },
         ];
 
-        DnativeFunction.initialize(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, cc, nfd, DontEnum);
         assert(proptable.get("toString", Value.calcHash("toString")));
     }
 }
@@ -1509,46 +1509,46 @@ class DdatePrototype : Ddate
 
 class Ddate : Dobject
 {
-    this(d_number n)
+    this(CallContext* cc, d_number n)
     {
-        super(Ddate.getPrototype());
+        super(cc, Ddate.getPrototype(cc));
         classname = TEXT_Date;
         value.putVnumber(n);
     }
 
-    this(d_time n)
+    this(CallContext* cc, d_time n)
     {
-        super(Ddate.getPrototype());
+        super(cc, Ddate.getPrototype(cc));
         classname = TEXT_Date;
         value.putVtime(n);
     }
 
-    this(Dobject prototype)
+    this(CallContext* cc, Dobject prototype)
     {
-        super(prototype);
+        super(cc, prototype);
         classname = TEXT_Date;
         value.putVnumber(d_number.nan);
     }
 
-    static void initialize()
+    static void initialize(CallContext* cc)
     {
-        Ddate_constructor = new DdateConstructor();
-        Ddate_prototype = new DdatePrototype();
+        cc.tc.Ddate_constructor = new DdateConstructor(cc);
+        cc.tc.Ddate_prototype = new DdatePrototype(cc);
 
-        Ddate_constructor.Put(TEXT_prototype, Ddate_prototype,
+        cc.tc.Ddate_constructor.Put(cc, TEXT_prototype, cc.tc.Ddate_prototype,
                                  DontEnum | DontDelete | ReadOnly);
 
-        assert(Ddate_prototype.proptable.table.length != 0);
+        assert(cc.tc.Ddate_prototype.proptable.table.length != 0);
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Ddate_constructor;
+        return cc.tc.Ddate_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Ddate_prototype;
+        return cc.tc.Ddate_prototype;
     }
 }
 

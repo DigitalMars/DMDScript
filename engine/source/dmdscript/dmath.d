@@ -28,12 +28,12 @@ import dmdscript.threadcontext;
 import dmdscript.text;
 import dmdscript.property;
 
-d_number math_helper(Value[] arglist)
+d_number math_helper(Value[] arglist, CallContext* cc)
 {
     Value *v;
 
     v = arglist.length ? &arglist[0] : &vundefined;
-    return v.toNumber();
+    return v.toNumber(cc);
 }
 
 void* Dmath_abs(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
@@ -41,7 +41,7 @@ void* Dmath_abs(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     // ECMA 15.8.2.1
     d_number result;
 
-    result = fabs(math_helper(arglist));
+    result = fabs(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -51,7 +51,7 @@ void* Dmath_acos(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Valu
     // ECMA 15.8.2.2
     d_number result;
 
-    result = acos(math_helper(arglist));
+    result = acos(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -61,7 +61,7 @@ void* Dmath_asin(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Valu
     // ECMA 15.8.2.3
     d_number result;
 
-    result = asin(math_helper(arglist));
+    result = asin(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -71,7 +71,7 @@ void* Dmath_atan(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Valu
     // ECMA 15.8.2.4
     d_number result;
 
-    result = atan(math_helper(arglist));
+    result = atan(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -83,9 +83,9 @@ void* Dmath_atan2(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Val
     Value *v2;
     d_number result;
 
-    n1 = math_helper(arglist);
+    n1 = math_helper(arglist, cc);
     v2 = (arglist.length >= 2) ? &arglist[1] : &vundefined;
-    result = atan2(n1, v2.toNumber());
+    result = atan2(n1, v2.toNumber(cc));
     ret.putVnumber(result);
     return null;
 }
@@ -95,7 +95,7 @@ void* Dmath_ceil(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Valu
     // ECMA 15.8.2.6
     d_number result;
 
-    result = ceil(math_helper(arglist));
+    result = ceil(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -105,7 +105,7 @@ void* Dmath_cos(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     // ECMA 15.8.2.7
     d_number result;
 
-    result = cos(math_helper(arglist));
+    result = cos(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -115,7 +115,7 @@ void* Dmath_exp(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     // ECMA 15.8.2.8
     d_number result;
 
-    result = std.math.exp(math_helper(arglist));
+    result = std.math.exp(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -125,7 +125,7 @@ void* Dmath_floor(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Val
     // ECMA 15.8.2.9
     d_number result;
 
-    result = std.math.floor(math_helper(arglist));
+    result = std.math.floor(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -135,7 +135,7 @@ void* Dmath_log(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     // ECMA 15.8.2.10
     d_number result;
 
-    result = log(math_helper(arglist));
+    result = log(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -150,7 +150,7 @@ void* Dmath_max(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     result = -d_number.infinity;
     foreach(Value v; arglist)
     {
-        n = v.toNumber();
+        n = v.toNumber(cc);
         if(isNaN(n))
         {
             result = d_number.nan;
@@ -179,7 +179,7 @@ void* Dmath_min(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     result = d_number.infinity;
     foreach(Value v; arglist)
     {
-        n = v.toNumber();
+        n = v.toNumber(cc);
         if(isNaN(n))
         {
             result = d_number.nan;
@@ -205,9 +205,9 @@ void* Dmath_pow(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     Value *v2;
     d_number result;
 
-    n1 = math_helper(arglist);
+    n1 = math_helper(arglist, cc);
     v2 = (arglist.length >= 2) ? &arglist[1] : &vundefined;
-    result = pow(n1, v2.toNumber());
+    result = pow(n1, v2.toNumber(cc));
     ret.putVnumber(result);
     return null;
 }
@@ -245,7 +245,7 @@ void* Dmath_round(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Val
     // ECMA 15.8.2.15
     d_number result;
 
-    result = math_helper(arglist);
+    result = math_helper(arglist, cc);
     if(!isNaN(result))
         result = copysign(std.math.floor(result + .5), result);
     ret.putVnumber(result);
@@ -257,7 +257,7 @@ void* Dmath_sin(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     // ECMA 15.8.2.16
     d_number result;
 
-    result = sin(math_helper(arglist));
+    result = sin(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -267,7 +267,7 @@ void* Dmath_sqrt(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Valu
     // ECMA 15.8.2.17
     d_number result;
 
-    result = sqrt(math_helper(arglist));
+    result = sqrt(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -277,7 +277,7 @@ void* Dmath_tan(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
     // ECMA 15.8.2.18
     d_number result;
 
-    result = tan(math_helper(arglist));
+    result = tan(math_helper(arglist, cc));
     ret.putVnumber(result);
     return null;
 }
@@ -286,9 +286,9 @@ void* Dmath_tan(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value
 
 class Dmath : Dobject
 {
-    this()
+    this(CallContext* cc)
     {
-        super(Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
 
         //writef("Dmath::Dmath(%x)\n", this);
         uint attributes = DontEnum | DontDelete | ReadOnly;
@@ -313,7 +313,7 @@ class Dmath : Dobject
         {
             Value *v;
 
-            v = Put(table[u].name, table[u].value, attributes);
+            v = Put(cc, table[u].name, table[u].value, attributes);
             //writef("Put(%s,%.5g) = %x\n", *table[u].name, table[u].value, v);
         }
 
@@ -341,12 +341,12 @@ class Dmath : Dobject
             { TEXT_tan, &Dmath_tan, 1 },
         ];
 
-        DnativeFunction.initialize(this, nfd, attributes);
+        DnativeFunction.initialize(this, cc, nfd, attributes);
     }
 
-    static void initialize()
+    static void initialize(CallContext* cc)
     {
-        Dmath_object = new Dmath();
+        cc.tc.Dmath_object = new Dmath(cc);
     }
 }
 

@@ -28,39 +28,44 @@ import dmdscript.dfunction;
 // These are our per-thread global variables
 // Tables where the prototype and constructor object are stored.
 
-Dobject[d_string] protoTable;
-Dfunction[d_string] ctorTable;
+struct ThreadContext {
+	Dobject[d_string] protoTable;
+	Dfunction[d_string] ctorTable;
 
-Dfunction Dobject_constructor;
-Dobject Dobject_prototype;
+	Dfunction Dobject_constructor;
+	Dobject Dobject_prototype;
 
-Dfunction Dfunction_constructor;
-Dobject Dfunction_prototype;
+	Dfunction Dfunction_constructor;
+	Dobject Dfunction_prototype;
 
-Dfunction Darray_constructor;
-Dobject Darray_prototype;
+	Dfunction Darray_constructor;
+	Dobject Darray_prototype;
 
-Dfunction Dstring_constructor;
-Dobject Dstring_prototype;
+	Dfunction Dstring_constructor;
+	Dobject Dstring_prototype;
 
-Dfunction Dboolean_constructor;
-Dobject Dboolean_prototype;
+	Dfunction Dboolean_constructor;
+	Dobject Dboolean_prototype;
 
-Dfunction Dnumber_constructor;
-Dobject Dnumber_prototype;
+	Dfunction Dnumber_constructor;
+	Dobject Dnumber_prototype;
 
-Dfunction Derror_constructor;
-Dobject Derror_prototype;
+	Dfunction Derror_constructor;
+	Dobject Derror_prototype;
 
-Dfunction Ddate_constructor;
-Dobject Ddate_prototype;
+	Dfunction Ddate_constructor;
+	Dobject Ddate_prototype;
 
-Dfunction Dregexp_constructor;
-Dobject Dregexp_prototype;
+	Dfunction Dregexp_constructor;
+	Dobject Dregexp_prototype;
 
-Dfunction Denumerator_constructor;
-Dobject Denumerator_prototype;
+	Dfunction Denumerator_constructor;
+	Dobject Denumerator_prototype;
 
-Dmath Dmath_object;
+	Dmath Dmath_object;
 
-void function ()[] threadInitTable;
+	void function (CallContext*)[] threadInitTable;
+}
+
+// kept for backwards compatibility with the dmdscript.extending module
+void delegate (CallContext*)[] threadInitTable;

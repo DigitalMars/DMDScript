@@ -207,6 +207,7 @@ struct aard (K, V, bool useRandom = false)
 final class RandAA(K, V, bool storeHash = shouldStoreHash!(K), bool useRandom = false)
 {
 private:
+    import dmdscript.script : CallContext;
 
     // Store keys, values in parallel arrays.  This prevents us from having
     // alignment overhead and prevents the GC from scanning values if only
@@ -214,6 +215,7 @@ private:
     K* _keys;
     V* vals;
     ubyte* flags;
+    CallContext* callcontext;
 
     static if(storeHash)
     {
@@ -242,7 +244,11 @@ private:
             hash_t hash = cast(hash_t)key;
         }
         else
-            static if(is (typeof(key.toHash())))
+            static if(is (typeof(key.toHash(cast(CallContext*)null))))
+            {
+                hash_t hash = key.toHash(cast(CallContext*)callcontext);
+            }
+            else static if(is (typeof(key.toHash())))
             {
                 hash_t hash = key.toHash();
             }
@@ -273,7 +279,7 @@ private:
             while(true)
             {
                 flag = flags[pos];
-                if(flag == EMPTY || (hashFull == hashes[pos] && key == _keys[pos] && flag != EMPTY))
+                if(flag == EMPTY || (hashFull == hashes[pos] && key.isEqual(cast(CallContext*)callcontext, _keys[pos]) && flag != EMPTY))
                 {
                     break;
                 }
@@ -305,7 +311,7 @@ private:
 
             while(true)
             {
-                if(flags[pos] != USED || (hashes[pos] == hashFull && _keys[pos] == key))
+                if(flags[pos] != USED || (hashes[pos] == hashFull && _keys[pos].isEqual(callcontext, key)))
                 {
                     break;
                 }
@@ -450,8 +456,9 @@ public:
     }
     /**Construct an instance of RandAA with initial size initSize.
      * initSize determines the amount of slots pre-allocated.*/
-    this(size_t initSize = 10) {
+    this(CallContext* cc, size_t initSize = 10) {
         //initSize = nextSize(initSize);
+        callcontext = cc;
         space = getNextP2(initSize);
         mask = space - 1;
         _keys = (new K[space]).ptr;
@@ -481,7 +488,7 @@ public:
      */
     private void reserve(size_t newSize)
     {
-        scope typeof(this)newTable = new typeof(this)(newSize);
+        scope typeof(this)newTable = new typeof(this)(callcontext, newSize);
 
         foreach(i; 0..space)
         {
@@ -558,7 +565,7 @@ public:
             while(true)
             {
                 flag = flags[pos];
-                if(flag == EMPTY || (hashFull == hashes[pos] && key == _keys[pos] && flag != EMPTY))
+                if(flag == EMPTY || (hashFull == hashes[pos] && key.isEqual(callcontext, _keys[pos]) && flag != EMPTY))
                 {
                     break;
                 }

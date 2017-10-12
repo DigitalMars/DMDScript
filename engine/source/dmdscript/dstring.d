@@ -56,7 +56,7 @@ void* Dstring_fromCharCode(Dobject pthis, CallContext *cc, Dobject othis, Value 
         uint u;
 
         v = &arglist[i];
-        u = v.toUint16();
+        u = v.toUint16(cc);
         //writef("string.fromCharCode(%x)", u);
         if(!std.utf.isValidDchar(u))
         {
@@ -64,6 +64,7 @@ void* Dstring_fromCharCode(Dobject pthis, CallContext *cc, Dobject othis, Value 
 
             ret.putVundefined();
             return pthis.RuntimeError(&errinfo,
+                                      cc,
                                       errmsgtbl[ERR_NOT_VALID_UTF],
                                       "String", "fromCharCode()",
                                       u);
@@ -79,9 +80,9 @@ void* Dstring_fromCharCode(Dobject pthis, CallContext *cc, Dobject othis, Value 
 
 class DstringConstructor : Dfunction
 {
-    this()
+    this(CallContext* cc)
     {
-        super(1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
         name = "String";
 
         static enum NativeFunctionData[] nfd =
@@ -89,7 +90,7 @@ class DstringConstructor : Dfunction
             { TEXT_fromCharCode, &Dstring_fromCharCode, 1 },
         ];
 
-        DnativeFunction.initialize(this, nfd, 0);
+        DnativeFunction.initialize(this, cc, nfd, 0);
     }
 
     override void *Construct(CallContext *cc, Value *ret, Value[] arglist)
@@ -98,8 +99,8 @@ class DstringConstructor : Dfunction
         d_string s;
         Dobject o;
 
-        s = (arglist.length) ? arglist[0].toString() : TEXT_;
-        o = new Dstring(s);
+        s = (arglist.length) ? arglist[0].toString(cc) : TEXT_;
+        o = new Dstring(cc, s);
         ret.putVobject(o);
         return null;
     }
@@ -109,7 +110,7 @@ class DstringConstructor : Dfunction
         // ECMA 15.5.1
         d_string s;
 
-        s = (arglist.length) ? arglist[0].toString() : TEXT_;
+        s = (arglist.length) ? arglist[0].toString(cc) : TEXT_;
         ret.putVstring(s);
         return null;
     }
@@ -128,6 +129,7 @@ void* Dstring_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, 
 
         ret.putVundefined();
         return pthis.RuntimeError(&errinfo,
+                                  cc,
                                   errmsgtbl[ERR_FUNCTION_WANTS_STRING],
                                   TEXT_toString,
                                   othis.classname);
@@ -156,6 +158,7 @@ void* Dstring_prototype_valueOf(Dobject pthis, CallContext *cc, Dobject othis, V
 
         ret.putVundefined();
         return pthis.RuntimeError(&errinfo,
+                                  cc,
                                   errmsgtbl[ERR_FUNCTION_WANTS_STRING],
                                   TEXT_valueOf,
                                   othis.classname);
@@ -183,9 +186,9 @@ void* Dstring_prototype_charAt(Dobject pthis, CallContext *cc, Dobject othis, Va
     d_string result;
 
     v = &othis.value;
-    s = v.toString();
+    s = v.toString(cc);
     v = arglist.length ? &arglist[0] : &vundefined;
-    pos = cast(int)v.toInteger();
+    pos = cast(int)v.toInteger(cc);
 
     result = TEXT_;
 
@@ -225,9 +228,9 @@ void* Dstring_prototype_charCodeAt(Dobject pthis, CallContext *cc, Dobject othis
     d_number result;
 
     v = &othis.value;
-    s = v.toString();
+    s = v.toString(cc);
     v = arglist.length ? &arglist[0] : &vundefined;
-    pos = cast(int)v.toInteger();
+    pos = cast(int)v.toInteger(cc);
 
     result = d_number.nan;
 
@@ -263,9 +266,9 @@ void* Dstring_prototype_concat(Dobject pthis, CallContext *cc, Dobject othis, Va
 
     //writefln("Dstring.prototype.concat()");
 
-    s = othis.value.toString();
+    s = othis.value.toString(cc);
     for(size_t a = 0; a < arglist.length; a++)
-        s ~= arglist[a].toString();
+        s ~= arglist[a].toString(cc);
 
     ret.putVstring(s);
     return null;
@@ -293,14 +296,14 @@ void* Dstring_prototype_indexOf(Dobject pthis, CallContext *cc, Dobject othis, V
 
     Value xx;
     xx.putVobject(othis);
-    s = xx.toString();
+    s = xx.toString(cc);
     sUCSdim = toUCSindex(s, s.length);
 
     v1 = arglist.length ? &arglist[0] : &vundefined;
     v2 = (arglist.length >= 2) ? &arglist[1] : &vundefined;
 
-    searchString = v1.toString();
-    pos = cast(int)v2.toInteger();
+    searchString = v1.toString(cc);
+    pos = cast(int)v2.toInteger(cc);
 
     if(pos < 0)
         pos = 0;
@@ -350,7 +353,7 @@ void* Dstring_prototype_lastIndexOf(Dobject pthis, CallContext *cc, Dobject othi
             a = v.Call(cc, othis, ret, null);
             if(a)                       // if exception was thrown
                 return a;
-            s = ret.toString();
+            s = ret.toString(cc);
         }
     }
     else
@@ -361,13 +364,13 @@ void* Dstring_prototype_lastIndexOf(Dobject pthis, CallContext *cc, Dobject othi
     sUCSdim = toUCSindex(s, s.length);
 
     v1 = arglist.length ? &arglist[0] : &vundefined;
-    searchString = v1.toString();
+    searchString = v1.toString(cc);
     if(arglist.length >= 2)
     {
         d_number n;
         Value *v = &arglist[1];
 
-        n = v.toNumber();
+        n = v.toNumber(cc);
         if(isNaN(n) || n > sUCSdim)
             pos = sUCSdim;
         else if(n < 0)
@@ -410,8 +413,8 @@ void* Dstring_prototype_localeCompare(Dobject pthis, CallContext *cc, Dobject ot
     Value *v;
 
     v = &othis.value;
-    s1 = v.toString();
-    s2 = arglist.length ? arglist[0].toString() : vundefined.toString();
+    s1 = v.toString(cc);
+    s2 = arglist.length ? arglist[0].toString(cc) : vundefined.toString(cc);
     n = localeCompare(cc, s1, s2);
     ret.putVnumber(n);
     return null;
@@ -426,7 +429,7 @@ void* Dstring_prototype_match(Dobject pthis, CallContext *cc, Dobject othis, Val
     Dobject o;
 
     if(arglist.length && !arglist[0].isPrimitive() &&
-       (o = arglist[0].toObject()).isDregexp())
+       (o = arglist[0].toObject(cc)).isDregexp())
     {
     }
     else
@@ -434,14 +437,14 @@ void* Dstring_prototype_match(Dobject pthis, CallContext *cc, Dobject othis, Val
         Value regret;
 
         regret.putVobject(null);
-        Dregexp.getConstructor().Construct(cc, &regret, arglist);
+        Dregexp.getConstructor(cc).Construct(cc, &regret, arglist);
         o = regret.object;
     }
 
     r = cast(Dregexp)o;
     if(r.global.dbool)
     {
-        Darray a = new Darray;
+        Darray a = new Darray(cc);
         d_int32 n;
         d_int32 i;
         d_int32 lasti;
@@ -451,24 +454,24 @@ void* Dstring_prototype_match(Dobject pthis, CallContext *cc, Dobject othis, Val
         for(n = 0;; n++)
         {
             r.lastIndex.putVnumber(i);
-            Dregexp.exec(r, ret, (&othis.value)[0 .. 1], EXEC_STRING);
+            Dregexp.exec(r, cc, ret, (&othis.value)[0 .. 1], EXEC_STRING);
             if(!ret.string)             // if match failed
             {
                 r.lastIndex.putVnumber(i);
                 break;
             }
             lasti = i;
-            i = cast(d_int32)r.lastIndex.toInt32();
+            i = cast(d_int32)r.lastIndex.toInt32(cc);
             if(i == lasti)              // if no source was consumed
                 i++;                    // consume a character
 
-            a.Put(n, ret, 0);           // a[n] = ret;
+            a.Put(cc, n, ret, 0);           // a[n] = ret;
         }
         ret.putVobject(a);
     }
     else
     {
-        Dregexp.exec(r, ret, (&othis.value)[0 .. 1], EXEC_ARRAY);
+        Dregexp.exec(r, cc, ret, (&othis.value)[0 .. 1], EXEC_ARRAY);
     }
     return null;
 }
@@ -498,11 +501,11 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
     Value* v;
 
     v = &othis.value;
-    string = v.toString();
+    string = v.toString(cc);
     searchValue = (arglist.length >= 1) ? &arglist[0] : &vundefined;
     replaceValue = (arglist.length >= 2) ? &arglist[1] : &vundefined;
-    r = Dregexp.isRegExp(searchValue);
-    f = Dfunction.isFunction(replaceValue);
+    r = Dregexp.isRegExp(searchValue, cc);
+    f = Dfunction.isFunction(replaceValue, cc);
     if(r)
     {
         int offset = 0;
@@ -514,7 +517,7 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
         r.lastIndex.putVnumber(0);
         for(;; )
         {
-            Dregexp.exec(r, ret, (&othis.value)[0 .. 1], EXEC_STRING);
+            Dregexp.exec(r, cc, ret, (&othis.value)[0 .. 1], EXEC_STRING);
             if(!ret.string)             // if match failed
                 break;
 
@@ -534,11 +537,11 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
                 alist[m + 1].putVnumber(re.pmatch[0].rm_so);
                 alist[m + 2].putVstring(string);
                 f.Call(cc, f, ret, alist[0 .. m + 3]);
-                replacement = ret.toString();
+                replacement = ret.toString(cc);
             }
             else
             {
-                newstring = replaceValue.toString();
+                newstring = replaceValue.toString(cc);
                 replacement = re.replace(newstring);
             }
             ptrdiff_t starti = re.pmatch[0].rm_so + offset;
@@ -553,7 +556,7 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
 
                 // If no source was consumed, consume a character
                 lasti = i;
-                i = cast(d_int32)r.lastIndex.toInt32();
+                i = cast(d_int32)r.lastIndex.toInt32(cc);
                 if(i == lasti)
                 {
                     i++;
@@ -566,7 +569,7 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
     }
     else
     {
-        searchString = searchValue.toString();
+        searchString = searchValue.toString(cc);
         ptrdiff_t match = indexOf(string, searchString);
         if(match >= 0)
         {
@@ -580,11 +583,11 @@ void* Dstring_prototype_replace(Dobject pthis, CallContext *cc, Dobject othis, V
                 alist[1].putVnumber(pmatch[0].rm_so);
                 alist[2].putVstring(string);
                 f.Call(cc, f, ret, alist);
-                replacement = ret.toString();
+                replacement = ret.toString(cc);
             }
             else
             {
-                newstring = replaceValue.toString();
+                newstring = replaceValue.toString(cc);
                 replacement = RegExp.replace3(newstring, string, pmatch);
             }
             result = string[0 .. match] ~
@@ -611,7 +614,7 @@ void* Dstring_prototype_search(Dobject pthis, CallContext *cc, Dobject othis, Va
 
     //writef("String.prototype.search()\n");
     if(arglist.length && !arglist[0].isPrimitive() &&
-       (o = arglist[0].toObject()).isDregexp())
+       (o = arglist[0].toObject(cc)).isDregexp())
     {
     }
     else
@@ -619,12 +622,12 @@ void* Dstring_prototype_search(Dobject pthis, CallContext *cc, Dobject othis, Va
         Value regret;
 
         regret.putVobject(null);
-        Dregexp.getConstructor().Construct(cc, &regret, arglist);
+        Dregexp.getConstructor(cc).Construct(cc, &regret, arglist);
         o = regret.object;
     }
 
     r = cast(Dregexp)o;
-    Dregexp.exec(r, ret, (&othis.value)[0 .. 1], EXEC_INDEX);
+    Dregexp.exec(r, cc, ret, (&othis.value)[0 .. 1], EXEC_INDEX);
     return null;
 }
 
@@ -641,7 +644,7 @@ void* Dstring_prototype_slice(Dobject pthis, CallContext *cc, Dobject othis, Val
     Value *v;
 
     v = &othis.value;
-    s = v.toString();
+    s = v.toString(cc);
     sUCSdim = std.utf.toUCSindex(s, s.length);
     switch(arglist.length)
     {
@@ -651,13 +654,13 @@ void* Dstring_prototype_slice(Dobject pthis, CallContext *cc, Dobject othis, Val
         break;
 
     case 1:
-        start = arglist[0].toInt32();
+        start = arglist[0].toInt32(cc);
         end = sUCSdim;
         break;
 
     default:
-        start = arglist[0].toInt32();
-        end = arglist[1].toInt32();
+        start = arglist[0].toInt32(cc);
+        end = arglist[1].toInt32(cc);
         break;
     }
 
@@ -726,14 +729,14 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
 
     Value *v;
     v = &othis.value;
-    S = v.toString();
-    A = new Darray;
+    S = v.toString(cc);
+    A = new Darray(cc);
     if(limit.isUndefined())
         lim = ~0u;
     else
-        lim = limit.toUint32();
+        lim = limit.toUint32(cc);
     p = 0;
-    R = Dregexp.isRegExp(separator);
+    R = Dregexp.isRegExp(separator, cc);
     if(R)       // regular expression
     {
         re = R.re;
@@ -744,7 +747,7 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
     else        // string
     {
         re = null;
-        rs = separator.toString();
+        rs = separator.toString(cc);
         str = 1;
     }
     if(lim == 0)
@@ -773,7 +776,7 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
                         if(e != p)
                         {
                             T = S[p .. q];
-                            A.Put(cast(uint)A.length.number, T, 0);
+                            A.Put(cc, cast(uint)A.length.number, T, 0);
                             if(A.length.number == lim)
                                 goto Lret;
                             p = e;
@@ -791,7 +794,7 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
                         {
                             T = S[p .. q];
                             //writefln("S = '%s', T = '%s', p = %d, q = %d, e = %d\n", S, T, p, q, e);
-                            A.Put(cast(uint)A.length.number, T, 0);
+                            A.Put(cc, cast(uint)A.length.number, T, 0);
                             if(A.length.number == lim)
                                 goto Lret;
                             p = e;
@@ -805,7 +808,7 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
                                     T = S[so .. eo];
                                 else
                                     T = null;
-                                A.Put(cast(uint)A.length.number, T, 0);
+                                A.Put(cc, cast(uint)A.length.number, T, 0);
                                 if(A.length.number == lim)
                                     goto Lret;
                             }
@@ -815,7 +818,7 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
                 }
             }
             T = S[p .. S.length];
-            A.Put(cast(uint)A.length.number, T, 0);
+            A.Put(cc, cast(uint)A.length.number, T, 0);
             goto Lret;
         }
         if(str)                 // string
@@ -830,7 +833,7 @@ void* Dstring_prototype_split(Dobject pthis, CallContext *cc, Dobject othis, Val
         }
     }
 
-    A.Put(0u, S, 0);
+    A.Put(cc, 0u, S, 0);
     Lret:
     ret.putVobject(A);
     return null;
@@ -889,18 +892,18 @@ void* Dstring_prototype_substr(Dobject pthis, CallContext *cc, Dobject othis, Va
     d_number length;
     d_string s;
 
-    s = othis.value.toString();
+    s = othis.value.toString(cc);
     size_t sUCSdim = toUCSindex(s, s.length);
     start = 0;
     length = 0;
     if(arglist.length >= 1)
     {
-        start = arglist[0].toInteger();
+        start = arglist[0].toInteger(cc);
         if(start < 0)
             start = sUCSdim + start;
         if(arglist.length >= 2)
         {
-            length = arglist[1].toInteger();
+            length = arglist[1].toInteger(cc);
             if(isNaN(length) || length < 0)
                 length = 0;
         }
@@ -925,15 +928,15 @@ void* Dstring_prototype_substring(Dobject pthis, CallContext *cc, Dobject othis,
     d_string s;
 
     //writefln("String.prototype.substring()");
-    s = othis.value.toString();
+    s = othis.value.toString(cc);
     size_t sUCSdim = toUCSindex(s, s.length);
     start = 0;
     end = sUCSdim;
     if(arglist.length >= 1)
     {
-        start = arglist[0].toInteger();
+        start = arglist[0].toInteger(cc);
         if(arglist.length >= 2)
-            end = arglist[1].toInteger();
+            end = arglist[1].toInteger(cc);
         //writef("s = '%ls', start = %d, end = %d\n", s, start, end);
     }
 
@@ -951,13 +954,13 @@ enum CASE
     LocaleUpper
 };
 
-void *tocase(Dobject othis, Value *ret, CASE caseflag)
+void *tocase(Dobject othis, Value *ret, CASE caseflag, CallContext* cc)
 {
     import std.string : toLower, toUpper;
 
     d_string s;
 
-    s = othis.value.toString();
+    s = othis.value.toString(cc);
     switch(caseflag)
     {
     case CASE.Lower:
@@ -986,7 +989,7 @@ void* Dstring_prototype_toLowerCase(Dobject pthis, CallContext *cc, Dobject othi
     // String.prototype.toLowerCase()
 
     //writef("Dstring_prototype_toLowerCase()\n");
-    return tocase(othis, ret, CASE.Lower);
+    return tocase(othis, ret, CASE.Lower, cc);
 }
 
 /* ===================== Dstring_prototype_toLocaleLowerCase ============= */
@@ -996,7 +999,7 @@ void* Dstring_prototype_toLocaleLowerCase(Dobject pthis, CallContext *cc, Dobjec
     // ECMA v3 15.5.4.17
 
     //writef("Dstring_prototype_toLocaleLowerCase()\n");
-    return tocase(othis, ret, CASE.LocaleLower);
+    return tocase(othis, ret, CASE.LocaleLower, cc);
 }
 
 /* ===================== Dstring_prototype_toUpperCase ============= */
@@ -1006,7 +1009,7 @@ void* Dstring_prototype_toUpperCase(Dobject pthis, CallContext *cc, Dobject othi
     // ECMA 15.5.4.12
     // String.prototype.toUpperCase()
 
-    return tocase(othis, ret, CASE.Upper);
+    return tocase(othis, ret, CASE.Upper, cc);
 }
 
 /* ===================== Dstring_prototype_toLocaleUpperCase ============= */
@@ -1015,21 +1018,21 @@ void* Dstring_prototype_toLocaleUpperCase(Dobject pthis, CallContext *cc, Dobjec
 {
     // ECMA v3 15.5.4.18
 
-    return tocase(othis, ret, CASE.LocaleUpper);
+    return tocase(othis, ret, CASE.LocaleUpper, cc);
 }
 
 /* ===================== Dstring_prototype_anchor ============= */
 
-void *dstring_anchor(Dobject othis, Value* ret, d_string tag, d_string name, Value[] arglist)
+void *dstring_anchor(Dobject othis, CallContext* cc, Value* ret, d_string tag, d_string name, Value[] arglist)
 {
     // For example:
     //	"foo".anchor("bar")
     // produces:
     //	<tag name="bar">foo</tag>
 
-    d_string foo = othis.value.toString();
+    d_string foo = othis.value.toString(cc);
     Value* va = arglist.length ? &arglist[0] : &vundefined;
-    d_string bar = va.toString();
+    d_string bar = va.toString(cc);
 
     d_string s;
 
@@ -1059,22 +1062,22 @@ void* Dstring_prototype_anchor(Dobject pthis, CallContext *cc, Dobject othis, Va
     // produces:
     //	<A NAME="bar">foo</A>
 
-    return dstring_anchor(othis, ret, "A", "NAME", arglist);
+    return dstring_anchor(othis, cc, ret, "A", "NAME", arglist);
 }
 
 void* Dstring_prototype_fontcolor(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_anchor(othis, ret, "FONT", "COLOR", arglist);
+    return dstring_anchor(othis, cc, ret, "FONT", "COLOR", arglist);
 }
 
 void* Dstring_prototype_fontsize(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_anchor(othis, ret, "FONT", "SIZE", arglist);
+    return dstring_anchor(othis, cc, ret, "FONT", "SIZE", arglist);
 }
 
 void* Dstring_prototype_link(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_anchor(othis, ret, "A", "HREF", arglist);
+    return dstring_anchor(othis, cc, ret, "A", "HREF", arglist);
 }
 
 
@@ -1084,9 +1087,9 @@ void* Dstring_prototype_link(Dobject pthis, CallContext *cc, Dobject othis, Valu
  * Produce <tag>othis</tag>
  */
 
-void *dstring_bracket(Dobject othis, Value* ret, d_string tag)
+void *dstring_bracket(Dobject othis, CallContext* cc, Value* ret, d_string tag)
 {
-    d_string foo = othis.value.toString();
+    d_string foo = othis.value.toString(cc);
     d_string s;
 
     s = "<"     ~
@@ -1110,47 +1113,47 @@ void* Dstring_prototype_big(Dobject pthis, CallContext *cc, Dobject othis, Value
     // produces:
     //	<BIG>foo</BIG>
 
-    return dstring_bracket(othis, ret, "BIG");
+    return dstring_bracket(othis, cc, ret, "BIG");
 }
 
 void* Dstring_prototype_blink(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_bracket(othis, ret, "BLINK");
+    return dstring_bracket(othis, cc, ret, "BLINK");
 }
 
 void* Dstring_prototype_bold(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_bracket(othis, ret, "B");
+    return dstring_bracket(othis, cc, ret, "B");
 }
 
 void* Dstring_prototype_fixed(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_bracket(othis, ret, "TT");
+    return dstring_bracket(othis, cc, ret, "TT");
 }
 
 void* Dstring_prototype_italics(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_bracket(othis, ret, "I");
+    return dstring_bracket(othis, cc, ret, "I");
 }
 
 void* Dstring_prototype_small(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_bracket(othis, ret, "SMALL");
+    return dstring_bracket(othis, cc, ret, "SMALL");
 }
 
 void* Dstring_prototype_strike(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_bracket(othis, ret, "STRIKE");
+    return dstring_bracket(othis, cc, ret, "STRIKE");
 }
 
 void* Dstring_prototype_sub(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_bracket(othis, ret, "SUB");
+    return dstring_bracket(othis, cc, ret, "SUB");
 }
 
 void* Dstring_prototype_sup(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return dstring_bracket(othis, ret, "SUP");
+    return dstring_bracket(othis, cc, ret, "SUP");
 }
 
 
@@ -1159,11 +1162,11 @@ void* Dstring_prototype_sup(Dobject pthis, CallContext *cc, Dobject othis, Value
 
 class DstringPrototype : Dstring
 {
-    this()
+    this(CallContext* cc)
     {
-        super(Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
 
-        Put(TEXT_constructor, Dstring_constructor, DontEnum);
+        Put(cc, TEXT_constructor, cc.tc.Dstring_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -1201,7 +1204,7 @@ class DstringPrototype : Dstring
             { TEXT_sup, &Dstring_prototype_sup, 0 },
         ];
 
-        DnativeFunction.initialize(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, cc, nfd, DontEnum);
     }
 }
 
@@ -1209,39 +1212,39 @@ class DstringPrototype : Dstring
 
 class Dstring : Dobject
 {
-    this(d_string s)
+    this(CallContext* cc, d_string s)
     {
-        super(getPrototype());
+        super(cc, getPrototype(cc));
         classname = TEXT_String;
 
-        Put(TEXT_length, std.utf.toUCSindex(s, s.length), DontEnum | DontDelete | ReadOnly);
+        Put(cc, TEXT_length, std.utf.toUCSindex(s, s.length), DontEnum | DontDelete | ReadOnly);
         value.putVstring(s);
     }
 
-    this(Dobject prototype)
+    this(CallContext* cc, Dobject prototype)
     {
-        super(prototype);
+        super(cc, prototype);
 
         classname = TEXT_String;
-        Put(TEXT_length, 0, DontEnum | DontDelete | ReadOnly);
+        Put(cc, TEXT_length, 0, DontEnum | DontDelete | ReadOnly);
         value.putVstring(null);
     }
 
-    static void initialize()
+    static void initialize(CallContext* cc)
     {
-        Dstring_constructor = new DstringConstructor();
-        Dstring_prototype = new DstringPrototype();
+        cc.tc.Dstring_constructor = new DstringConstructor(cc);
+        cc.tc.Dstring_prototype = new DstringPrototype(cc);
 
-        Dstring_constructor.Put(TEXT_prototype, Dstring_prototype, DontEnum | DontDelete | ReadOnly);
+        cc.tc.Dstring_constructor.Put(cc, TEXT_prototype, cc.tc.Dstring_prototype, DontEnum | DontDelete | ReadOnly);
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Dstring_constructor;
+        return cc.tc.Dstring_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Dstring_prototype;
+        return cc.tc.Dstring_prototype;
     }
 }

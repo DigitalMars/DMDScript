@@ -46,10 +46,10 @@ import dmdscript.dboolean;
 import dmdscript.dfunction;
 import dmdscript.dnative;
 
-immutable(char)[] arg0string(Value[] arglist)
+immutable(char)[] arg0string(Value[] arglist, CallContext* cc)
 {
     Value* v = arglist.length ? &arglist[0] : &vundefined;
-    return v.toString();
+    return v.toString(cc);
 }
 
 /* ====================== Dglobal_eval ================ */
@@ -71,7 +71,7 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
         Value.copy(ret, v);
         return null;
     }
-    s = v.toString();
+    s = v.toString(cc);
     //writef("eval('%ls')\n", s);
 
     // Parse program
@@ -100,7 +100,7 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
     Value[] p1 = null;
 
     Value* v1 = null;
-    static ntry = 0;
+    static immutable ntry = 0;
 
     if(fd.nlocals < 128)
         v1 = cast(Value*)alloca(fd.nlocals * Value.sizeof);
@@ -148,7 +148,7 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
         // Variable instantiation is performed using the calling
         // context's variable object and using empty
         // property attributes
-        fd.instantiate(cc.scopex, cc.variable, 0);
+        fd.instantiate(cc, cc.scopex, cc.variable, 0);
 
         // The this value is the same as the this value of the
         // calling context.
@@ -168,7 +168,7 @@ Lsyntaxerror:
     errinfo.linnum = 0;
 
     ret.putVundefined();
-    o = new syntaxerror.D0(&errinfo);
+    o = new syntaxerror.D0(cc, &errinfo);
     Value* v2 = new Value;
     v2.putVobject(o);
     return v2;
@@ -190,7 +190,7 @@ void* Dglobal_parseInt(Dobject pthis, CallContext *cc, Dobject othis, Value* ret
     size_t i;
     d_string string;
 
-    string = arg0string(arglist);
+    string = arg0string(arglist, cc);
 
     //writefln("Dglobal_parseInt('%s')", string);
 
@@ -224,7 +224,7 @@ void* Dglobal_parseInt(Dobject pthis, CallContext *cc, Dobject othis, Value* ret
     if(arglist.length >= 2)
     {
         v2 = &arglist[1];
-        radix = v2.toInt32();
+        radix = v2.toInt32(cc);
     }
 
     if(radix)
@@ -307,7 +307,7 @@ void* Dglobal_parseFloat(Dobject pthis, CallContext *cc, Dobject othis, Value* r
     d_number n;
     size_t endidx;
 
-    d_string string = arg0string(arglist);
+    d_string string = arg0string(arglist, cc);
     n = StringNumericLiteral(string, endidx, 1);
 
     ret.putVnumber(n);
@@ -323,7 +323,7 @@ int ISURIALNUM(dchar c)
            (c >= '0' && c <= '9');
 }
 
-tchar[16 + 1] TOHEX = "0123456789ABCDEF";
+immutable tchar[16 + 1] TOHEX = "0123456789ABCDEF";
 
 void* Dglobal_escape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
 {
@@ -335,7 +335,7 @@ void* Dglobal_escape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, 
     uint unicodes;
     size_t slen;
 
-    s = arg0string(arglist);
+    s = arg0string(arglist, cc);
     escapes = 0;
     unicodes = 0;
     foreach(dchar c; s)
@@ -398,7 +398,7 @@ void* Dglobal_unescape(Dobject pthis, CallContext *cc, Dobject othis, Value* ret
     d_string s;
     d_string R;
 
-    s = arg0string(arglist);
+    s = arg0string(arglist, cc);
     //writefln("Dglobal.unescape(s = '%s')", s);
     for(size_t k = 0; k < s.length; k++)
     {
@@ -483,7 +483,7 @@ void* Dglobal_isNaN(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, V
         v = &arglist[0];
     else
         v = &vundefined;
-    n = v.toNumber();
+    n = v.toNumber(cc);
     b = isNaN(n) ? true : false;
     ret.putVboolean(b);
     return null;
@@ -502,7 +502,7 @@ void* Dglobal_isFinite(Dobject pthis, CallContext *cc, Dobject othis, Value* ret
         v = &arglist[0];
     else
         v = &vundefined;
-    n = v.toNumber();
+    n = v.toNumber(cc);
     b = isFinite(n) ? true : false;
     ret.putVboolean(b);
     return null;
@@ -510,9 +510,9 @@ void* Dglobal_isFinite(Dobject pthis, CallContext *cc, Dobject othis, Value* ret
 
 /* ====================== Dglobal_ URI Functions ================ */
 
-void* URI_error(d_string s)
+void* URI_error(d_string s, CallContext* cc)
 {
-    Dobject o = new urierror.D0(s ~ "() failure");
+    Dobject o = new urierror.D0(cc, s ~ "() failure");
     Value* v = new Value;
     v.putVobject(o);
     return v;
@@ -523,7 +523,7 @@ void* Dglobal_decodeURI(Dobject pthis, CallContext *cc, Dobject othis, Value* re
     // ECMA v3 15.1.3.1
     d_string s;
 
-    s = arg0string(arglist);
+    s = arg0string(arglist, cc);
     try
     {
         s = std.uri.decode(s);
@@ -531,7 +531,7 @@ void* Dglobal_decodeURI(Dobject pthis, CallContext *cc, Dobject othis, Value* re
     catch(URIException u)
     {
         ret.putVundefined();
-        return URI_error(TEXT_decodeURI);
+        return URI_error(TEXT_decodeURI, cc);
     }
     ret.putVstring(s);
     return null;
@@ -542,7 +542,7 @@ void* Dglobal_decodeURIComponent(Dobject pthis, CallContext *cc, Dobject othis, 
     // ECMA v3 15.1.3.2
     d_string s;
 
-    s = arg0string(arglist);
+    s = arg0string(arglist, cc);
     try
     {
         s = std.uri.decodeComponent(s);
@@ -550,7 +550,7 @@ void* Dglobal_decodeURIComponent(Dobject pthis, CallContext *cc, Dobject othis, 
     catch(URIException u)
     {
         ret.putVundefined();
-        return URI_error(TEXT_decodeURIComponent);
+        return URI_error(TEXT_decodeURIComponent, cc);
     }
     ret.putVstring(s);
     return null;
@@ -561,7 +561,7 @@ void* Dglobal_encodeURI(Dobject pthis, CallContext *cc, Dobject othis, Value* re
     // ECMA v3 15.1.3.3
     d_string s;
 
-    s = arg0string(arglist);
+    s = arg0string(arglist, cc);
     try
     {
         s = std.uri.encode(s);
@@ -569,7 +569,7 @@ void* Dglobal_encodeURI(Dobject pthis, CallContext *cc, Dobject othis, Value* re
     catch(URIException u)
     {
         ret.putVundefined();
-        return URI_error(TEXT_encodeURI);
+        return URI_error(TEXT_encodeURI, cc);
     }
     ret.putVstring(s);
     return null;
@@ -580,7 +580,7 @@ void* Dglobal_encodeURIComponent(Dobject pthis, CallContext *cc, Dobject othis, 
     // ECMA v3 15.1.3.4
     d_string s;
 
-    s = arg0string(arglist);
+    s = arg0string(arglist, cc);
     try
     {
         s = std.uri.encodeComponent(s);
@@ -588,7 +588,7 @@ void* Dglobal_encodeURIComponent(Dobject pthis, CallContext *cc, Dobject othis, 
     catch(URIException u)
     {
         ret.putVundefined();
-        return URI_error(TEXT_encodeURIComponent);
+        return URI_error(TEXT_encodeURIComponent, cc);
     }
     ret.putVstring(s);
     return null;
@@ -605,7 +605,7 @@ static void dglobal_print(CallContext *cc, Dobject othis, Value* ret, Value[] ar
 
         for(i = 0; i < arglist.length; i++)
         {
-            d_string s = arglist[i].toString();
+            d_string s = arglist[i].toString(cc);
 
             writef("%s", s);
         }
@@ -689,7 +689,7 @@ void* Dglobal_getenv(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, 
     ret.putVundefined();
     if(arglist.length)
     {
-        d_string s = arglist[0].toString();
+        d_string s = arglist[0].toString(cc);
         char* p = getenv(toStringz(s));
         if(p)
             ret.putVstring(p[0 .. strlen(p)].idup);
@@ -730,13 +730,13 @@ void* Dglobal_ScriptEngineMinorVersion(Dobject pthis, CallContext *cc, Dobject o
 
 class Dglobal : Dobject
 {
-    this(tchar[][] argv)
+    this(CallContext* cc, tchar[][] argv)
     {
-        super(Dobject.getPrototype());  // Dglobal.prototype is implementation-dependent
+        super(cc, Dobject.getPrototype(cc));  // Dglobal.prototype is implementation-dependent
 
         //writef("Dglobal.Dglobal(%x)\n", this);
 
-        Dobject f = Dfunction.getPrototype();
+        Dobject f = Dfunction.getPrototype(cc);
 
         classname = TEXT_global;
 
@@ -745,9 +745,9 @@ class Dglobal : Dobject
 
         // Value properties
 
-        Put(TEXT_NaN, d_number.nan, DontEnum | DontDelete);
-        Put(TEXT_Infinity, d_number.infinity, DontEnum| DontDelete);
-		Put(TEXT_undefined, &vundefined, DontEnum| DontDelete);
+        Put(cc, TEXT_NaN, d_number.nan, DontEnum | DontDelete);
+        Put(cc, TEXT_Infinity, d_number.infinity, DontEnum| DontDelete);
+		Put(cc, TEXT_undefined, &vundefined, DontEnum| DontDelete);
         static enum NativeFunctionData[] nfd =
         [
             // Function properties
@@ -776,44 +776,44 @@ class Dglobal : Dobject
             { TEXT_ScriptEngineMinorVersion, &Dglobal_ScriptEngineMinorVersion, 0 },
         ];
 
-        DnativeFunction.initialize(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, cc, nfd, DontEnum);
 
         // Now handled by AssertExp()
         // Put(TEXT_assert, Dglobal_assert(), DontEnum);
 
         // Constructor properties
 
-        Put(TEXT_Object, Dobject_constructor, DontEnum);
-        Put(TEXT_Function, Dfunction_constructor, DontEnum);
-        Put(TEXT_Array, Darray_constructor, DontEnum);
-        Put(TEXT_String, Dstring_constructor, DontEnum);
-        Put(TEXT_Boolean, Dboolean_constructor, DontEnum);
-        Put(TEXT_Number, Dnumber_constructor, DontEnum);
-        Put(TEXT_Date, Ddate_constructor, DontEnum);
-        Put(TEXT_RegExp, Dregexp_constructor, DontEnum);
-        Put(TEXT_Error, Derror_constructor, DontEnum);
+        Put(cc, TEXT_Object, cc.tc.Dobject_constructor, DontEnum);
+        Put(cc, TEXT_Function, cc.tc.Dfunction_constructor, DontEnum);
+        Put(cc, TEXT_Array, cc.tc.Darray_constructor, DontEnum);
+        Put(cc, TEXT_String, cc.tc.Dstring_constructor, DontEnum);
+        Put(cc, TEXT_Boolean, cc.tc.Dboolean_constructor, DontEnum);
+        Put(cc, TEXT_Number, cc.tc.Dnumber_constructor, DontEnum);
+        Put(cc, TEXT_Date, cc.tc.Ddate_constructor, DontEnum);
+        Put(cc, TEXT_RegExp, cc.tc.Dregexp_constructor, DontEnum);
+        Put(cc, TEXT_Error, cc.tc.Derror_constructor, DontEnum);
 
-        foreach(d_string key, Dfunction ctor; ctorTable)
+        foreach(d_string key, Dfunction ctor; cc.tc.ctorTable)
         {
-            Put(key, ctor, DontEnum);
+            Put(cc, key, ctor, DontEnum);
         }
 
         // Other properties
 
-        assert(Dmath_object);
-        Put(TEXT_Math, Dmath_object, DontEnum);
+        assert(cc.tc.Dmath_object);
+        Put(cc, TEXT_Math, cc.tc.Dmath_object, DontEnum);
 
         // Build an "arguments" property out of argv[],
         // and add it to the global object.
         Darray arguments;
 
-        arguments = new Darray();
-        Put(TEXT_arguments, arguments, DontDelete);
+        arguments = new Darray(cc);
+        Put(cc, TEXT_arguments, arguments, DontDelete);
         arguments.length.putVnumber(argv.length);
         for(int i = 0; i < argv.length; i++)
         {
-            arguments.Put(i, argv[i].idup, DontEnum);
+            arguments.Put(cc, i, argv[i].idup, DontEnum);
         }
-        arguments.Put(TEXT_callee, &vnull, DontEnum);
+        arguments.Put(cc, TEXT_callee, &vnull, DontEnum);
     }
 }

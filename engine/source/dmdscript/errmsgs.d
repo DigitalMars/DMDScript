@@ -104,7 +104,7 @@ enum
 };
 // *** ERROR MESSAGES ***
 //
-string[] errmsgtbl = [
+immutable string[] errmsgtbl = [
     "DMDScript fatal runtime error: ",
     "No default value for COM object",
     "%s does not have a [[Construct]] property",

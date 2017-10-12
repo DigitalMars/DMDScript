@@ -67,9 +67,9 @@ class Catch : Dobject
     uint offset;        // offset of CatchBlock
     d_string name;      // catch identifier
 
-    this(uint offset, d_string name)
+    this(CallContext* cc, uint offset, d_string name)
     {
-        super(null);
+        super(cc, null);
         this.offset = offset;
         this.name = name;
     }
@@ -97,9 +97,9 @@ class Finally : Dobject
 
     IR *finallyblock;    // code for FinallyBlock
 
-    this(IR * finallyblock)
+    this(CallContext* cc, IR * finallyblock)
     {
-        super(null);
+        super(cc, null);
         this.finallyblock = finallyblock;
     }
 
@@ -246,7 +246,7 @@ void PutValue(CallContext *cc, d_string s, Value* a)
     if(d == cc.globalroot)
     {
         o = scope_tos(cc.scopex);
-        o.Put(s, a, 0);
+        o.Put(cc, s, a, 0);
         return;
     }
 
@@ -261,13 +261,13 @@ void PutValue(CallContext *cc, d_string s, Value* a)
         if(v)
         {
             // Overwrite existing property with new one
-            v.checkReference();
-            o.Put(s, a, 0);
+            v.checkReference(cc);
+            o.Put(cc, s, a, 0);
             break;
         }
         if(d == cc.globalroot)
         {
-            o.Put(s, a, 0);
+            o.Put(cc, s, a, 0);
             return;
         }
     }
@@ -299,14 +299,14 @@ void PutValue(CallContext *cc, Identifier* id, Value* a)
             v = o.Get(id);
             if(v)
             {
-                v.checkReference();
+                v.checkReference(cc);
                 break;// Overwrite existing property with new one
             }
             if(d == cc.globalroot)
                 break;
         }
     }
-    o.Put(id, a, 0);
+    o.Put(cc, id, a, 0);
 }
 
 
@@ -314,20 +314,20 @@ void PutValue(CallContext *cc, Identifier* id, Value* a)
  * Helper function for Values that cannot be converted to Objects.
  */
 
-Value* cannotConvert(Value* b, int linnum)
+Value* cannotConvert(Value* b, CallContext* cc, int linnum)
 {
     ErrInfo errinfo;
 
     errinfo.linnum = linnum;
     if(b.isUndefinedOrNull())
     {
-        b = Dobject.RuntimeError(&errinfo, errmsgtbl[ERR_CANNOT_CONVERT_TO_OBJECT4],
+        b = Dobject.RuntimeError(&errinfo, cc, errmsgtbl[ERR_CANNOT_CONVERT_TO_OBJECT4],
                                  b.getType());
     }
     else
     {
-        b = Dobject.RuntimeError(&errinfo, errmsgtbl[ERR_CANNOT_CONVERT_TO_OBJECT2],
-                                 b.getType(), b.toString());
+        b = Dobject.RuntimeError(&errinfo, cc, errmsgtbl[ERR_CANNOT_CONVERT_TO_OBJECT2],
+                                 b.getType(), b.toString(cc));
     }
     return b;
 }
@@ -428,14 +428,14 @@ struct IR
                     {
                         ca = cast(Catch)o;
                         //writef("catch('%s')\n", ca.name);
-                        o = new Dobject(Dobject.getPrototype());
+                        o = new Dobject(cc, Dobject.getPrototype(cc));
                         version(JSCRIPT_CATCH_BUG)
                         {
                             PutValue(cc, ca.name, a);
                         }
                         else
                         {
-                            o.Put(ca.name, a, DontDelete);
+                            o.Put(cc, ca.name, a, DontDelete);
                         }
                         scopex ~= o;
                         cc.scopex = scopex;
@@ -623,10 +623,10 @@ struct IR
                 case IRget:                 // a = b.c
                     a = GETa(code);
                     b = GETb(code);
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     if(!o)
                     {
-                        a = cannotConvert(b, GETlinnum(code));
+                        a = cannotConvert(b, cc, GETlinnum(code));
                         goto Lthrow;
                     }
                     c = GETc(code);
@@ -639,7 +639,7 @@ struct IR
                     }
                     else
                     {
-                        s = c.toString();
+                        s = c.toString(cc);
                         v = o.Get(s);
                     }
                     if(!v)
@@ -658,14 +658,14 @@ struct IR
                     {
                         //writef("IRput %d\n", i32);
                         if(b.vtype == V_OBJECT)
-                            a = b.object.Put(cast(d_uint32)i32, c, a, 0);
+                            a = b.object.Put(cc, cast(d_uint32)i32, c, a, 0);
                         else
-                            a = b.Put(cast(d_uint32)i32, c, a);
+                            a = b.Put(cc, cast(d_uint32)i32, c, a);
                     }
                     else
                     {
-                        s = c.toString();
-                        a = b.Put(s, a);
+                        s = c.toString(cc);
+                        a = b.Put(cc, s, a);
                     }
                     if(a)
                         goto Lthrow;
@@ -676,14 +676,15 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     s = (code + 3).id.value.string;
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     if(!o)
                     {
                         //writef("%s %s.%s cannot convert to Object", b.getType(), b.toString(), s);
                         ErrInfo errinfo;
                         a = Dobject.RuntimeError(&errinfo,
+                                                 cc,
                                                  errmsgtbl[ERR_CANNOT_CONVERT_TO_OBJECT3],
-                                                 b.getType(), b.toString(),
+                                                 b.getType(), b.toString(cc),
                                                  s);
                         goto Lthrow;
                     }
@@ -700,7 +701,7 @@ struct IR
 	                id = (code+1).id;
 	                s = id.value.string;
 	                if(!scope_get(scopex, id))
-		                throw new ErrorValue(Dobject.ReferenceError(errmsgtbl[ERR_UNDEFINED_VAR],s)); 
+		                throw new ErrorValue(Dobject.ReferenceError(cc, errmsgtbl[ERR_UNDEFINED_VAR],s)); 
 	                code += 2;
 	                break;
                 case IRgetscope:            // a = s
@@ -748,14 +749,14 @@ struct IR
 
                 case IRaddass:              // a = (b.c += a)
                     c = GETc(code);
-                    s = c.toString();
+                    s = c.toString(cc);
                     goto Laddass;
 
                 case IRaddasss:             // a = (b.s += a)
                     s = (code + 3).id.value.string;
                     Laddass:
                     b = GETb(code);
-                    v = b.Get(s);
+                    v = b.Get(cc, s);
                     goto Laddass2;
 
                 case IRaddassscope:         // a = (s += a)
@@ -778,7 +779,7 @@ struct IR
                     a = GETa(code);
                     if(!v)
                     {
-						throw new ErrorValue(Dobject.ReferenceError(errmsgtbl[ERR_UNDEFINED_VAR],s));
+						throw new ErrorValue(Dobject.ReferenceError(cc, errmsgtbl[ERR_UNDEFINED_VAR],s));
                         //a.putVundefined();
                         /+
                                             if (b)
@@ -799,23 +800,23 @@ struct IR
                     }
                     else
                     {
-                        v.toPrimitive(v, null);
-                        a.toPrimitive(a, null);
+                        v.toPrimitive(cc, v, null);
+                        a.toPrimitive(cc, a, null);
                         if(v.isString())
                         {
-                            s2 = v.toString() ~a.toString();
+                            s2 = v.toString(cc) ~a.toString(cc);
                             a.putVstring(s2);
                             Value.copy(v, a);
                         }
                         else if(a.isString())
                         {
-                            s2 = v.toString() ~a.toString();
+                            s2 = v.toString(cc) ~a.toString(cc);
                             a.putVstring(s2);
                             Value.copy(v, a);
                         }
                         else
                         {
-                            a.putVnumber(a.toNumber() + v.toNumber());
+                            a.putVnumber(a.toNumber(cc) + v.toNumber(cc));
                             *v = *a;//full copy
                         }
                     }
@@ -825,13 +826,13 @@ struct IR
                 case IRputs:            // b.s = a
                     a = GETa(code);
                     b = GETb(code);
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     if(!o)
                     {
-                        a = cannotConvert(b, GETlinnum(code));
+                        a = cannotConvert(b, cc, GETlinnum(code));
                         goto Lthrow;
                     }
-                    a = o.Put((code + 3).id.value.string, a, 0);
+                    a = o.Put(cc, (code + 3).id.value.string, a, 0);
                     if(a)
                         goto Lthrow;
                     code += 4;
@@ -839,7 +840,7 @@ struct IR
 
                 case IRputscope:            // s = a
                     a = GETa(code);
-                    a.checkReference();
+                    a.checkReference(cc);
                     PutValue(cc, (code + 2).id, a);
                     code += 3;
                     break;
@@ -847,16 +848,17 @@ struct IR
                 case IRputdefault:              // b = a
                     a = GETa(code);
                     b = GETb(code);
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     if(!o)
                     {
                         ErrInfo errinfo;
                         a = Dobject.RuntimeError(&errinfo,
+                                                 cc,
                                                  errmsgtbl[ERR_CANNOT_ASSIGN], a.getType(),
                                                  b.getType());
                         goto Lthrow;
                     }
-                    a = o.PutDefault(a);
+                    a = o.PutDefault(cc, a);
                     if(a)
                         goto Lthrow;
                     code += 3;
@@ -867,9 +869,9 @@ struct IR
                     o = scope_tos(scopex);
                     assert(o);
                     if(o.HasProperty((code + 2).id.value.string))
-                        a = o.Put((code+2).id.value.string,GETa(code),DontDelete);
+                        a = o.Put(cc, (code+2).id.value.string,GETa(code),DontDelete);
                     else
-                        a = cc.variable.Put((code + 2).id.value.string, GETa(code), DontDelete);
+                        a = cc.variable.Put(cc, (code + 2).id.value.string, GETa(code), DontDelete);
                     if (a) goto Lthrow;
                     code += 3;
                     break;
@@ -887,7 +889,7 @@ struct IR
                 case IRobject:              // a = object
                 { FunctionDefinition fd;
                   fd = cast(FunctionDefinition)(code + 2).ptr;
-                  Dfunction fobject = new DdeclaredFunction(fd);
+                  Dfunction fobject = new DdeclaredFunction(cc, fd);
                   fobject.scopex = scopex;
                   GETa(code).putVobject(fobject);
                   code += 3;
@@ -930,28 +932,28 @@ struct IR
 
                 case IRneg:                 // a = -a
                     a = GETa(code);
-                    n = a.toNumber();
+                    n = a.toNumber(cc);
                     a.putVnumber(-n);
                     code += 2;
                     break;
 
                 case IRpos:                 // a = a
                     a = GETa(code);
-                    n = a.toNumber();
+                    n = a.toNumber(cc);
                     a.putVnumber(n);
                     code += 2;
                     break;
 
                 case IRcom:                 // a = ~a
                     a = GETa(code);
-                    i32 = a.toInt32();
+                    i32 = a.toInt32(cc);
                     a.putVnumber(~i32);
                     code += 2;
                     break;
 
                 case IRnot:                 // a = !a
                     a = GETa(code);
-                    a.putVboolean(!a.toBoolean());
+                    a.putVboolean(!a.toBoolean(cc));
                     code += 2;
                     break;
 
@@ -972,19 +974,20 @@ struct IR
                     // ECMA v3 11.8.6
 
                     b = GETb(code);
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     c = GETc(code);
                     if(c.isPrimitive())
                     {
                         ErrInfo errinfo;
                         a = Dobject.RuntimeError(&errinfo,
+                                                 cc,
                                                  errmsgtbl[ERR_RHS_MUST_BE_OBJECT],
                                                  "instanceof", c.getType());
                         goto Lthrow;
                     }
-                    co = c.toObject();
+                    co = c.toObject(cc);
                     a = GETa(code);
-                    v = cast(Value*)co.HasInstance(a, b);
+                    v = cast(Value*)co.HasInstance(cc, a, b);
                     if(v)
                     {
                         a = v;
@@ -1009,17 +1012,17 @@ struct IR
                         char[Value.sizeof] vtmpc;
                         Value* vc = cast(Value*)vtmpc;
 
-                        b.toPrimitive(vb, null);
-                        c.toPrimitive(vc, null);
+                        b.toPrimitive(cc, vb, null);
+                        c.toPrimitive(cc, vc, null);
 
                         if(vb.isString() || vc.isString())
                         {
-                            s = vb.toString() ~vc.toString();
+                            s = vb.toString(cc) ~vc.toString(cc);
                             a.putVstring(s);
                         }
                         else
                         {
-                            a.putVnumber(vb.toNumber() + vc.toNumber());
+                            a.putVnumber(vb.toNumber(cc) + vc.toNumber(cc));
                         }
                     }
 
@@ -1030,7 +1033,7 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     c = GETc(code);
-                    a.putVnumber(b.toNumber() - c.toNumber());
+                    a.putVnumber(b.toNumber(cc) - c.toNumber(cc));
                     code += 4;
                     break;
 
@@ -1038,7 +1041,7 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     c = GETc(code);
-                    a.putVnumber(b.toNumber() * c.toNumber());
+                    a.putVnumber(b.toNumber(cc) * c.toNumber(cc));
                     code += 4;
                     break;
 
@@ -1048,7 +1051,7 @@ struct IR
                     c = GETc(code);
 
                     //writef("%g / %g = %g\n", b.toNumber() , c.toNumber(), b.toNumber() / c.toNumber());
-                    a.putVnumber(b.toNumber() / c.toNumber());
+                    a.putVnumber(b.toNumber(cc) / c.toNumber(cc));
                     code += 4;
                     break;
 
@@ -1056,7 +1059,7 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     c = GETc(code);
-                    a.putVnumber(b.toNumber() % c.toNumber());
+                    a.putVnumber(b.toNumber(cc) % c.toNumber(cc));
                     code += 4;
                     break;
 
@@ -1064,8 +1067,8 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     c = GETc(code);
-                    i32 = b.toInt32();
-                    u32 = c.toUint32() & 0x1F;
+                    i32 = b.toInt32(cc);
+                    u32 = c.toUint32(cc) & 0x1F;
                     i32 <<= u32;
                     a.putVnumber(i32);
                     code += 4;
@@ -1075,8 +1078,8 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     c = GETc(code);
-                    i32 = b.toInt32();
-                    u32 = c.toUint32() & 0x1F;
+                    i32 = b.toInt32(cc);
+                    u32 = c.toUint32(cc) & 0x1F;
                     i32 >>= cast(d_int32)u32;
                     a.putVnumber(i32);
                     code += 4;
@@ -1086,8 +1089,8 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     c = GETc(code);
-                    i32 = b.toUint32();
-                    u32 = c.toUint32() & 0x1F;
+                    i32 = b.toUint32(cc);
+                    u32 = c.toUint32(cc) & 0x1F;
                     u32 = (cast(d_uint32)i32) >> u32;
                     a.putVnumber(u32);
                     code += 4;
@@ -1097,7 +1100,7 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     c = GETc(code);
-                    a.putVnumber(b.toInt32() & c.toInt32());
+                    a.putVnumber(b.toInt32(cc) & c.toInt32(cc));
                     code += 4;
                     break;
 
@@ -1105,7 +1108,7 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     c = GETc(code);
-                    a.putVnumber(b.toInt32() | c.toInt32());
+                    a.putVnumber(b.toInt32(cc) | c.toInt32(cc));
                     code += 4;
                     break;
 
@@ -1113,18 +1116,18 @@ struct IR
                     a = GETa(code);
                     b = GETb(code);
                     c = GETc(code);
-                    a.putVnumber(b.toInt32() ^ c.toInt32());
+                    a.putVnumber(b.toInt32(cc) ^ c.toInt32(cc));
                     code += 4;
                     break;
 				case IRin:          // a = b in c
 					a = GETa(code);
 					b = GETb(code);
 					c = GETc(code);
-					s = b.toString();
-					o = c.toObject();
+					s = b.toString(cc);
+					o = c.toObject(cc);
 					if(!o){
 						ErrInfo errinfo;
-						throw new ErrorValue(Dobject.RuntimeError(&errinfo,errmsgtbl[ERR_RHS_MUST_BE_OBJECT],"in",c.toString()));
+						throw new ErrorValue(Dobject.RuntimeError(&errinfo,cc,errmsgtbl[ERR_RHS_MUST_BE_OBJECT],"in",c.toString(cc)));
 					}
 					a.putVboolean(o.HasProperty(s));
 					code += 4;
@@ -1134,7 +1137,7 @@ struct IR
 
                 case IRpreinc:     // a = ++b.c
                     c = GETc(code);
-                    s = c.toString();
+                    s = c.toString(cc);
                     goto Lpreinc;
                 case IRpreincs:    // a = ++b.s
                     s = (code + 3).id.value.string;
@@ -1143,12 +1146,12 @@ struct IR
                     Lpre:
                     a = GETa(code);
                     b = GETb(code);
-                    v = b.Get(s);
+                    v = b.Get(cc, s);
                     if(!v)
                         v = &vundefined;
-                    n = v.toNumber();
+                    n = v.toNumber(cc);
                     a.putVnumber(n + inc);
-                    b.Put(s, a);
+                    b.Put(cc, s, a);
                     code += 4;
                     break;
 
@@ -1164,7 +1167,7 @@ struct IR
                         if(s is scopecache[si].s)
                         {
                             v = scopecache[si].v;
-                            n = v.toNumber() + inc;
+                            n = v.toNumber(cc) + inc;
                             v.putVnumber(n);
                             a.putVnumber(n);
                         }
@@ -1173,14 +1176,14 @@ struct IR
                             v = scope_get(scopex, id, &o);
                             if(v)
                             {
-                                n = v.toNumber() + inc;
+                                n = v.toNumber(cc) + inc;
                                 v.putVnumber(n);
                                 a.putVnumber(n);
                             }
                             else
                             {
                                 //FIXED: as per ECMA v5 should throw ReferenceError
-                                a = Dobject.ReferenceError(errmsgtbl[ERR_UNDEFINED_VAR], s);
+                                a = Dobject.ReferenceError(cc,errmsgtbl[ERR_UNDEFINED_VAR], s);
                                 //a.putVundefined();
                                 goto Lthrow;
                             }
@@ -1191,19 +1194,19 @@ struct IR
                         v = scope_get(scopex, id, &o);
                         if(v)
                         {
-                            n = v.toNumber();
+                            n = v.toNumber(cc);
                             v.putVnumber(n + inc);
                             Value.copy(a, v);
                         }
                         else
-                             throw new ErrorValue(Dobject.ReferenceError(errmsgtbl[ERR_UNDEFINED_VAR], s));
+                             throw new ErrorValue(Dobject.ReferenceError(cc,errmsgtbl[ERR_UNDEFINED_VAR], s));
                     }
                     code += 4;
                     break;
 
                 case IRpredec:     // a = --b.c
                     c = GETc(code);
-                    s = c.toString();
+                    s = c.toString(cc);
                     goto Lpredec;
                 case IRpredecs:    // a = --b.s
                     s = (code + 3).id.value.string;
@@ -1219,19 +1222,19 @@ struct IR
 
                 case IRpostinc:     // a = b.c++
                     c = GETc(code);
-                    s = c.toString();
+                    s = c.toString(cc);
                     goto Lpostinc;
                 case IRpostincs:    // a = b.s++
                     s = (code + 3).id.value.string;
                     Lpostinc:
                     a = GETa(code);
                     b = GETb(code);
-                    v = b.Get(s);
+                    v = b.Get(cc, s);
                     if(!v)
                         v = &vundefined;
-                    n = v.toNumber();
+                    n = v.toNumber(cc);
                     a.putVnumber(n + 1);
-                    b.Put(s, a);
+                    b.Put(cc, s, a);
                     a.putVnumber(n);
                     code += 4;
                     break;
@@ -1242,7 +1245,7 @@ struct IR
                     if(v && v != &vundefined)
                     {
                         a = GETa(code);
-                        n = v.toNumber();
+                        n = v.toNumber(cc);
                         v.putVnumber(n + 1);
                         a.putVnumber(n);
                     }
@@ -1250,7 +1253,7 @@ struct IR
                     {
                         //GETa(code).putVundefined();
                         //FIXED: as per ECMA v5 should throw ReferenceError
-                        throw new ErrorValue(Dobject.ReferenceError(id.value.string));
+                        throw new ErrorValue(Dobject.ReferenceError(cc,id.value.string));
                         //v = signalingUndefined(id.value.string);
                     }
                     code += 3;
@@ -1258,19 +1261,19 @@ struct IR
 
                 case IRpostdec:     // a = b.c--
                     c = GETc(code);
-                    s = c.toString();
+                    s = c.toString(cc);
                     goto Lpostdec;
                 case IRpostdecs:    // a = b.s--
                     s = (code + 3).id.value.string;
                     Lpostdec:
                     a = GETa(code);
                     b = GETb(code);
-                    v = b.Get(s);
+                    v = b.Get(cc, s);
                     if(!v)
                         v = &vundefined;
-                    n = v.toNumber();
+                    n = v.toNumber(cc);
                     a.putVnumber(n - 1);
-                    b.Put(s, a);
+                    b.Put(cc, s, a);
                     a.putVnumber(n);
                     code += 4;
                     break;
@@ -1280,7 +1283,7 @@ struct IR
                     v = scope_get(scopex, id, &o);
                     if(v && v != &vundefined)
                     {
-                        n = v.toNumber();
+                        n = v.toNumber(cc);
                         a = GETa(code);
                         v.putVnumber(n - 1);
                         a.putVnumber(n);
@@ -1289,7 +1292,7 @@ struct IR
                     {
                         //GETa(code).putVundefined();
                         //FIXED: as per ECMA v5 should throw ReferenceError
-                        throw new ErrorValue(Dobject.ReferenceError(id.value.string));
+                        throw new ErrorValue(Dobject.ReferenceError(cc,id.value.string));
                         //v = signalingUndefined(id.value.string);
                     }
                     code += 3;
@@ -1302,14 +1305,14 @@ struct IR
                         bo = true;
                     else
                     {
-                        o = b.toObject();
+                        o = b.toObject(cc);
                         if(!o)
                         {
-                            a = cannotConvert(b, GETlinnum(code));
+                            a = cannotConvert(b, cc, GETlinnum(code));
                             goto Lthrow;
                         }
                         s = (code.opcode == IRdel)
-                            ? GETc(code).toString()
+                            ? GETc(code).toString(cc)
                             : (code + 3).id.value.string;
                         if(o.implementsDelete())
                             bo = o.Delete(s);
@@ -1347,17 +1350,17 @@ struct IR
                         res = (b.number < c.number);
                     else
                     {
-                        b.toPrimitive(b, TypeNumber);
-                        c.toPrimitive(c, TypeNumber);
+                        b.toPrimitive(cc, b, TypeNumber);
+                        c.toPrimitive(cc, c, TypeNumber);
                         if(b.isString() && c.isString())
                         {
-                            d_string x = b.toString();
-                            d_string y = c.toString();
+                            d_string x = b.toString(cc);
+                            d_string y = c.toString(cc);
 
                             res = std.string.cmp(x, y) < 0;
                         }
                         else
-                            res = b.toNumber() < c.toNumber();
+                            res = b.toNumber(cc) < c.toNumber(cc);
                     }
                     a.putVboolean(res);
                     code += 4;
@@ -1371,17 +1374,17 @@ struct IR
                         res = (b.number <= c.number);
                     else
                     {
-                        b.toPrimitive(b, TypeNumber);
-                        c.toPrimitive(c, TypeNumber);
+                        b.toPrimitive(cc, b, TypeNumber);
+                        c.toPrimitive(cc, c, TypeNumber);
                         if(b.isString() && c.isString())
                         {
-                            d_string x = b.toString();
-                            d_string y = c.toString();
+                            d_string x = b.toString(cc);
+                            d_string y = c.toString(cc);
 
                             res = std.string.cmp(x, y) <= 0;
                         }
                         else
-                            res = b.toNumber() <= c.toNumber();
+                            res = b.toNumber(cc) <= c.toNumber(cc);
                     }
                     a.putVboolean(res);
                     code += 4;
@@ -1395,17 +1398,17 @@ struct IR
                         res = (b.number > c.number);
                     else
                     {
-                        b.toPrimitive(b, TypeNumber);
-                        c.toPrimitive(c, TypeNumber);
+                        b.toPrimitive(cc, b, TypeNumber);
+                        c.toPrimitive(cc, c, TypeNumber);
                         if(b.isString() && c.isString())
                         {
-                            d_string x = b.toString();
-                            d_string y = c.toString();
+                            d_string x = b.toString(cc);
+                            d_string y = c.toString(cc);
 
                             res = std.string.cmp(x, y) > 0;
                         }
                         else
-                            res = b.toNumber() > c.toNumber();
+                            res = b.toNumber(cc) > c.toNumber(cc);
                     }
                     a.putVboolean(res);
                     code += 4;
@@ -1420,17 +1423,17 @@ struct IR
                         res = (b.number >= c.number);
                     else
                     {
-                        b.toPrimitive(b, TypeNumber);
-                        c.toPrimitive(c, TypeNumber);
+                        b.toPrimitive(cc, b, TypeNumber);
+                        c.toPrimitive(cc, c, TypeNumber);
                         if(b.isString() && c.isString())
                         {
-                            d_string x = b.toString();
-                            d_string y = c.toString();
+                            d_string x = b.toString(cc);
+                            d_string y = c.toString(cc);
 
                             res = std.string.cmp(x, y) >= 0;
                         }
                         else
-                            res = b.toNumber() >= c.toNumber();
+                            res = b.toNumber(cc) >= c.toNumber(cc);
                     }
                     a.putVboolean(res);
                     code += 4;
@@ -1482,27 +1485,27 @@ struct IR
                         res = true;
                     else if(tx == TypeNumber && ty == TypeString)
                     {
-                        c.putVnumber(c.toNumber());
+                        c.putVnumber(c.toNumber(cc));
                         goto Lagain;
                     }
                     else if(tx == TypeString && ty == TypeNumber)
                     {
-                        b.putVnumber(b.toNumber());
+                        b.putVnumber(b.toNumber(cc));
                         goto Lagain;
                     }
                     else if(tx == TypeBoolean)
                     {
-                        b.putVnumber(b.toNumber());
+                        b.putVnumber(b.toNumber(cc));
                         goto Lagain;
                     }
                     else if(ty == TypeBoolean)
                     {
-                        c.putVnumber(c.toNumber());
+                        c.putVnumber(c.toNumber(cc));
                         goto Lagain;
                     }
                     else if(ty == TypeObject)
                     {
-                        v = cast(Value*)c.toPrimitive(c, null);
+                        v = cast(Value*)c.toPrimitive(cc, c, null);
                         if(v)
                         {
                             a = v;
@@ -1512,7 +1515,7 @@ struct IR
                     }
                     else if(tx == TypeObject)
                     {
-                        v = cast(Value*)b.toPrimitive(b, null);
+                        v = cast(Value*)b.toPrimitive(cc, b, null);
                         if(v)
                         {
                             a = v;
@@ -1583,7 +1586,7 @@ struct IR
 
                 case IRjt:          // if (b) goto t
                     b = GETb(code);
-                    if(b.toBoolean())
+                    if(b.toBoolean(cc))
                         code += (code + 1).offset;
                     else
                         code += 3;
@@ -1591,7 +1594,7 @@ struct IR
 
                 case IRjf:          // if (!b) goto t
                     b = GETb(code);
-                    if(!b.toBoolean())
+                    if(!b.toBoolean(cc))
                         code += (code + 1).offset;
                     else
                         code += 3;
@@ -1630,17 +1633,17 @@ struct IR
                     }
                     else
                     {
-                        b.toPrimitive(b, TypeNumber);
-                        c.toPrimitive(c, TypeNumber);
+                        b.toPrimitive(cc, b, TypeNumber);
+                        c.toPrimitive(cc, c, TypeNumber);
                         if(b.isString() && c.isString())
                         {
-                            d_string x = b.toString();
-                            d_string y = c.toString();
+                            d_string x = b.toString(cc);
+                            d_string y = c.toString(cc);
 
                             res = std.string.cmp(x, y) < 0;
                         }
                         else
-                            res = b.toNumber() < c.toNumber();
+                            res = b.toNumber(cc) < c.toNumber(cc);
                     }
                     if(!res)
                         code += (code + 1).offset;
@@ -1661,17 +1664,17 @@ struct IR
                     }
                     else
                     {
-                        b.toPrimitive(b, TypeNumber);
-                        c.toPrimitive(c, TypeNumber);
+                        b.toPrimitive(cc, b, TypeNumber);
+                        c.toPrimitive(cc, c, TypeNumber);
                         if(b.isString() && c.isString())
                         {
-                            d_string x = b.toString();
-                            d_string y = c.toString();
+                            d_string x = b.toString(cc);
+                            d_string y = c.toString(cc);
 
                             res = std.string.cmp(x, y) <= 0;
                         }
                         else
-                            res = b.toNumber() <= c.toNumber();
+                            res = b.toNumber(cc) <= c.toNumber(cc);
                     }
                     if(!res)
                         code += (code + 1).offset;
@@ -1681,7 +1684,7 @@ struct IR
 
                 case IRjltc:        // if (b < constant) goto c
                     b = GETb(code);
-                    res = (b.toNumber() < *cast(d_number *)(code + 3));
+                    res = (b.toNumber(cc) < *cast(d_number *)(code + 3));
                     if(!res)
                         code += (code + 1).offset;
                     else
@@ -1690,7 +1693,7 @@ struct IR
 
                 case IRjlec:        // if (b <= constant) goto c
                     b = GETb(code);
-                    res = (b.toNumber() <= *cast(d_number *)(code + 3));
+                    res = (b.toNumber(cc) <= *cast(d_number *)(code + 3));
                     if(!res)
                         code += (code + 1).offset;
                     else
@@ -1700,13 +1703,13 @@ struct IR
                 case IRiter:                // a = iter(b)
                     a = GETa(code);
                     b = GETb(code);
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     if(!o)
                     {
-                        a = cannotConvert(b, GETlinnum(code));
+                        a = cannotConvert(b, cc, GETlinnum(code));
                         goto Lthrow;
                     }
-                    a = o.putIterator(a);
+                    a = o.putIterator(cc, a);
                     if(a)
                         goto Lthrow;
                     code += 3;
@@ -1714,7 +1717,7 @@ struct IR
 
                 case IRnext:        // a, b.c, iter
                                     // if (!(b.c = iter)) goto a; iter = iter.next
-                    s = GETc(code).toString();
+                    s = GETc(code).toString(cc);
                     goto case_next;
 
                 case IRnexts:       // a, b.s, iter
@@ -1727,7 +1730,7 @@ struct IR
                     else
                     {
                         b = GETb(code);
-                        b.Put(s, v);
+                        b.Put(cc, s, v);
                         code += 5;
                     }
                     break;
@@ -1741,13 +1744,13 @@ struct IR
                     else
                     {
                         o = scope_tos(scopex);
-                        o.Put(s, v, 0);
+                        o.Put(cc, s, v, 0);
                         code += 4;
                     }
                     break;
 
                 case IRcall:        // a = b.c(argc, argv)
-                    s = GETc(code).toString();
+                    s = GETc(code).toString(cc);
                     goto case_call;
 
                 case IRcalls:       // a = b.s(argc, argv)
@@ -1757,7 +1760,7 @@ struct IR
                     case_call:               
                     a = GETa(code);
                     b = GETb(code);
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     if(!o)
                     {
                         goto Lcallerror;
@@ -1785,8 +1788,9 @@ struct IR
                         //writef("%s %s.%s is undefined and has no Call method\n", b.getType(), b.toString(), s);
                         ErrInfo errinfo;
                         a = Dobject.RuntimeError(&errinfo,
+                                                 cc,
                                                  errmsgtbl[ERR_UNDEFINED_NO_CALL3],
-                                                 b.getType(), b.toString(),
+                                                 b.getType(), b.toString(cc),
                                                  s);
                         goto Lthrow;
                     }
@@ -1800,7 +1804,7 @@ struct IR
                     if(!v)
                     {
                         ErrInfo errinfo;
-                        a = Dobject.ReferenceError(errmsgtbl[ERR_UNDEFINED_VAR],s);
+                        a = Dobject.ReferenceError(cc,errmsgtbl[ERR_UNDEFINED_VAR],s);
                         //a = Dobject.RuntimeError(&errinfo, errmsgtbl[ERR_UNDEFINED_NO_CALL2], "property", s);
                         goto Lthrow;
                     }
@@ -1819,14 +1823,15 @@ struct IR
                 case IRcallv:   // v(argc, argv) = a
                     a = GETa(code);
                     b = GETb(code);
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     if(!o)
                     {
                         //writef("%s %s is undefined and has no Call method\n", b.getType(), b.toString());
                         ErrInfo errinfo;
                         a = Dobject.RuntimeError(&errinfo,
+                                                 cc,
                                                  errmsgtbl[ERR_UNDEFINED_NO_CALL2],
-                                                 b.getType(), b.toString());
+                                                 b.getType(), b.toString(cc));
                         goto Lthrow;
                     }
                     cc.callerothis = othis;        // pass othis to eval()
@@ -1838,7 +1843,7 @@ struct IR
                     goto Lnext;
 
                 case IRputcall:        // b.c(argc, argv) = a
-                    s = GETc(code).toString();
+                    s = GETc(code).toString(cc);
                     goto case_putcall;
 
                 case IRputcalls:       //  b.s(argc, argv) = a
@@ -1848,7 +1853,7 @@ struct IR
                     case_putcall:
                     a = GETa(code);
                     b = GETb(code);
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     if(!o)
                         goto Lcallerror;
                     //v = o.GetLambda(s, Value.calcHash(s));
@@ -1856,16 +1861,17 @@ struct IR
                     if(!v)
                         goto Lcallerror;
                     //writef("calling... '%s'\n", v.toString());
-                    o = v.toObject();
+                    o = v.toObject(cc);
                     if(!o)
                     {
                         ErrInfo errinfo;
                         a = Dobject.RuntimeError(&errinfo,
+                                                 cc,
                                                  errmsgtbl[ERR_CANNOT_ASSIGN_TO2],
                                                  b.getType(), s);
                         goto Lthrow;
                     }
-                    a = cast(Value*)o.put_Value(a, GETe(code)[0 .. (code + 4).index]);
+                    a = cast(Value*)o.put_Value(cc, a, GETe(code)[0 .. (code + 4).index]);
                     if(a)
                         goto Lthrow;
                     code += 6;
@@ -1879,20 +1885,22 @@ struct IR
                     {
                         ErrInfo errinfo;
                         a = Dobject.RuntimeError(&errinfo,
+                                                 cc,
                                                  errmsgtbl[ERR_UNDEFINED_NO_CALL2],
                                                  "property", s);
                         goto Lthrow;
                     }
-                    o = v.toObject();
+                    o = v.toObject(cc);
                     if(!o)
                     {
                         ErrInfo errinfo;
                         a = Dobject.RuntimeError(&errinfo,
+                                                 cc,
                                                  errmsgtbl[ERR_CANNOT_ASSIGN_TO],
                                                  s);
                         goto Lthrow;
                     }
-                    a = cast(Value*)o.put_Value(GETa(code), GETd(code)[0 .. (code + 3).index]);
+                    a = cast(Value*)o.put_Value(cc, GETa(code), GETd(code)[0 .. (code + 3).index]);
                     if(a)
                         goto Lthrow;
                     code += 5;
@@ -1900,17 +1908,18 @@ struct IR
 
                 case IRputcallv:        // v(argc, argv) = a
                     b = GETb(code);
-                    o = b.toObject();
+                    o = b.toObject(cc);
                     if(!o)
                     {
                         //writef("%s %s is undefined and has no Call method\n", b.getType(), b.toString());
                         ErrInfo errinfo;
                         a = Dobject.RuntimeError(&errinfo,
+                                                 cc,
                                                  errmsgtbl[ERR_UNDEFINED_NO_CALL2],
-                                                 b.getType(), b.toString());
+                                                 b.getType(), b.toString(cc));
                         goto Lthrow;
                     }
-                    a = cast(Value*)o.put_Value(GETa(code), GETd(code)[0 .. (code + 3).index]);
+                    a = cast(Value*)o.put_Value(cc, GETa(code), GETd(code)[0 .. (code + 3).index]);
                     if(a)
                         goto Lthrow;
                     code += 5;
@@ -1931,10 +1940,10 @@ struct IR
                 case IRpush:
                     SCOPECACHE_CLEAR();
                     a = GETa(code);
-                    o = a.toObject();
+                    o = a.toObject(cc);
                     if(!o)
                     {
-                        a = cannotConvert(a, GETlinnum(code));
+                        a = cannotConvert(a, cc, GETlinnum(code));
                         goto Lthrow;
                     }
                     scopex ~= o;                // push entry onto scope chain
@@ -1973,14 +1982,14 @@ struct IR
 
                 case IRretexp:
                     a = GETa(code);
-                    a.checkReference();
+                    a.checkReference(cc);
                     Value.copy(ret, a);
                     //writef("returns: %s\n", ret.toString());
                     return null;
 
                 case IRimpret:
                     a = GETa(code);
-                    a.checkReference();
+                    a.checkReference(cc);
                     Value.copy(ret, a);
                     //writef("implicit return: %s\n", ret.toString());
                     code += 2;
@@ -1999,7 +2008,7 @@ struct IR
                     SCOPECACHE_CLEAR();
                     offset = (code - codestart) + (code + 1).offset;
                     s = (code + 2).id.value.string;
-                    ca = new Catch(offset, s);
+                    ca = new Catch(cc, offset, s);
                     scopex ~= ca;
                     cc.scopex = scopex;
                     code += 3;
@@ -2007,7 +2016,7 @@ struct IR
 
                 case IRtryfinally:
                     SCOPECACHE_CLEAR();
-                    f = new Finally(code + (code + 1).offset);
+                    f = new Finally(cc, code + (code + 1).offset);
                     scopex ~= f;
                     cc.scopex = scopex;
                     code += 2;
@@ -2019,7 +2028,7 @@ struct IR
                     errinfo.linnum = (code + 1).index;
                     version(all)  // Not supported under some com servers
                     {
-                        a = Dobject.RuntimeError(&errinfo, errmsgtbl[ERR_ASSERT], (code + 1).index);
+                        a = Dobject.RuntimeError(&errinfo, cc, errmsgtbl[ERR_ASSERT], (code + 1).index);
                         goto Lthrow;
                     }
                     else

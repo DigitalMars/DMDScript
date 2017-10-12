@@ -54,9 +54,9 @@ class DregexpConstructor : Dfunction
     Value* index;
     Value* lastIndex;
 
-    this()
+    this(CallContext* cc)
     {
-        super(2, Dfunction_prototype);
+        super(cc, 2, cc.tc.Dfunction_prototype);
 
         Value v;
         v.putVstring(null);
@@ -70,24 +70,24 @@ class DregexpConstructor : Dfunction
         name = "RegExp";
 
         // Static properties
-        Put(TEXT_input, &v, DontDelete);
-        Put(TEXT_multiline, &vb, DontDelete);
-        Put(TEXT_lastMatch, &v, ReadOnly | DontDelete);
-        Put(TEXT_lastParen, &v, ReadOnly | DontDelete);
-        Put(TEXT_leftContext, &v, ReadOnly | DontDelete);
-        Put(TEXT_rightContext, &v, ReadOnly | DontDelete);
-        Put(TEXT_dollar1, &v, ReadOnly | DontDelete);
-        Put(TEXT_dollar2, &v, ReadOnly | DontDelete);
-        Put(TEXT_dollar3, &v, ReadOnly | DontDelete);
-        Put(TEXT_dollar4, &v, ReadOnly | DontDelete);
-        Put(TEXT_dollar5, &v, ReadOnly | DontDelete);
-        Put(TEXT_dollar6, &v, ReadOnly | DontDelete);
-        Put(TEXT_dollar7, &v, ReadOnly | DontDelete);
-        Put(TEXT_dollar8, &v, ReadOnly | DontDelete);
-        Put(TEXT_dollar9, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_input, &v, DontDelete);
+        Put(cc, TEXT_multiline, &vb, DontDelete);
+        Put(cc, TEXT_lastMatch, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_lastParen, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_leftContext, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_rightContext, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_dollar1, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_dollar2, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_dollar3, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_dollar4, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_dollar5, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_dollar6, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_dollar7, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_dollar8, &v, ReadOnly | DontDelete);
+        Put(cc, TEXT_dollar9, &v, ReadOnly | DontDelete);
 
-        Put(TEXT_index, &vnm1, ReadOnly | DontDelete);
-        Put(TEXT_lastIndex, &vnm1, ReadOnly | DontDelete);
+        Put(cc, TEXT_index, &vnm1, ReadOnly | DontDelete);
+        Put(cc, TEXT_lastIndex, &vnm1, ReadOnly | DontDelete);
 
         input = Get(TEXT_input);
         multiline = Get(TEXT_multiline);
@@ -143,7 +143,7 @@ class DregexpConstructor : Dfunction
             pattern = &arglist[0];
             break;
         }
-        R = Dregexp.isRegExp(pattern);
+        R = Dregexp.isRegExp(pattern, cc);
         if(R)
         {
             if(flags.isUndefined())
@@ -154,16 +154,16 @@ class DregexpConstructor : Dfunction
             else
             {
                 ErrInfo errinfo;
-                return RuntimeError(&errinfo, ERR_TYPE_ERROR,
+                return RuntimeError(&errinfo, cc, ERR_TYPE_ERROR,
                                     "RegExp.prototype.constructor");
             }
         }
         else
         {
-            P = pattern.isUndefined() ? "" : pattern.toString();
-            F = flags.isUndefined() ? "" : flags.toString();
+            P = pattern.isUndefined() ? "" : pattern.toString(cc);
+            F = flags.isUndefined() ? "" : flags.toString(cc);
         }
-        r = new Dregexp(P, F);
+        r = new Dregexp(cc, P, F);
         if(r.re.errors)
         {
             Dobject o;
@@ -176,7 +176,7 @@ class DregexpConstructor : Dfunction
                     writef("x%02x\n", d_string_ptr(P)[i]);
             }
             errinfo.message = errmsgtbl[ERR_REGEXP_COMPILE];
-            o = new syntaxerror.D0(&errinfo);
+            o = new syntaxerror.D0(cc, &errinfo);
             Value* v = new Value;
             v.putVobject(o);
             return v;
@@ -218,19 +218,19 @@ class DregexpConstructor : Dfunction
         return Dfunction.Get(perlAlias(PropertyName));
     }
 
-    override Value* Put(d_string PropertyName, Value* value, uint attributes)
+    override Value* Put(CallContext* cc, d_string PropertyName, Value* value, uint attributes)
     {
-        return Dfunction.Put(perlAlias(PropertyName), value, attributes);
+        return Dfunction.Put(cc, perlAlias(PropertyName), value, attributes);
     }
 
-    override Value* Put(d_string PropertyName, Dobject o, uint attributes)
+    override Value* Put(CallContext* cc, d_string PropertyName, Dobject o, uint attributes)
     {
-        return Dfunction.Put(perlAlias(PropertyName), o, attributes);
+        return Dfunction.Put(cc, perlAlias(PropertyName), o, attributes);
     }
 
-    override Value* Put(d_string PropertyName, d_number n, uint attributes)
+    override Value* Put(CallContext* cc, d_string PropertyName, d_number n, uint attributes)
     {
-        return Dfunction.Put(perlAlias(PropertyName), n, attributes);
+        return Dfunction.Put(cc, perlAlias(PropertyName), n, attributes);
     }
 
     override int CanPut(d_string PropertyName)
@@ -291,7 +291,7 @@ void* Dregexp_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, 
     {
         ret.putVundefined();
         ErrInfo errinfo;
-        return Dobject.RuntimeError(&errinfo, ERR_NOT_TRANSFERRABLE,
+        return Dobject.RuntimeError(&errinfo, cc, ERR_NOT_TRANSFERRABLE,
                                     "RegExp.prototype.toString()");
     }
     else
@@ -314,14 +314,14 @@ void* Dregexp_prototype_test(Dobject pthis, CallContext *cc, Dobject othis, Valu
 {
     // ECMA v3 15.10.6.3 says this is equivalent to:
     //	RegExp.prototype.exec(string) != null
-    return Dregexp.exec(othis, ret, arglist, EXEC_BOOLEAN);
+    return Dregexp.exec(othis, cc, ret, arglist, EXEC_BOOLEAN);
 }
 
 /* ===================== Dregexp_prototype_exec ============= */
 
 void* Dregexp_prototype_exec(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
-    return Dregexp.exec(othis, ret, arglist, EXEC_ARRAY);
+    return Dregexp.exec(othis, cc, ret, arglist, EXEC_ARRAY);
 }
 
 
@@ -336,7 +336,7 @@ void* Dregexp_prototype_compile(Dobject pthis, CallContext *cc, Dobject othis, V
     {
         ErrInfo errinfo;
         ret.putVundefined();
-        return Dobject.RuntimeError(&errinfo, ERR_NOT_TRANSFERRABLE,
+        return Dobject.RuntimeError(&errinfo, cc, ERR_NOT_TRANSFERRABLE,
                                     "RegExp.prototype.compile()");
     }
     else
@@ -353,10 +353,10 @@ void* Dregexp_prototype_compile(Dobject pthis, CallContext *cc, Dobject othis, V
             break;
 
         default:
-            attributes = arglist[1].toString();
+            attributes = arglist[1].toString(cc);
             goto case;
         case 1:
-            pattern = arglist[0].toString();
+            pattern = arglist[0].toString(cc);
             break;
         }
 
@@ -384,14 +384,14 @@ void* Dregexp_prototype_compile(Dobject pthis, CallContext *cc, Dobject othis, V
 
 class DregexpPrototype : Dregexp
 {
-    this()
+    this(CallContext* cc)
     {
-        super(Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
         classname = TEXT_Object;
         uint attributes = ReadOnly | DontDelete | DontEnum;
-        Dobject f = Dfunction_prototype;
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        Put(TEXT_constructor, Dregexp_constructor, attributes);
+        Put(cc, TEXT_constructor, cc.tc.Dregexp_constructor, attributes);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -401,7 +401,7 @@ class DregexpPrototype : Dregexp
             { TEXT_test, &Dregexp_prototype_test, 1 },
         ];
 
-        DnativeFunction.initialize(this, nfd, attributes);
+        DnativeFunction.initialize(this, cc, nfd, attributes);
     }
 }
 
@@ -419,9 +419,9 @@ class Dregexp : Dobject
 
     RegExp re;
 
-    this(d_string pattern, d_string attributes)
+    this(CallContext* cc, d_string pattern, d_string attributes)
     {
-        super(getPrototype());
+        super(cc, getPrototype(cc));
 
         Value v;
         v.putVstring(null);
@@ -432,11 +432,11 @@ class Dregexp : Dobject
         classname = TEXT_RegExp;
 
         //writef("Dregexp.Dregexp(pattern = '%ls', attributes = '%ls')\n", d_string_ptr(pattern), d_string_ptr(attributes));
-        Put(TEXT_source, &v, ReadOnly | DontDelete | DontEnum);
-        Put(TEXT_global, &vb, ReadOnly | DontDelete | DontEnum);
-        Put(TEXT_ignoreCase, &vb, ReadOnly | DontDelete | DontEnum);
-        Put(TEXT_multiline, &vb, ReadOnly | DontDelete | DontEnum);
-        Put(TEXT_lastIndex, 0.0, DontDelete | DontEnum);
+        Put(cc, TEXT_source, &v, ReadOnly | DontDelete | DontEnum);
+        Put(cc, TEXT_global, &vb, ReadOnly | DontDelete | DontEnum);
+        Put(cc, TEXT_ignoreCase, &vb, ReadOnly | DontDelete | DontEnum);
+        Put(cc, TEXT_multiline, &vb, ReadOnly | DontDelete | DontEnum);
+        Put(cc, TEXT_lastIndex, 0.0, DontDelete | DontEnum);
 
         source = Get(TEXT_source);
         global = Get(TEXT_global);
@@ -459,9 +459,9 @@ class Dregexp : Dobject
         }
     }
 
-    this(Dobject prototype)
+    this(CallContext* cc, Dobject prototype)
     {
-        super(prototype);
+        super(cc, prototype);
 
         Value v;
         v.putVstring(null);
@@ -471,11 +471,11 @@ class Dregexp : Dobject
 
         classname = TEXT_RegExp;
 
-        Put(TEXT_source, &v, ReadOnly | DontDelete | DontEnum);
-        Put(TEXT_global, &vb, ReadOnly | DontDelete | DontEnum);
-        Put(TEXT_ignoreCase, &vb, ReadOnly | DontDelete | DontEnum);
-        Put(TEXT_multiline, &vb, ReadOnly | DontDelete | DontEnum);
-        Put(TEXT_lastIndex, 0.0, DontDelete | DontEnum);
+        Put(cc, TEXT_source, &v, ReadOnly | DontDelete | DontEnum);
+        Put(cc, TEXT_global, &vb, ReadOnly | DontDelete | DontEnum);
+        Put(cc, TEXT_ignoreCase, &vb, ReadOnly | DontDelete | DontEnum);
+        Put(cc, TEXT_multiline, &vb, ReadOnly | DontDelete | DontEnum);
+        Put(cc, TEXT_lastIndex, 0.0, DontDelete | DontEnum);
 
         source = Get(TEXT_source);
         global = Get(TEXT_global);
@@ -492,21 +492,21 @@ class Dregexp : Dobject
         Value* v;
 
         v = Get(TEXT_exec);
-        return v.toObject().Call(cc, this, ret, arglist);
+        return v.toObject(cc).Call(cc, this, ret, arglist);
     }
 
-    static Dregexp isRegExp(Value* v)
+    static Dregexp isRegExp(Value* v, CallContext* cc)
     {
         Dregexp r;
 
-        if(!v.isPrimitive() && v.toObject().isDregexp())
+        if(!v.isPrimitive() && v.toObject(cc).isDregexp())
         {
-            r = cast(Dregexp)(v.toObject());
+            r = cast(Dregexp)(v.toObject(cc));
         }
         return r;
     }
 
-    static void* exec(Dobject othis, Value* ret, Value[] arglist, int rettype)
+    static void* exec(Dobject othis, CallContext* cc, Value* ret, Value[] arglist, int rettype)
     {
         //writef("Dregexp.exec(arglist.length = %d, rettype = %d)\n", arglist.length, rettype);
 
@@ -515,7 +515,7 @@ class Dregexp : Dobject
         {
             ret.putVundefined();
             ErrInfo errinfo;
-            return RuntimeError(&errinfo, ERR_NOT_TRANSFERRABLE,
+            return RuntimeError(&errinfo, cc, ERR_NOT_TRANSFERRABLE,
                                 "RegExp.prototype.exec()");
         }
         else
@@ -528,18 +528,18 @@ class Dregexp : Dobject
             d_int32 lasti;
 
             if(arglist.length)
-                s = arglist[0].toString();
+                s = arglist[0].toString(cc);
             else
             {
                 Dfunction df;
 
-                df = Dregexp.getConstructor();
+                df = Dregexp.getConstructor(cc);
                 s = (cast(DregexpConstructor)df).input.string;
             }
 
             dr = cast(Dregexp)othis;
             r = dr.re;
-            dc = cast(DregexpConstructor)Dregexp.getConstructor();
+            dc = cast(DregexpConstructor)Dregexp.getConstructor(cc);
 
             // Decide if we are multiline
             if(dr.multiline.dbool)
@@ -548,7 +548,7 @@ class Dregexp : Dobject
                 r.attributes &= ~RegExp.REA.multiline;
 
             if(r.attributes & RegExp.REA.global && rettype != EXEC_INDEX)
-                lasti = cast(int)dr.lastIndex.toInteger();
+                lasti = cast(int)dr.lastIndex.toInteger(cc);
             else
                 lasti = 0;
 
@@ -613,33 +613,33 @@ class Dregexp : Dobject
                 {
                 case EXEC_ARRAY:
                 {
-                    Darray a = new Darray();
+                    Darray a = new Darray(cc);
 
-                    a.Put(TEXT_input, r.input, 0);
-                    a.Put(TEXT_index, r.pmatch[0].rm_so, 0);
-                    a.Put(TEXT_lastIndex, r.pmatch[0].rm_eo, 0);
+                    a.Put(cc, TEXT_input, r.input, 0);
+                    a.Put(cc, TEXT_index, r.pmatch[0].rm_so, 0);
+                    a.Put(cc, TEXT_lastIndex, r.pmatch[0].rm_eo, 0);
 
-                    a.Put(cast(d_uint32)0, dc.lastMatch, cast(uint)0);
+                    a.Put(cc, cast(d_uint32)0, dc.lastMatch, cast(uint)0);
 
                     // [1]..[nparens]
                     for(i = 1; i <= r.re_nsub; i++)
                     {
                         if(i > nmatches)
-                            a.Put(i, TEXT_, 0);
+                            a.Put(cc, i, TEXT_, 0);
 
                         // Reuse values already put into dc.dollar[]
                         else if(r.re_nsub <= 9)
-                            a.Put(i, dc.dollar[i], 0);
+                            a.Put(cc, i, dc.dollar[i], 0);
                         else if(i > r.re_nsub - 9)
-                            a.Put(i, dc.dollar[i - (r.re_nsub - 9)], 0);
+                            a.Put(cc, i, dc.dollar[i - (r.re_nsub - 9)], 0);
                         else if(r.pmatch[i].rm_so == -1)
                         {
-                            a.Put(i, &vundefined, 0);
+                            a.Put(cc, i, &vundefined, 0);
                         }
                         else
                         {
                             s = r.input[r.pmatch[i].rm_so .. r.pmatch[i].rm_eo];
-                            a.Put(i, s, 0);
+                            a.Put(cc, i, s, 0);
                         }
                     }
                     ret.putVobject(a);
@@ -695,31 +695,31 @@ class Dregexp : Dobject
         return null;
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Dregexp_constructor;
+        return cc.tc.Dregexp_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Dregexp_prototype;
+        return cc.tc.Dregexp_prototype;
     }
 
-    static void initialize()
+    static void initialize(CallContext* cc)
     {
-        Dregexp_constructor = new DregexpConstructor();
-        Dregexp_prototype = new DregexpPrototype();
+        cc.tc.Dregexp_constructor = new DregexpConstructor(cc);
+        cc.tc.Dregexp_prototype = new DregexpPrototype(cc);
 
         version(none)
         {
-            writef("Dregexp_constructor = %x\n", Dregexp_constructor);
+            writef("Dregexp_constructor = %x\n", cc.tc.Dregexp_constructor);
             uint *p;
-            p = cast(uint *)Dregexp_constructor;
+            p = cast(uint *)cc.tc.Dregexp_constructor;
             writef("p = %x\n", p);
             if(p)
                 writef("*p = %x, %x, %x, %x\n", p[0], p[1], p[2], p[3]);
         }
 
-        Dregexp_constructor.Put(TEXT_prototype, Dregexp_prototype, DontEnum | DontDelete | ReadOnly);
+        cc.tc.Dregexp_constructor.Put(cc, TEXT_prototype, cc.tc.Dregexp_prototype, DontEnum | DontDelete | ReadOnly);
     }
 }

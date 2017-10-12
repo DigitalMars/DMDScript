@@ -35,17 +35,17 @@ import dmdscript.dnative;
 
 class DnumberConstructor : Dfunction
 {
-    this()
+    this(CallContext* cc)
     {
-        super(1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
         uint attributes = DontEnum | DontDelete | ReadOnly;
 
         name = TEXT_Number;
-        Put(TEXT_MAX_VALUE, d_number.max, attributes);
-        Put(TEXT_MIN_VALUE, d_number.min_normal*d_number.epsilon, attributes);
-        Put(TEXT_NaN, d_number.nan, attributes);
-        Put(TEXT_NEGATIVE_INFINITY, -d_number.infinity, attributes);
-        Put(TEXT_POSITIVE_INFINITY, d_number.infinity, attributes);
+        Put(cc, TEXT_MAX_VALUE, d_number.max, attributes);
+        Put(cc, TEXT_MIN_VALUE, d_number.min_normal*d_number.epsilon, attributes);
+        Put(cc, TEXT_NaN, d_number.nan, attributes);
+        Put(cc, TEXT_NEGATIVE_INFINITY, -d_number.infinity, attributes);
+        Put(cc, TEXT_POSITIVE_INFINITY, d_number.infinity, attributes);
     }
 
     override void* Construct(CallContext *cc, Value *ret, Value[] arglist)
@@ -54,8 +54,8 @@ class DnumberConstructor : Dfunction
         d_number n;
         Dobject o;
 
-        n = (arglist.length) ? arglist[0].toNumber() : 0;
-        o = new Dnumber(n);
+        n = (arglist.length) ? arglist[0].toNumber(cc) : 0;
+        o = new Dnumber(cc, n);
         ret.putVobject(o);
         return null;
     }
@@ -65,7 +65,7 @@ class DnumberConstructor : Dfunction
         // ECMA 15.7.1
         d_number n;
 
-        n = (arglist.length) ? arglist[0].toNumber() : 0;
+        n = (arglist.length) ? arglist[0].toNumber(cc) : 0;
         ret.putVnumber(n);
         return null;
     }
@@ -85,6 +85,7 @@ void* Dnumber_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, 
         ret.putVundefined();
         ErrInfo errinfo;
         return Dobject.RuntimeError(&errinfo,
+                                    cc,
                                     errmsgtbl[ERR_FUNCTION_WANTS_NUMBER],
                                     TEXT_toString,
                                     othis.classname);
@@ -99,9 +100,9 @@ void* Dnumber_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, 
         {
             d_number radix;
 
-            radix = arglist[0].toNumber();
+            radix = arglist[0].toNumber(cc);
             if(radix == 10.0 || arglist[0].isUndefined())
-                s = v.toString();
+                s = v.toString(cc);
             else
             {
                 int r;
@@ -109,13 +110,13 @@ void* Dnumber_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, 
                 r = cast(int)radix;
                 // radix must be an integer 2..36
                 if(r == radix && r >= 2 && r <= 36)
-                    s = v.toString(r);
+                    s = v.toString(cc, r);
                 else
-                    s = v.toString();
+                    s = v.toString(cc);
             }
         }
         else
-            s = v.toString();
+            s = v.toString(cc);
         ret.putVstring(s);
     }
     return null;
@@ -134,6 +135,7 @@ void* Dnumber_prototype_toLocaleString(Dobject pthis, CallContext *cc, Dobject o
         ret.putVundefined();
         ErrInfo errinfo;
         return Dobject.RuntimeError(&errinfo,
+                                    cc,
                                     errmsgtbl[ERR_FUNCTION_WANTS_NUMBER],
                                     TEXT_toLocaleString,
                                     othis.classname);
@@ -144,7 +146,7 @@ void* Dnumber_prototype_toLocaleString(Dobject pthis, CallContext *cc, Dobject o
 
         v = &(cast(Dnumber)othis).value;
 
-        s = v.toLocaleString();
+        s = v.toLocaleString(cc);
         ret.putVstring(s);
     }
     return null;
@@ -160,6 +162,7 @@ void* Dnumber_prototype_valueOf(Dobject pthis, CallContext *cc, Dobject othis, V
         ret.putVundefined();
         ErrInfo errinfo;
         return Dobject.RuntimeError(&errinfo,
+                                    cc,
                                     errmsgtbl[ERR_FUNCTION_WANTS_NUMBER],
                                     TEXT_valueOf,
                                     othis.classname);
@@ -181,7 +184,7 @@ const int FIXED_DIGITS = 20;    // ECMA says >= 20
 
 // power of tens array, indexed by power
 
-static d_number[FIXED_DIGITS + 1] tens =
+static immutable d_number[FIXED_DIGITS + 1] tens =
 [
     1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
     1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19,
@@ -231,7 +234,7 @@ void* Dnumber_prototype_toFixed(Dobject pthis, CallContext *cc, Dobject othis, V
     if(arglist.length)
 	{
 		v = &arglist[0];
-		fractionDigits =  v.toInteger();
+		fractionDigits =  v.toInteger(cc);
 	}
 	else
 		fractionDigits = 0;
@@ -240,11 +243,11 @@ void* Dnumber_prototype_toFixed(Dobject pthis, CallContext *cc, Dobject othis, V
         ErrInfo errinfo;
 
         ret.putVundefined();
-        return Dobject.RangeError(&errinfo, ERR_VALUE_OUT_OF_RANGE,
+        return Dobject.RangeError(&errinfo, cc, ERR_VALUE_OUT_OF_RANGE,
                                   TEXT_toFixed, "fractionDigits");
     }
     v = &othis.value;
-    x = v.toNumber();
+    x = v.toNumber(cc);
     if(isNaN(x))
     {
         result = TEXT_NaN;              // return "NaN"
@@ -264,7 +267,7 @@ void* Dnumber_prototype_toFixed(Dobject pthis, CallContext *cc, Dobject othis, V
         {
             Value vn;
             vn.putVnumber(x);
-            ret.putVstring(vn.toString());
+            ret.putVstring(vn.toString(cc));
             return null;
         }
         else
@@ -354,11 +357,11 @@ void* Dnumber_prototype_toExponential(Dobject pthis, CallContext *cc, Dobject ot
     if(arglist.length)
 	{
 		varg = &arglist[0];
-		fractionDigits = varg.toInteger();
+		fractionDigits = varg.toInteger(cc);
 	}else
 		fractionDigits = FIXED_DIGITS;
     v = &othis.value;
-    x = v.toNumber();
+    x = v.toNumber(cc);
     if(isNaN(x))
     {
         result = TEXT_NaN;              // return "NaN"
@@ -392,6 +395,7 @@ void* Dnumber_prototype_toExponential(Dobject pthis, CallContext *cc, Dobject ot
 
                 ret.putVundefined();
                 return Dobject.RangeError(&errinfo,
+                                          cc,
                                           ERR_VALUE_OUT_OF_RANGE,
                                           TEXT_toExponential,
                                           "fractionDigits");
@@ -491,7 +495,7 @@ void* Dnumber_prototype_toPrecision(Dobject pthis, CallContext *cc, Dobject othi
     d_string result;
 
     v = &othis.value;
-    x = v.toNumber();
+    x = v.toNumber(cc);
 
     varg = (arglist.length == 0) ? &vundefined : &arglist[0];
 
@@ -500,7 +504,7 @@ void* Dnumber_prototype_toPrecision(Dobject pthis, CallContext *cc, Dobject othi
         Value vn;
 
         vn.putVnumber(x);
-        result = vn.toString();
+        result = vn.toString(cc);
     }
     else
     {
@@ -529,13 +533,14 @@ void* Dnumber_prototype_toPrecision(Dobject pthis, CallContext *cc, Dobject othi
                 goto Ldone;
             }
 
-            precision = varg.toInteger();
+            precision = varg.toInteger(cc);
             if(precision < 1 || precision > 21)
             {
                 ErrInfo errinfo;
 
                 ret.putVundefined();
                 return Dobject.RangeError(&errinfo,
+                                          cc,
                                           ERR_VALUE_OUT_OF_RANGE,
                                           TEXT_toPrecision,
                                           "precision");
@@ -622,14 +627,14 @@ void* Dnumber_prototype_toPrecision(Dobject pthis, CallContext *cc, Dobject othi
 
 class DnumberPrototype : Dnumber
 {
-    this()
+    this(CallContext* cc)
     {
-        super(Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
         uint attributes = DontEnum;
 
-        Dobject f = Dfunction_prototype;
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        Put(TEXT_constructor, Dnumber_constructor, attributes);
+        Put(cc, TEXT_constructor, cc.tc.Dnumber_constructor, attributes);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -642,7 +647,7 @@ class DnumberPrototype : Dnumber
             { TEXT_toPrecision, &Dnumber_prototype_toPrecision, 1 },
         ];
 
-        DnativeFunction.initialize(this, nfd, attributes);
+        DnativeFunction.initialize(this, cc, nfd, attributes);
     }
 }
 
@@ -651,36 +656,36 @@ class DnumberPrototype : Dnumber
 
 class Dnumber : Dobject
 {
-    this(d_number n)
+    this(CallContext* cc, d_number n)
     {
-        super(getPrototype());
+        super(cc, getPrototype(cc));
         classname = TEXT_Number;
         value.putVnumber(n);
     }
 
-    this(Dobject prototype)
+    this(CallContext* cc, Dobject prototype)
     {
-        super(prototype);
+        super(cc, prototype);
         classname = TEXT_Number;
         value.putVnumber(0);
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Dnumber_constructor;
+        return cc.tc.Dnumber_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Dnumber_prototype;
+        return cc.tc.Dnumber_prototype;
     }
 
-    static void initialize()
+    static void initialize(CallContext* cc)
     {
-        Dnumber_constructor = new DnumberConstructor();
-        Dnumber_prototype = new DnumberPrototype();
+        cc.tc.Dnumber_constructor = new DnumberConstructor(cc);
+        cc.tc.Dnumber_prototype = new DnumberPrototype(cc);
 
-        Dnumber_constructor.Put(TEXT_prototype, Dnumber_prototype, DontEnum | DontDelete | ReadOnly);
+        cc.tc.Dnumber_constructor.Put(cc, TEXT_prototype, cc.tc.Dnumber_prototype, DontEnum | DontDelete | ReadOnly);
     }
 }
 

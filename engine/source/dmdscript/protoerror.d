@@ -26,18 +26,16 @@ import dmdscript.text;
 import dmdscript.dfunction;
 import dmdscript.property;
 
-int foo;        // cause this module to be linked in
-
 /* ===================== D0_constructor ==================== */
 
 class D0_constructor : Dfunction
 {
     d_string text_d1;
-    Dobject function(d_string) newD0;
+    Dobject function(CallContext* cc, d_string) newD0;
 
-    this(d_string text_d1, Dobject function(d_string) newD0)
+    this(CallContext* cc, d_string text_d1, Dobject function(CallContext* cc, d_string) newD0)
     {
-        super(1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
         this.text_d1 = text_d1;
         this.newD0 = newD0;
     }
@@ -54,8 +52,8 @@ class D0_constructor : Dfunction
         if(m.isUndefined())
             s = text_d1;
         else
-            s = m.toString();
-        o = (*newD0)(s);
+            s = m.toString(cc);
+        o = (*newD0)(cc, s);
         ret.putVobject(o);
         return null;
     }
@@ -74,18 +72,18 @@ template proto(alias TEXT_D1)
 
     class D0_prototype : D0
     {
-        this()
+        this(CallContext* cc)
         {
-            super(Derror_prototype);
+            super(cc, cc.tc.Derror_prototype);
 
             d_string s;
 
-            Put(TEXT_constructor, ctorTable[TEXT_D1], DontEnum);
-            Put(TEXT_name, TEXT_D1, 0);
+            Put(cc, TEXT_constructor, cc.tc.ctorTable[TEXT_D1], DontEnum);
+            Put(cc, TEXT_name, TEXT_D1, 0);
             s = TEXT_D1 ~ ".prototype.message";
-            Put(TEXT_message, s, 0);
-            Put(TEXT_description, s, 0);
-            Put(TEXT_number, cast(d_number)0, 0);
+            Put(cc, TEXT_message, s, 0);
+            Put(cc, TEXT_description, s, 0);
+            Put(cc, TEXT_number, cast(d_number)0, 0);
         }
     }
 
@@ -95,29 +93,29 @@ template proto(alias TEXT_D1)
     {
         ErrInfo errinfo;
 
-        this(Dobject prototype)
+        this(CallContext* cc, Dobject prototype)
         {
-            super(prototype);
+            super(cc, prototype);
             classname = TEXT_Error;
         }
 
-        this(d_string m)
+        this(CallContext* cc, d_string m)
         {
-            this(D0.getPrototype());
-            Put(TEXT_message, m, 0);
-            Put(TEXT_description, m, 0);
-            Put(TEXT_number, cast(d_number)0, 0);
+            this(cc, D0.getPrototype(cc));
+            Put(cc, TEXT_message, m, 0);
+            Put(cc, TEXT_description, m, 0);
+            Put(cc, TEXT_number, cast(d_number)0, 0);
             errinfo.message = m;
         }
 
-        this(ErrInfo * perrinfo)
+        this(CallContext* cc, ErrInfo * perrinfo)
         {
-            this(perrinfo.message);
+            this(cc, perrinfo.message);
             errinfo = *perrinfo;
-            Put(TEXT_number, cast(d_number)perrinfo.code, 0);
+            Put(cc, TEXT_number, cast(d_number)perrinfo.code, 0);
         }
 
-        override void getErrInfo(ErrInfo *perrinfo, int linnum)
+        override void getErrInfo(CallContext* cc, ErrInfo *perrinfo, int linnum)
         {
             if(linnum && errinfo.linnum == 0)
                 errinfo.linnum = linnum;
@@ -126,30 +124,30 @@ template proto(alias TEXT_D1)
             //writefln("getErrInfo(linnum = %d), errinfo.linnum = %d", linnum, errinfo.linnum);
         }
 
-        static Dfunction getConstructor()
+        static Dfunction getConstructor(CallContext* cc)
         {
-            return ctorTable[TEXT_D1];
+            return cc.tc.ctorTable[TEXT_D1];
         }
 
-        static Dobject getPrototype()
+        static Dobject getPrototype(CallContext* cc)
         {
-            return protoTable[TEXT_D1];
+            return cc.tc.protoTable[TEXT_D1];
         }
 
-        static Dobject newD0(d_string s)
+        static Dobject newD0(CallContext* cc, d_string s)
         {
-            return new D0(s);
+            return new D0(cc, s);
         }
 
-        static void init()
+        static void init(CallContext* cc)
         {
-            Dfunction constructor = new D0_constructor(TEXT_D1, &newD0);
-            ctorTable[TEXT_D1] = constructor;
+            Dfunction constructor = new D0_constructor(cc, TEXT_D1, &newD0);
+            cc.tc.ctorTable[TEXT_D1] = constructor;
 
-            Dobject prototype = new D0_prototype();
-            protoTable[TEXT_D1] = prototype;
+            Dobject prototype = new D0_prototype(cc);
+            cc.tc.protoTable[TEXT_D1] = prototype;
 
-            constructor.Put(TEXT_prototype, prototype, DontEnum | DontDelete | ReadOnly);
+            constructor.Put(cc, TEXT_prototype, prototype, DontEnum | DontDelete | ReadOnly);
         }
     }
 }
@@ -165,12 +163,12 @@ alias proto!(TEXT_URIError) urierror;
  * Register initializer for each class.
  */
 
-static this()
+void initErrors(CallContext* cc)
 {
-    threadInitTable ~= &syntaxerror.D0.init;
-    threadInitTable ~= &evalerror.D0.init;
-    threadInitTable ~= &referenceerror.D0.init;
-    threadInitTable ~= &rangeerror.D0.init;
-    threadInitTable ~= &typeerror.D0.init;
-    threadInitTable ~= &urierror.D0.init;
+    cc.tc.threadInitTable ~= &syntaxerror.D0.init;
+    cc.tc.threadInitTable ~= &evalerror.D0.init;
+    cc.tc.threadInitTable ~= &referenceerror.D0.init;
+    cc.tc.threadInitTable ~= &rangeerror.D0.init;
+    cc.tc.threadInitTable ~= &typeerror.D0.init;
+    cc.tc.threadInitTable ~= &urierror.D0.init;
 }
