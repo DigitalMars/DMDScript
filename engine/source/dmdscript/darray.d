@@ -593,58 +593,6 @@ else{//Canonical ECMA all kinds of infinity maped to 0
 
 /* ===================== Darray_prototype_sort ================= */
 
-static Dobject comparefn;
-static CallContext *comparecc;
-
-extern (C) int compare_value(scope const void* x, scope const void* y)
-{
-    Value* vx = cast(Value*)x;
-    Value* vy = cast(Value*)y;
-    d_string sx;
-    d_string sy;
-    int cmp;
-
-    //writef("compare_value()\n");
-    if(vx.isUndefined())
-    {
-        cmp = (vy.isUndefined()) ? 0 : 1;
-    }
-    else if(vy.isUndefined())
-        cmp = -1;
-    else
-    {
-        if(comparefn)
-        {
-            Value[2] arglist;
-            Value ret;
-            Value* v;
-            d_number n;
-
-            Value.copy(&arglist[0], vx);
-            Value.copy(&arglist[1], vy);
-            ret.putVundefined();
-            comparefn.Call(comparecc, comparefn, &ret, arglist);
-            n = ret.toNumber();
-            if(n < 0)
-                cmp = -1;
-            else if(n > 0)
-                cmp = 1;
-            else
-                cmp = 0;
-        }
-        else
-        {
-            sx = vx.toString();
-            sy = vy.toString();
-            cmp = std.string.cmp(sx, sy);
-            if(cmp < 0)
-                cmp = -1;
-            else if(cmp > 0)
-                cmp = 1;
-        }
-    }
-    return cmp;
-}
 
 void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value *ret, Value[] arglist)
 {
@@ -730,19 +678,66 @@ void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value
 
     synchronized
     {
-        comparefn = null;
-        comparecc = cc;
+        Dobject comparefn;
+
         if(arglist.length)
         {
             if(!arglist[0].isPrimitive())
                 comparefn = arglist[0].object;
         }
 
-        // Sort pvalues[]
-        core.stdc.stdlib.qsort(pvalues.ptr, nprops, Value.sizeof, &compare_value);
 
-        comparefn = null;
-        comparecc = null;
+        bool compare_value(ref Value vx, ref Value vy)
+        {
+            d_string sx;
+            d_string sy;
+            int cmp;
+
+            //writef("compare_value()\n");
+            if(vx.isUndefined())
+            {
+                cmp = (vy.isUndefined()) ? 0 : 1;
+            }
+            else if(vy.isUndefined())
+                cmp = -1;
+            else
+            {
+                if(comparefn)
+                {
+                    Value[2] arglist;
+                    Value ret;
+                    Value* v;
+                    d_number n;
+
+                    Value.copy(&arglist[0], &vx);
+                    Value.copy(&arglist[1], &vy);
+                    ret.putVundefined();
+                    comparefn.Call(cc, comparefn, &ret, arglist);
+                    n = ret.toNumber();
+                    if(n < 0)
+                        cmp = -1;
+                    else if(n > 0)
+                        cmp = 1;
+                    else
+                        cmp = 0;
+                }
+                else
+                {
+                    sx = vx.toString();
+                    sy = vy.toString();
+                    cmp = std.string.cmp(sx, sy);
+                    if(cmp < 0)
+                        cmp = -1;
+                    else if(cmp > 0)
+                        cmp = 1;
+                }
+            }
+            return cmp < 0;
+        }
+
+        // Sort pvalues[]
+        import std.algorithm.sorting : sort;
+        pvalues[0 .. nprops].sort!compare_value();
     }
 
     // Stuff the sorted value's back into the array
