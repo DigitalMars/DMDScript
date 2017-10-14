@@ -1670,7 +1670,7 @@ struct Keyword
     TOK    value;
 }
 
-static Keyword[] keywords =
+static immutable Keyword[] keywords =
 [
 //    {	"",		TOK		},
 
