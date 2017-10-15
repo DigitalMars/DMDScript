@@ -168,7 +168,7 @@ class RealExpression : Expression
 
         static assert(value.sizeof == 2 * uint.sizeof);
         if(ret)
-            irs.gen(loc, IRnumber, 3, ret, value);
+            irs.genX(loc, IRnumber, ret, value);
     }
 }
 
@@ -212,11 +212,11 @@ class IdentifierExpression : Expression
     {
         Identifier* id = ident;
 
-        assert(id.sizeof == uint.sizeof);
+        assert(id.sizeof == IRstate.Op.sizeof);
         if(ret)
-            irs.gen2(loc, IRgetscope, ret, cast(uint)id);
+            irs.gen2(loc, IRgetscope, ret, cast(IRstate.Op)id);
         else
-            irs.gen1(loc,IRcheckref, cast(uint)id);
+            irs.gen1(loc,IRcheckref, cast(IRstate.Op)id);
     }
 
     override void toLvalue(IRstate *irs, out uint base, IR *property, out int opoff)
@@ -318,10 +318,10 @@ class StringExpression : Expression
 
     override void toIR(IRstate *irs, uint ret)
     {
-        static assert((Identifier*).sizeof == uint.sizeof);
+        static assert((Identifier*).sizeof == IRstate.Op.sizeof);
         if(ret)
         {
-            uint u = cast(uint)Identifier.build(string);
+            auto u = cast(IRstate.Op)Identifier.build(string);
             irs.gen2(loc, IRstring, ret, u);
         }
     }
@@ -349,7 +349,7 @@ class RegExpLiteral : Expression
     {
         d_string pattern;
         d_string attribute = null;
-        int e;
+        sizediff_t e;
 
         uint argc;
         uint argv;
@@ -374,11 +374,11 @@ class RegExpLiteral : Expression
 
         b = irs.alloc(1);
         Identifier* re = Identifier.build(TEXT_RegExp);
-        irs.gen2(loc, IRgetscope, b, cast(uint)re);
+        irs.gen2(loc, IRgetscope, b, cast(IRstate.Op)re);
         argv = irs.alloc(argc);
-        irs.gen2(loc, IRstring, argv, cast(uint)Identifier.build(pattern));
+        irs.gen2(loc, IRstring, argv, cast(IRstate.Op)Identifier.build(pattern));
         if(argc == 2)
-            irs.gen2(loc, IRstring, argv + 1 * INDEX_FACTOR, cast(uint)Identifier.build(attribute));
+            irs.gen2(loc, IRstring, argv + 1 * INDEX_FACTOR, cast(IRstate.Op)Identifier.build(attribute));
         irs.gen4(loc, IRnew, ret, b, argc, argv);
         irs.release(b, argc + 1);
     }
@@ -467,12 +467,12 @@ class ArrayLiteral : Expression
         static Identifier* ar;
         if(!ar)
             ar = Identifier.build(TEXT_Array);
-        irs.gen2(loc, IRgetscope, b, cast(uint)ar);
+        irs.gen2(loc, IRgetscope, b, cast(IRstate.Op)ar);
         if(elements.length)
         {
             Expression e;
 
-            argc = elements.length;
+            argc = cast(uint)elements.length;
             argv = irs.alloc(argc);
             if(argc > 1)
             {
@@ -496,7 +496,7 @@ class ArrayLiteral : Expression
             {   //	[a] translates to:
                 //	ret = new Array(1);
                 //  ret[0] = a
-                irs.gen(loc, IRnumber, 3, argv, 1.0);
+                irs.genX(loc, IRnumber, argv, 1.0);
                 irs.gen4(loc, IRnew, ret, b, argc, argv);
 
                 e = elements[0];
@@ -505,7 +505,7 @@ class ArrayLiteral : Expression
                     e.toIR(irs, v);
                 else
                     irs.gen1(loc, IRundefined, v);
-                irs.gen3(loc, IRputs, v, ret, cast(uint)Identifier.build(TEXT_0));
+                irs.gen3(loc, IRputs, v, ret, cast(IRstate.Op)Identifier.build(TEXT_0));
                 irs.release(v, 1);
             }
             irs.release(argv, argc);
@@ -578,7 +578,7 @@ class ObjectLiteral : Expression
         b = irs.alloc(1);
         //irs.gen2(loc, IRstring, b, TEXT_Object);
         Identifier* ob = Identifier.build(TEXT_Object);
-        irs.gen2(loc, IRgetscope, b, cast(uint)ob);
+        irs.gen2(loc, IRgetscope, b, cast(IRstate.Op)ob);
         // Generate new Object()
         irs.gen4(loc, IRnew, ret, b, 0, 0);
         if(fields.length)
@@ -589,7 +589,7 @@ class ObjectLiteral : Expression
             foreach(Field f; fields)
             {
                 f.exp.toIR(irs, x);
-                irs.gen3(loc, IRputs, x, ret, cast(uint)(f.ident));
+                irs.gen3(loc, IRputs, x, ret, cast(IRstate.Op)(f.ident));
             }
         }
     }
@@ -620,7 +620,7 @@ class FunctionLiteral : Expression
   override void toIR(IRstate *irs, uint ret)
   {
       func.toIR(null);
-      irs.gen2(loc, IRobject, ret, cast(uint)cast(void*)func);
+      irs.gen2(loc, IRobject, ret, cast(IRstate.Op)cast(void*)func);
   }
 }
 
@@ -888,7 +888,7 @@ class DotExp : UnaExp
             // generating a property get even if the result is thrown away.
             base = irs.alloc(1);
             e1.toIR(irs, base);
-            irs.gen3(loc, IRgets, ret, base, cast(uint)ident);
+            irs.gen3(loc, IRgets, ret, base, cast(IRstate.Op)ident);
         }
         else
         {
@@ -896,7 +896,7 @@ class DotExp : UnaExp
             {
                 base = irs.alloc(1);
                 e1.toIR(irs, base);
-                irs.gen3(loc, IRgets, ret, base, cast(uint)ident);
+                irs.gen3(loc, IRgets, ret, base, cast(IRstate.Op)ident);
             }
             else
                 e1.toIR(irs, 0);
@@ -983,7 +983,7 @@ class CallExp : UnaExp
         {
             uint u;
 
-            argc = arguments.length;
+            argc = cast(uint)arguments.length;
             argv = irs.alloc(argc);
             for(u = 0; u < argc; u++)
             {
@@ -1006,7 +1006,7 @@ class CallExp : UnaExp
         else if(opoff == 2)
             irs.gen4(loc, IRcallscope, ret, property.index, argc, argv);
         else
-            irs.gen(loc, IRcall + opoff, 5, ret, base, property, argc, argv);
+            irs.genX(loc, IRcall + opoff, ret, base, property, argc, argv);
         irs.release(argv, argc);
     }
 }
@@ -1098,7 +1098,7 @@ class NewExp : UnaExp
         {
             uint u;
 
-            argc = arguments.length;
+            argc = cast(uint)arguments.length;
             argv = irs.alloc(argc);
             for(u = 0; u < argc; u++)
             {
@@ -1318,7 +1318,7 @@ class AssignExp : BinExp
             CallExp ec = cast(CallExp)e1;
 
             if(ec.arguments.length)
-                argc = ec.arguments.length + 1;
+                argc = cast(uint)ec.arguments.length + 1;
             else
                 argc = 1;
 
@@ -1348,7 +1348,7 @@ class AssignExp : BinExp
             else if(opoff == 2)
                 irs.gen4(loc, IRputcallscope, ret, property.index, argc, argv);
             else
-                irs.gen(loc, IRputcall + opoff, 5, ret, base, property, argc, argv);
+                irs.genX(loc, IRputcall + opoff, ret, base, property, argc, argv);
             irs.release(argv, argc);
         }
         else

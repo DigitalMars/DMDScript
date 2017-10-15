@@ -38,6 +38,10 @@ import dmdscript.identifier;
 
 struct IRstate
 {
+    import core.stdc.stdint : uintptr_t;
+    alias Op = uintptr_t;
+    static assert(Op.sizeof == IR.sizeof);
+
     OutBuffer      codebuf;             // accumulate code here
     Statement      breakTarget;         // current statement that 'break' applies to
     Statement      continueTarget;      // current statement that 'continue' applies to
@@ -73,9 +77,11 @@ struct IRstate
      * index to them.
      */
 
-    uint alloc(uint nlocals)
+    uint alloc(size_t nlocals)
     {
         uint n;
+
+        assert(nlocals < uint.max);
 
         n = locali;
         locali += nlocals;
@@ -108,28 +114,67 @@ struct IRstate
         //locali = i;
     }
 
-    static uint combine(uint loc, uint opcode)
+    static Op combine(uint loc, uint opcode)
     {
-        return (loc << 16) | opcode;
+        static if (Op.sizeof == uint.sizeof)
+            return (loc << 16) | opcode;
+        else return cast(ulong)loc << 32 | opcode;
     }
 
     /***************************************
      * Generate code.
      */
 
+    void genX(Args...)(Loc loc, uint opcode, Args args)
+    {
+        import std.algorithm.comparison : max;
+
+        foreach (i, A; Args)
+            static assert(A.sizeof == 4 || A.sizeof == 8);
+
+        enum s = (1 + opCount!Args) * Op.sizeof;
+        codebuf.reserve(s);
+
+        auto data = cast(Op *)(codebuf.data.ptr + codebuf.offset);
+        codebuf.offset += s;
+        data[0] = combine(loc, opcode);
+        foreach (i, A; Args) {
+            enum off = 1 + opCount!(Args[0 .. i]);
+            static if (A.sizeof == 4) {
+                data[off] = *(cast(uint*)&args[i]);
+            } else static if (A.sizeof == Op.sizeof) {
+                data[off] = *(cast(Op*)&args[i]);
+            } else {
+                data[off] = (cast(Op*)&args[i])[0];
+                data[off+1] = (cast(Op*)&args[i])[1];
+            }
+        }
+    }
+
+    private static template opCount(T...) {
+        static if (T.length == 0) enum opCount = 0;
+        else enum opCount = (T[0].sizeof <= Op.sizeof ? 1 : T[0].sizeof/Op.sizeof) + opCount!(T[1 .. $]);
+    }
+
+    static assert(opCount!() == 0);
+    static assert(opCount!(uint) == 1);
+    static assert(opCount!(ushort) == 1);
+    static assert(opCount!(void*) == 1);
+    static assert(opCount!(uint, uint, double) == 2 + double.sizeof/Op.sizeof);
+
     void gen0(Loc loc, uint opcode)
     {
         codebuf.write(combine(loc, opcode));
     }
 
-    void gen1(Loc loc, uint opcode, uint arg)
+    void gen1(Loc loc, uint opcode, Op arg)
     {
-        codebuf.reserve(2 * uint.sizeof);
+        codebuf.reserve(2 * Op.sizeof);
         version(all)
         {
             // Inline ourselves for speed (compiler doesn't do a good job)
-            uint *data = cast(uint *)(codebuf.data.ptr + codebuf.offset);
-            codebuf.offset += 2 * uint.sizeof;
+            auto data = cast(Op *)(codebuf.data.ptr + codebuf.offset);
+            codebuf.offset += 2 * Op.sizeof;
             data[0] = combine(loc, opcode);
             data[1] = arg;
         }
@@ -140,14 +185,14 @@ struct IRstate
         }
     }
 
-    void gen2(Loc loc, uint opcode, uint arg1, uint arg2)
+    void gen2(Loc loc, uint opcode, Op arg1, Op arg2)
     {
-        codebuf.reserve(3 * uint.sizeof);
+        codebuf.reserve(3 * Op.sizeof);
         version(all)
         {
             // Inline ourselves for speed (compiler doesn't do a good job)
-            uint *data = cast(uint *)(codebuf.data.ptr + codebuf.offset);
-            codebuf.offset += 3 * uint.sizeof;
+            auto data = cast(Op *)(codebuf.data.ptr + codebuf.offset);
+            codebuf.offset += 3 * Op.sizeof;
             data[0] = combine(loc, opcode);
             data[1] = arg1;
             data[2] = arg2;
@@ -160,14 +205,14 @@ struct IRstate
         }
     }
 
-    void gen3(Loc loc, uint opcode, uint arg1, uint arg2, uint arg3)
+    void gen3(Loc loc, uint opcode, Op arg1, Op arg2, Op arg3)
     {
-        codebuf.reserve(4 * uint.sizeof);
+        codebuf.reserve(4 * Op.sizeof);
         version(all)
         {
             // Inline ourselves for speed (compiler doesn't do a good job)
-            uint *data = cast(uint *)(codebuf.data.ptr + codebuf.offset);
-            codebuf.offset += 4 * uint.sizeof;
+            auto data = cast(Op *)(codebuf.data.ptr + codebuf.offset);
+            codebuf.offset += 4 * Op.sizeof;
             data[0] = combine(loc, opcode);
             data[1] = arg1;
             data[2] = arg2;
@@ -182,14 +227,14 @@ struct IRstate
         }
     }
 
-    void gen4(Loc loc, uint opcode, uint arg1, uint arg2, uint arg3, uint arg4)
+    void gen4(Loc loc, uint opcode, Op arg1, Op arg2, Op arg3, Op arg4)
     {
-        codebuf.reserve(5 * uint.sizeof);
+        codebuf.reserve(5 * Op.sizeof);
         version(all)
         {
             // Inline ourselves for speed (compiler doesn't do a good job)
-            uint *data = cast(uint *)(codebuf.data.ptr + codebuf.offset);
-            codebuf.offset += 5 * uint.sizeof;
+            auto data = cast(Op *)(codebuf.data.ptr + codebuf.offset);
+            codebuf.offset += 5 * Op.sizeof;
             data[0] = combine(loc, opcode);
             data[1] = arg1;
             data[2] = arg2;
@@ -203,16 +248,6 @@ struct IRstate
             codebuf.write4n(arg2);
             codebuf.write4n(arg3);
             codebuf.write4n(arg4);
-        }
-    }
-
-    void gen(Loc loc, uint opcode, uint argc, ...)
-    {
-        codebuf.reserve((1 + argc) * uint.sizeof);
-        codebuf.write(combine(loc, opcode));
-        for(uint i = 1; i <= argc; i++)
-        {
-            codebuf.write(va_arg!(uint)(_argptr));
         }
     }
 
@@ -230,7 +265,7 @@ struct IRstate
     {
         if(!codebuf)
             return 0;
-        return codebuf.offset / 4;
+        return codebuf.offset / Op.sizeof;
     }
 
     /******************************
@@ -239,8 +274,8 @@ struct IRstate
 
     void patchJmp(uint index, uint value)
     {
-        assert((index + 1) * 4 < codebuf.offset);
-        (cast(uint *)(codebuf.data))[index + 1] = value - index;
+        assert((index + 1) * Op.sizeof < codebuf.offset);
+        (cast(Op*)(codebuf.data))[index + 1] = value - index;
     }
 
     /*******************************
@@ -266,7 +301,7 @@ struct IRstate
         for(i = 0; i < fixups.length; i++)
         {
             index = fixups[i];
-            assert((index + 1) * 4 < codebuf.offset);
+            assert((index + 1) * Op.sizeof < codebuf.offset);
             s = (cast(Statement *)codebuf.data)[index + 1];
             value = s.getTarget();
             patchJmp(index, value);
@@ -280,7 +315,7 @@ struct IRstate
         IR *c;
         IR *c2;
         IR *code;
-        uint length;
+        size_t length;
         uint i;
 
         code = cast(IR *)codebuf.data;
@@ -342,7 +377,7 @@ struct IRstate
         // Optimize
         for(c = code; c.opcode != IRend; c += IR.size(c.opcode))
         {
-            uint offset = (c - code);
+            size_t offset = (c - code);
 
             if(b[offset])       // if target of jump
             {
@@ -456,9 +491,9 @@ struct IRstate
         // Remove all IRnop's
         for(c = code; c.opcode != IRend; )
         {
-            uint offset;
-            uint o;
-            uint c2off;
+            size_t offset;
+            size_t o;
+            size_t c2off;
 
             if(c.opcode == IRnop)
             {

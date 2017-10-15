@@ -358,11 +358,11 @@ class Lexer
 
         if(!errinfo.message)
         {
-            uint len;
+            size_t len;
 
             errinfo.message = buf;
             errinfo.linnum = linnum;
-            errinfo.charpos = p - slinestart;
+            errinfo.charpos = cast(uint)(p - slinestart);
 
             len = slineend - slinestart;
             errinfo.srcline = slinestart[0 .. len];
@@ -391,7 +391,7 @@ class Lexer
         immutable(char) * slineend;
         immutable(char) * s;
         uint linnum = 1;
-        uint len;
+        size_t len;
 
         if(!src)
             return null;
