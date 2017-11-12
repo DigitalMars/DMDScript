@@ -83,7 +83,7 @@ struct Value
             throwRefError(cc);
     }
     void throwRefError(CallContext* cc) const{
-        throw new ErrorValue(Dobject.ReferenceError(cc,errmsgtbl[ERR_UNDEFINED_VAR],string));
+        throw new ErrorValue(cc, Dobject.ReferenceError(cc,errmsgtbl[ERR_UNDEFINED_VAR],string));
     }
     
     void putSignalingUndefined(d_string id){
@@ -228,13 +228,13 @@ struct Value
             assert(object);
             a = object.DefaultValue(cc, v, PreferredType);
             if(a)
-                throw new ErrorValue(cast(Value*)a);
+                throw new ErrorValue(cc, cast(Value*)a);
             if(!v.isPrimitive())
             {
                 ErrInfo errinfo;
 
                 v.putVundefined();
-                throw new ErrorValue(Dobject.RuntimeError(&errinfo, cc, errmsgtbl[ERR_OBJECT_CANNOT_BE_PRIMITIVE]));
+                throw new ErrorValue(cc, Dobject.RuntimeError(&errinfo, cc, errmsgtbl[ERR_OBJECT_CANNOT_BE_PRIMITIVE]));
             }
         }
         else

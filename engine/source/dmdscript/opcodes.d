@@ -719,7 +719,7 @@ struct IR
 	                id = (code+1).id;
 	                s = id.value.string;
 	                if(!scope_get(scopex, id))
-		                throw new ErrorValue(Dobject.ReferenceError(cc, errmsgtbl[ERR_UNDEFINED_VAR],s)); 
+		                throw new ErrorValue(cc, Dobject.ReferenceError(cc, errmsgtbl[ERR_UNDEFINED_VAR],s)); 
 	                code += 2;
 	                break;
                 case IRgetscope:            // a = s
@@ -797,7 +797,7 @@ struct IR
                     a = GETa(code);
                     if(!v)
                     {
-						throw new ErrorValue(Dobject.ReferenceError(cc, errmsgtbl[ERR_UNDEFINED_VAR],s));
+						throw new ErrorValue(cc, Dobject.ReferenceError(cc, errmsgtbl[ERR_UNDEFINED_VAR],s));
                         //a.putVundefined();
                         /+
                                             if (b)
@@ -1145,7 +1145,7 @@ struct IR
 					o = c.toObject(cc);
 					if(!o){
 						ErrInfo errinfo;
-						throw new ErrorValue(Dobject.RuntimeError(&errinfo,cc,errmsgtbl[ERR_RHS_MUST_BE_OBJECT],"in",c.toString(cc)));
+						throw new ErrorValue(cc, Dobject.RuntimeError(&errinfo,cc,errmsgtbl[ERR_RHS_MUST_BE_OBJECT],"in",c.toString(cc)));
 					}
 					a.putVboolean(o.HasProperty(s));
 					code += 4;
@@ -1217,7 +1217,7 @@ struct IR
                             Value.copy(a, v);
                         }
                         else
-                             throw new ErrorValue(Dobject.ReferenceError(cc,errmsgtbl[ERR_UNDEFINED_VAR], s));
+                             throw new ErrorValue(cc, Dobject.ReferenceError(cc,errmsgtbl[ERR_UNDEFINED_VAR], s));
                     }
                     code += 4;
                     break;
@@ -1271,7 +1271,7 @@ struct IR
                     {
                         //GETa(code).putVundefined();
                         //FIXED: as per ECMA v5 should throw ReferenceError
-                        throw new ErrorValue(Dobject.ReferenceError(cc,id.value.string));
+                        throw new ErrorValue(cc, Dobject.ReferenceError(cc,id.value.string));
                         //v = signalingUndefined(id.value.string);
                     }
                     code += 3;
@@ -1310,7 +1310,7 @@ struct IR
                     {
                         //GETa(code).putVundefined();
                         //FIXED: as per ECMA v5 should throw ReferenceError
-                        throw new ErrorValue(Dobject.ReferenceError(cc,id.value.string));
+                        throw new ErrorValue(cc, Dobject.ReferenceError(cc,id.value.string));
                         //v = signalingUndefined(id.value.string);
                     }
                     code += 3;
@@ -2064,7 +2064,6 @@ struct IR
              }
             catch(ErrorValue err)
             {
-                import std.stdio; writefln("ERROR: %s", err.toString());
                 v = unwindStack(&err.value);
                 if(v)//v is exception that was not caught
                     return v;

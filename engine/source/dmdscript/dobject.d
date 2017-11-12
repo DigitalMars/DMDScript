@@ -48,8 +48,8 @@ import dmdscript.utf;
 
 class ErrorValue: Exception {
     Value value;
-    this(Value* vptr){
-        super("DMDScript exception");
+    this(CallContext* cc, Value* vptr){
+        super(vptr.toString(cc));
         value = *vptr;
     }
 }
