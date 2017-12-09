@@ -28,11 +28,11 @@ import std.typetuple;
 import std.file;
 
 
-T convert(T)(Value* v){
+T convert(T)(Value* v, CallContext* cc){
 	static if(is(T == int)){
-		return v.toInt32();
+		return v.toInt32(cc);
     }else static if(isSomeString!T ){
-        return v.toString();   
+        return v.toString(cc);   
 	}else{
 		assert(0);	
 	}
@@ -50,10 +50,10 @@ if(isCallable!fn) {
     alias ParameterTypeTuple!fn Args;
     alias ReturnType!fn R;
     alias staticMap!(Unqual,Args) Uargs;
-	static void* embedded(Dobject pthis, CallContext* cc,
-                          Dobject othis, Value* ret,	Value[] arglist){
+    static void* embedded(Dobject pthis, CallContext* cc,
+                          Dobject othis, Value* ret, Value[] arglist){
        
-        Tuple!(Uargs) tup = convertAll!(Uargs)(arglist);
+        Tuple!(Uargs) tup = convertAll!(Uargs)(arglist, cc);
         if(arglist.length < tup.length){
             auto len = arglist.length;
             arglist.length = tup.length;
@@ -69,6 +69,7 @@ if(isCallable!fn) {
         }
         return null;
     }
+
     NativeFunctionData[] nfd = [
         {
             name,
@@ -76,7 +77,8 @@ if(isCallable!fn) {
             Args.length
         }
     ];
-    DnativeFunction.initialize(pg.callcontext.global,nfd,DontEnum);
+
+    DnativeFunction.initialize(pg.callcontext.global,pg.callcontext,nfd,DontEnum);
 }
                                     
 void fitArray(T...)(ref Value[] arglist){
@@ -89,7 +91,7 @@ void fitArray(T...)(ref Value[] arglist){
     arglist = arglist[0..staticLen];
 }
                  
-void extendMethod(T,alias fn)(Dobject obj, string name)
+void extendMethod(T,alias fn)(Dobject obj, CallContext* cc, string name)
 if(is(T == class) && isCallable!fn){
     alias ParameterTypeTuple!fn Args;
     alias ReturnType!fn R;
@@ -98,7 +100,7 @@ if(is(T == class) && isCallable!fn){
                           Dobject othis, Value* ret,	Value[] arglist){
 
         static if(Uargs.length){
-            Tuple!(Uargs) tup = convertAll!(Uargs)(arglist);
+            Tuple!(Uargs) tup = convertAll!(Uargs)(arglist, cc);
         
             fitArray(arglist);
         }
@@ -124,21 +126,21 @@ if(is(T == class) && isCallable!fn){
             Args.length
         }
     ];
-    DnativeFunction.initialize(obj,nfd,DontEnum);
+    DnativeFunction.initialize(obj,cc,nfd,DontEnum);
 }                          
 class Wrap(Which,string ClassName,Base=Dobject): Base{
     Which wrapped;
     static Wrap _prototype;
     static Constructor _constructor;
     static class Constructor: Dfunction{
-        this(){
-            super(ConstructorArgs.length, Dfunction_prototype);
+        this(CallContext* cc){
+            super(cc, ConstructorArgs.length, cc.tc.Dfunction_prototype);
             name = ClassName;
         }
 
         override void *Construct(CallContext *cc, Value *ret, Value[] arglist){
             fitArray!(ConstructorArgs)(arglist);
-            Dobject o = new Wrap(convertAll!(UConstructorArgs)(arglist).expand);
+            Dobject o = new Wrap(cc, convertAll!(UConstructorArgs)(arglist, cc).expand);
             ret.putVobject(o);
             return null;
         }
@@ -148,42 +150,48 @@ class Wrap(Which,string ClassName,Base=Dobject): Base{
         }
     
     }
-    static void initialize(){
-         _prototype = new Wrap(Base.getPrototype());
-        _constructor = new Constructor();
-        _prototype.Put("constructor", _constructor, DontEnum);
-        _constructor.Put("prototype", _prototype, DontEnum | DontDelete | ReadOnly);
-        ctorTable[ClassName] = _constructor;
+    static void initialize(CallContext* cc){
+         _prototype = new Wrap(cc, Base.getPrototype(cc));
+        _constructor = new Constructor(cc);
+        _prototype.Put(cc, "constructor", _constructor, DontEnum);
+        _constructor.Put(cc, "prototype", _prototype, DontEnum | DontDelete | ReadOnly);
+
+        // we need to directly store the constructor, because this will be
+        // called after the global object has already been created
+        //cc.tc.ctorTable[ClassName] = _constructor;
+        cc.global.Put(cc, ClassName, _constructor, DontEnum);
     }
     static this(){
-        threadInitTable ~= &initialize;
+        threadInitTable ~= cc => initialize(cc);
     }
-    private this(Dobject prototype){ 
-        super(prototype); 
+    private this(CallContext* cc, Dobject prototype){ 
+        super(cc, prototype); 
         classname = ClassName;
         //Put(TEXT_constructor,
     }
     alias ParameterTypeTuple!(Which.__ctor) ConstructorArgs;
     alias staticMap!(Unqual,ConstructorArgs) UConstructorArgs;
-    this(ConstructorArgs args){
-        super(_prototype);
+    this(CallContext* cc, ConstructorArgs args){
+        super(cc, _prototype);
         static if (is(Which == struct)){
             wrapped = Which(args);
         } 
     }
     static void methods(Methods...)(){
         static if(Methods.length >= 1){
-             extendMethod!(Wrap,Methods[0])(_prototype,(&Methods[0]).stringof[2..$]);
+            threadInitTable ~= (cc) {
+                extendMethod!(Wrap,Methods[0])(_prototype,cc,(&Methods[0]).stringof[2..$]);
+            };
         
-             methods!(Methods[1..$])();
+            methods!(Methods[1..$])();
         }
     }
 }       
                         
-auto convertAll(Args...)(Value[] dest){
+auto convertAll(Args...)(Value[] dest, CallContext* cc){
     static if(Args.length > 1){
-        return tuple(convert!(Args[0])(&dest[0]),convertAll!(Args[1..$])(dest[1..$]).expand);  
+        return tuple(convert!(Args[0])(&dest[0], cc),convertAll!(Args[1..$])(dest[1..$], cc).expand);  
     }else 
-        return tuple(convert!(Args[0])(&dest[0]));
+        return tuple(convert!(Args[0])(&dest[0], cc));
 }
 

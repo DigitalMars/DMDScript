@@ -38,19 +38,19 @@ class DdeclaredFunction : Dfunction
 {
     FunctionDefinition fd;
 
-    this(FunctionDefinition fd)
+    this(CallContext* cc, FunctionDefinition fd)
     {
-        super(cast(uint)fd.parameters.length, Dfunction.getPrototype());
-        assert(Dfunction.getPrototype());
+        super(cc, cast(uint)fd.parameters.length, Dfunction.getPrototype(cc));
+        assert(Dfunction.getPrototype(cc));
         assert(internal_prototype);
         this.fd = fd;
 
         Dobject o;
 
         // ECMA 3 13.2
-        o = new Dobject(Dobject.getPrototype());        // step 9
-        Put(TEXT_prototype, o, DontEnum);               // step 11
-        o.Put(TEXT_constructor, this, DontEnum);        // step 10
+        o = new Dobject(cc, Dobject.getPrototype(cc));        // step 9
+        Put(cc, TEXT_prototype, o, DontEnum);               // step 11
+        o.Put(cc, TEXT_constructor, this, DontEnum);        // step 10
     }
 
     override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
@@ -78,12 +78,12 @@ class DdeclaredFunction : Dfunction
 
         // Generate the activation object
         // ECMA v3 10.1.6
-        actobj = new Dobject(null);
+        actobj = new Dobject(cc, null);
         
         Value vtmp;//should not be referenced by the end of func
         if(fd.name){ 
            vtmp.putVobject(this);
-           actobj.Put(fd.name,&vtmp,DontDelete);
+           actobj.Put(cc, fd.name,&vtmp,DontDelete);
         }
         // Instantiate the parameters
         {
@@ -91,15 +91,15 @@ class DdeclaredFunction : Dfunction
             foreach(Identifier* p; fd.parameters)
             {
                 Value* v = (a < arglist.length) ? &arglist[a++] : &vundefined;
-                actobj.Put(p.toString(), v, DontDelete);
+                actobj.Put(cc, p.toString(), v, DontDelete);
             }
         }
 
         // Generate the Arguments Object
         // ECMA v3 10.1.8
-        args = new Darguments(cc.caller, this, actobj, fd.parameters, arglist);
+        args = new Darguments(cc, cc.caller, this, actobj, fd.parameters, arglist);
 
-        actobj.Put(TEXT_arguments, args, DontDelete);
+        actobj.Put(cc, TEXT_arguments, args, DontDelete);
 
         // The following is not specified by ECMA, but seems to be supported
         // by jscript. The url www.grannymail.com has the following code
@@ -111,7 +111,7 @@ class DdeclaredFunction : Dfunction
         //		  this[i+1] = arguments[i]
         //	    }
         //	    var cardpic = new MakeArray("LL","AP","BA","MB","FH","AW","CW","CV","DZ");
-        Put(TEXT_arguments, args, DontDelete);          // make grannymail bug work
+        Put(cc, TEXT_arguments, args, DontDelete);          // make grannymail bug work
 
         
         
@@ -121,7 +121,7 @@ class DdeclaredFunction : Dfunction
         assert(newScopex.length != 0);
         newScopex ~= actobj;//and put activation object on top of it
         
-        fd.instantiate(newScopex, actobj, DontDelete);
+        fd.instantiate(cc, newScopex, actobj, DontDelete);
 
         Dobject[] scopesave = cc.scopex;
         cc.scopex = newScopex; 
@@ -160,7 +160,7 @@ class DdeclaredFunction : Dfunction
         //Value* v;
         //v=Get(TEXT_arguments);
         //writef("1v = %x, %s, v.object = %x\n", v, v.getType(), v.object);
-        Put(TEXT_arguments, &vundefined, 0);
+        Put(cc, TEXT_arguments, &vundefined, 0);
         //actobj.Put(TEXT_arguments, &vundefined, 0);
 
         version(none)
@@ -193,10 +193,10 @@ class DdeclaredFunction : Dfunction
 
         v = Get(TEXT_prototype);
         if(v.isPrimitive())
-            proto = Dobject.getPrototype();
+            proto = Dobject.getPrototype(cc);
         else
-            proto = v.toObject();
-        othis = new Dobject(proto);
+            proto = v.toObject(cc);
+        othis = new Dobject(cc, proto);
         result = Call(cc, othis, ret, arglist);
         if(!result)
         {

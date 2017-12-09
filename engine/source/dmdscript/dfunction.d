@@ -39,9 +39,9 @@ import dmdscript.ddeclaredfunction;
 
 class DfunctionConstructor : Dfunction
 {
-    this()
+    this(CallContext* cc)
     {
-        super(1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
 
         // Actually put in later by Dfunction::initialize()
         //unsigned attributes = DontEnum | DontDelete | ReadOnly;
@@ -61,14 +61,14 @@ class DfunctionConstructor : Dfunction
         // Get parameter list (P) and body from arglist[]
         if(arglist.length)
         {
-            bdy = arglist[arglist.length - 1].toString();
+            bdy = arglist[arglist.length - 1].toString(cc);
             if(arglist.length >= 2)
             {
                 for(uint a = 0; a < arglist.length - 1; a++)
                 {
                     if(a)
                         P ~= ',';
-                    P ~= arglist[a].toString();
+                    P ~= arglist[a].toString(cc);
                 }
             }
         }
@@ -86,7 +86,7 @@ class DfunctionConstructor : Dfunction
             if(errinfo.message)
                 goto Lsyntaxerror;
             fd.toIR(null);
-            Dfunction fobj = new DdeclaredFunction(fd);
+            Dfunction fobj = new DdeclaredFunction(cc, fd);
             assert(cc.scoperoot <= cc.scopex.length);
             fobj.scopex = cc.scopex[0..cc.scoperoot].dup;
             ret.putVobject(fobj);
@@ -100,7 +100,7 @@ class DfunctionConstructor : Dfunction
         Dobject o;
 
         ret.putVundefined();
-        o = new syntaxerror.D0(&errinfo);
+        o = new syntaxerror.D0(cc, &errinfo);
         Value* v = new Value;
         v.putVobject(o);
         return v;
@@ -127,7 +127,7 @@ void* Dfunction_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis
     {
         ErrInfo errinfo;
         ret.putVundefined();
-        return Dobject.RuntimeError(&errinfo, ERR_TS_NOT_TRANSFERRABLE);
+        return Dobject.RuntimeError(&errinfo, cc, ERR_TS_NOT_TRANSFERRABLE);
     }
     else
     {
@@ -173,7 +173,7 @@ void* Dfunction_prototype_apply(Dobject pthis, CallContext *cc, Dobject othis, V
     if(thisArg.isUndefinedOrNull())
         o = cc.global;
     else
-        o = thisArg.toObject();
+        o = thisArg.toObject(cc);
 
     if(argArray.isUndefinedOrNull())
     {
@@ -186,11 +186,11 @@ void* Dfunction_prototype_apply(Dobject pthis, CallContext *cc, Dobject othis, V
             Ltypeerror:
             ret.putVundefined();
             ErrInfo errinfo;
-            return Dobject.RuntimeError(&errinfo, ERR_ARRAY_ARGS);
+            return Dobject.RuntimeError(&errinfo, cc, ERR_ARRAY_ARGS);
         }
         Dobject a;
 
-        a = argArray.toObject();
+        a = argArray.toObject(cc);
 
         // Must be array or arguments object
         if(!a.isDarray() && !a.isDarguments())
@@ -202,7 +202,7 @@ void* Dfunction_prototype_apply(Dobject pthis, CallContext *cc, Dobject othis, V
         Value* x;
 
         x = a.Get(TEXT_length);
-        len = x ? x.toUint32() : 0;
+        len = x ? x.toUint32(cc) : 0;
 
         Value[] p1;
         Value* v1;
@@ -249,7 +249,7 @@ void* Dfunction_prototype_call(Dobject pthis, CallContext *cc, Dobject othis, Va
         if(thisArg.isUndefinedOrNull())
             o = cc.global;
         else
-            o = thisArg.toObject();
+            o = thisArg.toObject(cc);
         v = othis.Call(cc, o, ret, arglist[1 .. $]);
     }
     return v;
@@ -259,15 +259,15 @@ void* Dfunction_prototype_call(Dobject pthis, CallContext *cc, Dobject othis, Va
 
 class DfunctionPrototype : Dfunction
 {
-    this()
+    this(CallContext* cc)
     {
-        super(0, Dobject_prototype);
+        super(cc, 0, cc.tc.Dobject_prototype);
 
         uint attributes = DontEnum;
 
         classname = TEXT_Function;
         name = "prototype";
-        Put(TEXT_constructor, Dfunction_constructor, attributes);
+        Put(cc, TEXT_constructor, cc.tc.Dfunction_constructor, attributes);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -276,7 +276,7 @@ class DfunctionPrototype : Dfunction
             { TEXT_call, &Dfunction_prototype_call, 1 },
         ];
 
-        DnativeFunction.initialize(this, nfd, attributes);
+        DnativeFunction.initialize(this, cc, nfd, attributes);
     }
 
     override void *Call(CallContext *cc, Dobject othis, Value* ret, Value[] arglist)
@@ -295,18 +295,18 @@ class Dfunction : Dobject
 { const (char)[] name;
   Dobject[] scopex;     // Function object's scope chain per 13.2 step 7
 
-  this(d_uint32 length)
+  this(CallContext* cc, d_uint32 length)
   {
-      this(length, Dfunction.getPrototype());
+      this(cc, length, Dfunction.getPrototype(cc));
   }
 
-  this(d_uint32 length, Dobject prototype)
+  this(CallContext* cc, d_uint32 length, Dobject prototype)
   {
-      super(prototype);
+      super(cc, prototype);
       classname = TEXT_Function;
       name = TEXT_Function;
-      Put(TEXT_length, length, DontDelete | DontEnum | ReadOnly);
-      Put(TEXT_arity, length, DontDelete | DontEnum | ReadOnly);
+      Put(cc, TEXT_length, length, DontDelete | DontEnum | ReadOnly);
+      Put(cc, TEXT_arity, length, DontDelete | DontEnum | ReadOnly);
   }
 
   override immutable(char)[] getTypeof()
@@ -324,7 +324,7 @@ class Dfunction : Dobject
       return s;
   }
 
-  override void *HasInstance(Value* ret, Value* v)
+  override void *HasInstance(CallContext* cc, Value* ret, Value* v)
   {
       // ECMA v3 15.3.5.3
       Dobject V;
@@ -333,14 +333,14 @@ class Dfunction : Dobject
 
       if(v.isPrimitive())
           goto Lfalse;
-      V = v.toObject();
+      V = v.toObject(cc);
       w = Get(TEXT_prototype);
       if(w.isPrimitive())
       {
           ErrInfo errinfo;
-          return RuntimeError(&errinfo, errmsgtbl[ERR_MUST_BE_OBJECT], w.getType());
+          return RuntimeError(&errinfo, cc, errmsgtbl[ERR_MUST_BE_OBJECT], w.getType());
       }
-      o = w.toObject();
+      o = w.toObject(cc);
       for(;; )
       {
           V = V.internal_prototype;
@@ -359,7 +359,7 @@ class Dfunction : Dobject
       return null;
   }
 
-  static Dfunction isFunction(Value* v)
+  static Dfunction isFunction(Value* v, CallContext* cc)
   {
       Dfunction r;
       Dobject o;
@@ -367,7 +367,7 @@ class Dfunction : Dobject
       r = null;
       if(!v.isPrimitive())
       {
-          o = v.toObject();
+          o = v.toObject(cc);
           if(o.isClass(TEXT_Function))
               r = cast(Dfunction)o;
       }
@@ -375,24 +375,24 @@ class Dfunction : Dobject
   }
 
 
-  static Dfunction getConstructor()
+  static Dfunction getConstructor(CallContext* cc)
   {
-      return Dfunction_constructor;
+      return cc.tc.Dfunction_constructor;
   }
 
-  static Dobject getPrototype()
+  static Dobject getPrototype(CallContext* cc)
   {
-      return Dfunction_prototype;
+      return cc.tc.Dfunction_prototype;
   }
 
-  static void initialize()
+  static void initialize(CallContext* cc)
   {
-      Dfunction_constructor = new DfunctionConstructor();
-      Dfunction_prototype = new DfunctionPrototype();
+      cc.tc.Dfunction_constructor = new DfunctionConstructor(cc);
+      cc.tc.Dfunction_prototype = new DfunctionPrototype(cc);
 
-      Dfunction_constructor.Put(TEXT_prototype, Dfunction_prototype, DontEnum | DontDelete | ReadOnly);
+      cc.tc.Dfunction_constructor.Put(cc, TEXT_prototype, cc.tc.Dfunction_prototype, DontEnum | DontDelete | ReadOnly);
 
-      Dfunction_constructor.internal_prototype = Dfunction_prototype;
-      Dfunction_constructor.proptable.previous = Dfunction_prototype.proptable;
+      cc.tc.Dfunction_constructor.internal_prototype = cc.tc.Dfunction_prototype;
+      cc.tc.Dfunction_constructor.proptable.previous = cc.tc.Dfunction_prototype.proptable;
   }
 }
