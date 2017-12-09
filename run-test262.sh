@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 if ! [ -d test262 ] ; then
@@ -16,7 +16,21 @@ fi
 
 echo "Running the test suite..."
 cd test262-harness-py
-src/test262.py --summary --non_strict_only --command ../timed-dmdscript.sh --tests=../test262 > ../dmdscript-test262.log
+src/test262.py --summary --non_strict_only --command ../timed-dmdscript.sh --tests=../test262 | tee ../dmdscript-test262.log | grep '=== .* failed in .* ==='
 cd ..
+
+EXPECTED_TO_PASS=5238
+PASSED=$(grep ' - Passed [0-9]* tests' dmdscript-test262.log | sed -n 's/.*Passed \([0-9]*\) tests.*/\1/;P')
+
+if [ "$PASSED" -gt "$EXPECTED_TO_PASS" ]; then
+	echo "The number of passed tests has increased ($PASSED vs. $EXPECTED_TO_PASS)."
+	echo "EXPECTED_TO_PASS in run-test262.sh needs to be adjusted accordingly."
+	exit 1
+fi
+
+if [ "$PASSED" -lt "$EXPECTED_TO_PASS" ]; then
+	echo "The number of passed tests has decreased: $PASSED vs. $EXPECTED_TO_PASS"
+	exit 2
+fi
 
 echo "Done."
