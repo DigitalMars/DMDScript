@@ -18,6 +18,7 @@ struct A{
                          
 
 void main(){
+    static import std.file;
     Program p = new Program;
     extendGlobal!func(p,"mul");
     auto src  = cast(string)std.file.read("ext.ds");

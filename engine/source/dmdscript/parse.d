@@ -98,7 +98,7 @@ class Parser : Lexer
         if(p.errinfo.message)
             goto Lreturn;
 
-        delete p;
+        destroy(p);
 
         // Parse StatementList
         p = new Parser("anonymous", bdy, 0);
@@ -119,7 +119,7 @@ class Parser : Lexer
         pfd = fd;
         perrinfo = p.errinfo;
         result = (p.errinfo.message != null);
-        delete p;
+        destroy(p);
         p = null;
         return result;
     }

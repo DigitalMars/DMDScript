@@ -224,7 +224,7 @@ void* Dfunction_prototype_apply(Dobject pthis, CallContext *cc, Dobject othis, V
 
         v = othis.Call(cc, o, ret, alist);
 
-        delete p1;
+        destroy(p1);
     }
     return v;
 }

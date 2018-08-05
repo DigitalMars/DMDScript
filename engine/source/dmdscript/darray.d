@@ -753,8 +753,8 @@ void *Darray_prototype_sort(Dobject pthis, CallContext *cc, Dobject othis, Value
         }
     }
 
-    delete p1;
-    delete p2;
+    destroy(p1);
+    destroy(p2);
 
     ret.putVobject(othis);
     return null;

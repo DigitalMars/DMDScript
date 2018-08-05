@@ -4,8 +4,8 @@
     "copyright": "Copyright (c) 2000-2002 by Chromium Communications, Copyright (c) 2004-2010 by Digital Mars",
     "authors": ["Walter Bright", "Dmitry Olshansky"],
     "dependencies": {
-        "dmdscript:engine" : "*"
+        "dmdscript:engine": { "path": ".." }
     },
     "targetType": "executable",
-    "license": "BSL-1.0",
+    "license": "BSL-1.0"
 }

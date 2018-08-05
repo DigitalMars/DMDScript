@@ -148,7 +148,7 @@ class DdeclaredFunction : Dfunction
 
         result = IR.call(cc, othis, fd.code, ret, locals.ptr);
 
-        delete p1;
+        destroy(p1);
 
         cc.callerf = callerfsave;
         cc.caller = callersave;
