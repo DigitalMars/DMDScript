@@ -164,7 +164,7 @@ struct IRstate
 
     void gen0(Loc loc, uint opcode)
     {
-        codebuf.write(combine(loc, opcode));
+        codebuf.write(cast(ulong)combine(loc, opcode));
     }
 
     void gen1(Loc loc, uint opcode, Op arg)
@@ -485,7 +485,7 @@ struct IRstate
             }
         }
 
-        delete p1;
+        destroy(p1);
 
         //return;
         // Remove all IRnop's

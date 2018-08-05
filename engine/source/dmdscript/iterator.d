@@ -82,7 +82,7 @@ struct Iterator
         {
             while(keyindex == keys.length)
             {
-                delete keys;
+                destroy(keys);
                 o = getPrototype(o);
                 if(!o)
                     return null;
