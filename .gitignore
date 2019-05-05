@@ -1,0 +1,17 @@
+*.a
+*.dll
+*.dylib
+*.exe
+*.lib
+*.lst
+*.o
+*.obj
+*.so
+
+.dub
+dub.selections.json
+
+/dmdscript
+/dmdscript-ext
+/ds/dmdscript_ds
+/ds-ext/dmdscript_ds-ext
