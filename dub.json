@@ -11,7 +11,34 @@
 
     "targetType": "none",
     "subPackages" : [
-       "./ds", "./ds-ext", "./engine"
+        {
+            "name": "engine",
+            "sourcePaths": ["engine/source"],
+            "importPaths": ["engine/source"],
+            "dependencies": {
+                "undead" : ">=1.0.3"
+            },
+            "targetType": "library",
+        },
+        {
+            "name": "ds",
+            "description": "DMDScript stand-alone interpreter sample program",
+            "sourcePaths": ["ds/source"],
+            "importPaths": ["ds/source"],
+            "dependencies": {
+                "dmdscript:engine": "*"
+            },
+            "targetType": "executable"
+        },
+        {
+            "name": "ds-ext",
+            "sourcePaths": ["ds-ext/source"],
+            "importPaths": ["ds-ext/source"],
+            "dependencies": {
+                "dmdscript:engine": "*"
+            },
+            "targetType": "executable"
+        }
     ],
     "license": "BSL-1.0",
 }

@@ -3,5 +3,5 @@ set BUILD=release
 dub build --build=%BUILD% dmdscript:engine
 dub build --build=%BUILD% dmdscript:ds
 dub build --build=%BUILD% dmdscript:ds-ext
-copy ds\dmdscript_ds.exe dmdscript.exe
-copy ds-ext\dmdscript_ds-ext.exe dmdscript-ext.exe
+move dmdscript_ds.exe dmdscript.exe
+move dmdscript_ds-ext.exe dmdscript-ext.exe
