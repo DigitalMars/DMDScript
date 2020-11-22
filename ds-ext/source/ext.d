@@ -5,6 +5,7 @@ import dmdscript.extending;
 import std.stdio;
 import std.typecons;
 import std.stdio;
+import std.file;
 
 int func(int a,int b){ return a*b;  }
                    
