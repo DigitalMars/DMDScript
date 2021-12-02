@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+./build.sh
+
 if ! [ -d test262 ] ; then
     echo "Cloning test262 test suite..."
     git clone https://github.com/tc39/test262.git
