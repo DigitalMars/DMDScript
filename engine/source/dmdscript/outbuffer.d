@@ -250,68 +250,6 @@ class OutBuffer
         return cast(string) data[0 .. offset].idup;
     }
 
-    /*****************************************
-     * Append output of C's vprintf() to internal buffer.
-     */
-
-    void vprintf(string format, va_list args)
-    {
-        char[128] buffer;
-        char* p;
-        uint psize;
-        int count;
-
-        auto f = toStringz(format);
-        p = buffer.ptr;
-        psize = buffer.length;
-        for (;;)
-        {
-            version(Windows)
-            {
-                count = _vsnprintf(p,psize,f,args);
-                if (count != -1)
-                    break;
-                psize *= 2;
-                p = cast(char *) alloca(psize); // buffer too small, try again with larger size
-            }
-            version(Posix)
-            {
-                count = vsnprintf(p,psize,f,args);
-                if (count == -1)
-                    psize *= 2;
-                else if (count >= psize)
-                    psize = count + 1;
-                else
-                    break;
-                /+
-                if (p != buffer)
-                    c.stdlib.free(p);
-                p = (char *) c.stdlib.malloc(psize);    // buffer too small, try again with larger size
-                +/
-                p = cast(char *) alloca(psize); // buffer too small, try again with larger size
-            }
-        }
-        write(cast(ubyte[]) p[0 .. count]);
-        /+
-        version (Posix)
-        {
-            if (p != buffer)
-                c.stdlib.free(p);
-        }
-        +/
-    }
-
-    /*****************************************
-     * Append output of C's printf() to internal buffer.
-     */
-
-    void printf(string format, ...)
-    {
-        va_list ap;
-        ap = cast(va_list)&format;
-        ap += format.sizeof;
-        vprintf(format, ap);
-    }
 
     /*****************************************
      * At offset index into buffer, create nbytes of space by shifting upwards
@@ -349,7 +287,6 @@ unittest
     buf.write("hello"[]);
     buf.write(cast(byte)0x20);
     buf.write("world"[]);
-    buf.printf(" %d", 6);
     //printf("buf = '%.*s'\n", buf.toString());
-    assert(cmp(buf.toString(), "hello world 6") == 0);
+    assert(cmp(buf.toString(), "hello world") == 0);
 }

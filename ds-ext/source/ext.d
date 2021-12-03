@@ -2,9 +2,9 @@ import dmdscript.program;
 import dmdscript.script;
 import dmdscript.extending;
 
+import std.file;
 import std.stdio;
 import std.typecons;
-import std.stdio;
 
 int func(int a,int b){ return a*b;  }
                    
