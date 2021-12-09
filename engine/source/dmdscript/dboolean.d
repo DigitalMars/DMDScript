@@ -31,9 +31,9 @@ import dmdscript.dnative;
 
 class DbooleanConstructor : Dfunction
 {
-    this()
+    this(CallContext* cc)
     {
-        super(1, Dfunction_prototype);
+        super(cc, 1, Dfunction_prototype);
         name = "Boolean";
     }
 
@@ -43,8 +43,8 @@ class DbooleanConstructor : Dfunction
         d_boolean b;
         Dobject o;
 
-        b = (arglist.length) ? arglist[0].toBoolean() : false;
-        o = new Dboolean(b);
+        b = (arglist.length) ? arglist[0].toBoolean(cc) : false;
+        o = new Dboolean(cc, b);
         ret.putVobject(o);
         return null;
     }
@@ -54,7 +54,7 @@ class DbooleanConstructor : Dfunction
         // ECMA 15.6.1
         d_boolean b;
 
-        b = (arglist.length) ? arglist[0].toBoolean() : false;
+        b = (arglist.length) ? arglist[0].toBoolean(cc) : false;
         ret.putVboolean(b);
         return null;
     }
@@ -71,7 +71,7 @@ void* Dboolean_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis,
         ErrInfo errinfo;
 
         ret.putVundefined();
-        return Dobject.RuntimeError(&errinfo, errmsgtbl[ERR_FUNCTION_WANTS_BOOL],
+        return Dobject.RuntimeError(&errinfo, cc, errmsgtbl[ERR_FUNCTION_WANTS_BOOL],
                                     TEXT_toString,
                                     othis.classname);
     }
@@ -80,7 +80,7 @@ void* Dboolean_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis,
         Value *v;
 
         v = &(cast(Dboolean)othis).value;
-        ret.putVstring(v.toString());
+        ret.putVstring(v.toString(cc));
     }
     return null;
 }
@@ -98,7 +98,7 @@ void* Dboolean_prototype_valueOf(Dobject pthis, CallContext *cc, Dobject othis, 
         ErrInfo errinfo;
 
         ret.putVundefined();
-        return Dobject.RuntimeError(&errinfo, errmsgtbl[ERR_FUNCTION_WANTS_BOOL],
+        return Dobject.RuntimeError(&errinfo, cc, errmsgtbl[ERR_FUNCTION_WANTS_BOOL],
                                     TEXT_valueOf,
                                     othis.classname);
     }
@@ -116,12 +116,12 @@ void* Dboolean_prototype_valueOf(Dobject pthis, CallContext *cc, Dobject othis, 
 
 class DbooleanPrototype : Dboolean
 {
-    this()
+    this(CallContext* cc)
     {
-        super(Dobject_prototype);
+        super(cc, Dobject_prototype);
         //Dobject f = Dfunction_prototype;
 
-        Put(TEXT_constructor, Dboolean_constructor, DontEnum);
+        Put(cc, TEXT_constructor, Dboolean_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -129,7 +129,7 @@ class DbooleanPrototype : Dboolean
             { TEXT_valueOf, &Dboolean_prototype_valueOf, 0 },
         ];
 
-        DnativeFunction.initialize(this, nfd, DontEnum);
+        DnativeFunction.initialize(this, cc, nfd, DontEnum);
     }
 }
 
@@ -138,16 +138,16 @@ class DbooleanPrototype : Dboolean
 
 class Dboolean : Dobject
 {
-    this(d_boolean b)
+    this(CallContext* cc, d_boolean b)
     {
-        super(Dboolean.getPrototype());
+        super(cc, Dboolean.getPrototype());
         value.putVboolean(b);
         classname = TEXT_Boolean;
     }
 
-    this(Dobject prototype)
+    this(CallContext* cc, Dobject prototype)
     {
-        super(prototype);
+        super(cc, prototype);
         value.putVboolean(false);
         classname = TEXT_Boolean;
     }
@@ -162,12 +162,12 @@ class Dboolean : Dobject
         return Dboolean_prototype;
     }
 
-    static void initialize()
+    static void initialize(CallContext* cc)
     {
-        Dboolean_constructor = new DbooleanConstructor();
-        Dboolean_prototype = new DbooleanPrototype();
+        Dboolean_constructor = new DbooleanConstructor(cc);
+        Dboolean_prototype = new DbooleanPrototype(cc);
 
-        Dboolean_constructor.Put(TEXT_prototype, Dboolean_prototype, DontEnum | DontDelete | ReadOnly);
+        Dboolean_constructor.Put(cc, TEXT_prototype, Dboolean_prototype, DontEnum | DontDelete | ReadOnly);
     }
 }
 

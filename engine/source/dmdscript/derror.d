@@ -34,9 +34,9 @@ const uint FACILITY = 0x800A0000;
 
 class DerrorConstructor : Dfunction
 {
-    this()
+    this(CallContext* cc)
     {
-        super(1, Dfunction_prototype);
+        super(cc, 1, Dfunction_prototype);
     }
 
     override void* Construct(CallContext *cc, Value *ret, Value[] arglist)
@@ -69,7 +69,7 @@ class DerrorConstructor : Dfunction
             n = &arglist[1];
             break;
         }
-        o = new Derror(m, n);
+        o = new Derror(cc, m, n);
         ret.putVobject(o);
         return null;
     }
@@ -94,7 +94,7 @@ void* Derror_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, V
     v = othis.Get(TEXT_message);
     if(!v)
         v = &vundefined;
-    ret.putVstring(othis.Get(TEXT_name).toString()~": "~v.toString());
+    ret.putVstring(othis.Get(TEXT_name).toString(cc)~": "~v.toString(cc));
     return null;
 }
 
@@ -102,25 +102,25 @@ void* Derror_prototype_toString(Dobject pthis, CallContext *cc, Dobject othis, V
 
 class DerrorPrototype : Derror
 {
-    this()
+    this(CallContext* cc)
     {
-        super(Dobject_prototype);
+        super(cc, Dobject_prototype);
         Dobject f = Dfunction_prototype;
         //d_string m = d_string_ctor(DTEXT("Error.prototype.message"));
 
-        Put(TEXT_constructor, Derror_constructor, DontEnum);
+        Put(cc, TEXT_constructor, Derror_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
             { TEXT_toString, &Derror_prototype_toString, 0 },
         ];
 
-        DnativeFunction.initialize(this, nfd, 0);
+        DnativeFunction.initialize(this, cc, nfd, 0);
 
-        Put(TEXT_name, TEXT_Error, 0);
-        Put(TEXT_message, TEXT_, 0);
-        Put(TEXT_description, TEXT_, 0);
-        Put(TEXT_number, cast(d_number)(/*FACILITY |*/ 0), 0);
+        Put(cc, TEXT_name, TEXT_Error, 0);
+        Put(cc, TEXT_message, TEXT_, 0);
+        Put(cc, TEXT_description, TEXT_, 0);
+        Put(cc, TEXT_number, cast(d_number)(/*FACILITY |*/ 0), 0);
     }
 }
 
@@ -129,40 +129,40 @@ class DerrorPrototype : Derror
 
 class Derror : Dobject
 {
-    this(Value * m, Value * v2)
+    this(CallContext* cc, Value * m, Value * v2)
     {
-        super(getPrototype());
+        super(cc, getPrototype());
         classname = TEXT_Error;
 
         immutable(char)[] msg;
-        msg = m.toString();
-        Put(TEXT_message, msg, 0);
-        Put(TEXT_description, msg, 0);
+        msg = m.toString(cc);
+        Put(cc, TEXT_message, msg, 0);
+        Put(cc, TEXT_description, msg, 0);
         if(m.isString())
         {
         }
         else if(m.isNumber())
         {
-            d_number n = m.toNumber();
+            d_number n = m.toNumber(cc);
             n = cast(d_number)(/*FACILITY |*/ cast(int)n);
-            Put(TEXT_number, n, 0);
+            Put(cc, TEXT_number, n, 0);
         }
         if(v2.isString())
         {
-            Put(TEXT_description, v2.toString(), 0);
-            Put(TEXT_message, v2.toString(), 0);
+            Put(cc, TEXT_description, v2.toString(cc), 0);
+            Put(cc, TEXT_message, v2.toString(cc), 0);
         }
         else if(v2.isNumber())
         {
-            d_number n = v2.toNumber();
+            d_number n = v2.toNumber(cc);
             n = cast(d_number)(/*FACILITY |*/ cast(int)n);
-            Put(TEXT_number, n, 0);
+            Put(cc, TEXT_number, n, 0);
         }
     }
 
-    this(Dobject prototype)
+    this(CallContext* cc, Dobject prototype)
     {
-        super(prototype);
+        super(cc, prototype);
         classname = TEXT_Error;
     }
 
@@ -176,12 +176,12 @@ class Derror : Dobject
         return Derror_prototype;
     }
 
-    static void initialize()
+    static void initialize(CallContext* cc)
     {
-        Derror_constructor = new DerrorConstructor();
-        Derror_prototype = new DerrorPrototype();
+        Derror_constructor = new DerrorConstructor(cc);
+        Derror_prototype = new DerrorPrototype(cc);
 
-        Derror_constructor.Put(TEXT_prototype, Derror_prototype, DontEnum | DontDelete | ReadOnly);
+        Derror_constructor.Put(cc, TEXT_prototype, Derror_prototype, DontEnum | DontDelete | ReadOnly);
     }
 }
 

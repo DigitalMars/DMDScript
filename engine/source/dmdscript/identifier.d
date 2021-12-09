@@ -43,7 +43,7 @@ struct Identifier
     {
         Identifier* id = new Identifier;
         id.value.putVstring(s);
-        id.value.toHash();
+        id.value.hashString();
         return id;
     }
 

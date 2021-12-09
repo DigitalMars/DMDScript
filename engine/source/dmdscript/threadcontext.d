@@ -63,4 +63,5 @@ Dobject Denumerator_prototype;
 
 Dmath Dmath_object;
 
-void function ()[] threadInitTable;
+// kept for backwards compatibility with the dmdscript.extending module
+void delegate (CallContext*)[] threadInitTable;
