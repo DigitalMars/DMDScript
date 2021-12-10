@@ -62,7 +62,7 @@ struct IRstate
     {
         assert(codebuf.offset <= codebuf.data.length);
         if(codebuf.data.length > codebuf.data.capacity)
-            printf("ptr %p, length %d, capacity %d\n", codebuf.data.ptr, codebuf.data.length, core.memory.GC.sizeOf(codebuf.data.ptr));
+            printf("ptr %p, length %d, capacity %d\n", codebuf.data.ptr, cast(uint)codebuf.data.length, cast(uint)core.memory.GC.sizeOf(codebuf.data.ptr));
         assert(codebuf.data.length <= codebuf.data.capacity);
         for(uint u = 0; u < codebuf.offset; )
         {
