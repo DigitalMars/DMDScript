@@ -107,7 +107,7 @@ struct Value
     {
         assert(b == 1 || b == 0);
     }
-    body
+    do
     { vtype = V_BOOLEAN;
       dbool = b; }
 
@@ -178,7 +178,7 @@ struct Value
     static void copy(Value* to, Value* from)
     in { }
     out { assert(memcmp(to, from, Value.sizeof) == 0); }
-    body
+    do
  
     {
         /+version(all /*UseAsm*/)
