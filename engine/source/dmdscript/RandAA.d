@@ -80,7 +80,8 @@ struct aard (K, V, bool useRandom = false)
         assert(0);
     }
 
-    V* opIn_r(K k)
+
+    V* opBinaryRight(string op : "in")(K k)
     {
         if(imp_ is null)
             return null;
@@ -153,7 +154,7 @@ struct aard (K, V, bool useRandom = false)
 
     V get(K k)
     {
-        V* p = opIn_r(k);
+        V* p = k in this;
         if(p !is null)
         {
             return *p;
@@ -165,7 +166,7 @@ struct aard (K, V, bool useRandom = false)
     {
         if(imp_ !is null)
         {
-            V* p = opIn_r(k);
+            V* p = k in this;
             if(p !is null)
             {
                 val = *p;
@@ -728,7 +729,7 @@ public:
         }
     }
     /**Returns null if index is not found.*/
-    V* opIn_r(K index)
+    V* opBinaryRight(string op : "in")(K index)
     {
         size_t i = findExisting(index);
         if(i == size_t.max)
