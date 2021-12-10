@@ -37,7 +37,7 @@ class DnumberConstructor : Dfunction
 {
     this(CallContext* cc)
     {
-        super(cc, 1, Dfunction_prototype);
+        super(cc, 1, cc.tc.Dfunction_prototype);
         uint attributes = DontEnum | DontDelete | ReadOnly;
 
         name = TEXT_Number;
@@ -629,12 +629,12 @@ class DnumberPrototype : Dnumber
 {
     this(CallContext* cc)
     {
-        super(cc, Dobject_prototype);
+        super(cc, cc.tc.Dobject_prototype);
         uint attributes = DontEnum;
 
-        Dobject f = Dfunction_prototype;
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        Put(cc, TEXT_constructor, Dnumber_constructor, attributes);
+        Put(cc, TEXT_constructor, cc.tc.Dnumber_constructor, attributes);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -658,7 +658,7 @@ class Dnumber : Dobject
 {
     this(CallContext* cc, d_number n)
     {
-        super(cc, getPrototype());
+        super(cc, getPrototype(cc));
         classname = TEXT_Number;
         value.putVnumber(n);
     }
@@ -670,22 +670,22 @@ class Dnumber : Dobject
         value.putVnumber(0);
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Dnumber_constructor;
+        return cc.tc.Dnumber_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Dnumber_prototype;
+        return cc.tc.Dnumber_prototype;
     }
 
     static void initialize(CallContext* cc)
     {
-        Dnumber_constructor = new DnumberConstructor(cc);
-        Dnumber_prototype = new DnumberPrototype(cc);
+        cc.tc.Dnumber_constructor = new DnumberConstructor(cc);
+        cc.tc.Dnumber_prototype = new DnumberPrototype(cc);
 
-        Dnumber_constructor.Put(cc, TEXT_prototype, Dnumber_prototype, DontEnum | DontDelete | ReadOnly);
+        cc.tc.Dnumber_constructor.Put(cc, TEXT_prototype, cc.tc.Dnumber_prototype, DontEnum | DontDelete | ReadOnly);
     }
 }
 

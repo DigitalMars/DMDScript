@@ -61,9 +61,9 @@ class DobjectConstructor : Dfunction
 {
     this(CallContext* cc)
     {
-        super(cc, 1, Dfunction_prototype);
-        if(Dobject_prototype)
-            Put(cc, TEXT_prototype, Dobject_prototype, DontEnum | DontDelete | ReadOnly);
+        super(cc, 1, cc.tc.Dfunction_prototype);
+        if(cc.tc.Dobject_prototype)
+            Put(cc, TEXT_prototype, cc.tc.Dobject_prototype, DontEnum | DontDelete | ReadOnly);
     }
 
     override void *Construct(CallContext *cc, Value *ret, Value[] arglist)
@@ -74,7 +74,7 @@ class DobjectConstructor : Dfunction
         // ECMA 15.2.2
         if(arglist.length == 0)
         {
-            o = new Dobject(cc, Dobject.getPrototype());
+            o = new Dobject(cc, Dobject.getPrototype(cc));
         }
         else
         {
@@ -83,7 +83,7 @@ class DobjectConstructor : Dfunction
             {
                 if(v.isUndefinedOrNull())
                 {
-                    o = new Dobject(cc, Dobject.getPrototype());
+                    o = new Dobject(cc, Dobject.getPrototype(cc));
                 }
                 else
                     o = v.toObject(cc);
@@ -678,26 +678,26 @@ class Dobject
         return null;
     }
 
-    static Dfunction getConstructor()
+    static Dfunction getConstructor(CallContext* cc)
     {
-        return Dobject_constructor;
+        return cc.tc.Dobject_constructor;
     }
 
-    static Dobject getPrototype()
+    static Dobject getPrototype(CallContext* cc)
     {
-        return Dobject_prototype;
+        return cc.tc.Dobject_prototype;
     }
 
     static void initialize(CallContext* cc)
     {
-        Dobject_prototype = new DobjectPrototype(cc);
+        cc.tc.Dobject_prototype = new DobjectPrototype(cc);
         Dfunction.initialize(cc);
-        Dobject_constructor = new DobjectConstructor(cc);
+        cc.tc.Dobject_constructor = new DobjectConstructor(cc);
 
-        Dobject op = Dobject_prototype;
-        Dobject f = Dfunction_prototype;
+        Dobject op = cc.tc.Dobject_prototype;
+        Dobject f = cc.tc.Dfunction_prototype;
 
-        op.Put(cc, TEXT_constructor, Dobject_constructor, DontEnum);
+        op.Put(cc, TEXT_constructor, cc.tc.Dobject_constructor, DontEnum);
 
         static enum NativeFunctionData[] nfd =
         [
@@ -722,7 +722,7 @@ class Dobject
 void dobject_init(CallContext* cc)
 {
     //writef("dobject_init(tc = %x)\n", cast(uint)tc);
-    if(Dobject_prototype)
+    if(cc.tc.Dobject_prototype)
         return;                 // already initialized for this thread
 
     version(none)
@@ -746,9 +746,8 @@ void dobject_init(CallContext* cc)
     Derror.initialize(cc);
 	
 	// Call registered initializer for each object type
-    foreach(fpinit; threadInitTable)
+    foreach(fpinit; cc.tc.threadInitTable)
         fpinit(cc);
-	
 }
 /*Not used anyway
 void dobject_term()
