@@ -155,7 +155,7 @@ void* Dglobal_eval(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, Va
         assert(cc.callerothis);
         result = IR.call(cc, cc.callerothis, fd.code, ret, locals.ptr);
         if(p1)
-            delete p1;
+            destroy(p1);
         fd = null;
         // if (result) writef("result = '%s'\n", (cast(Value* )result).toString());
         return result;

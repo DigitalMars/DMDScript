@@ -485,7 +485,7 @@ struct IRstate
             }
         }
 
-        delete p1;
+        destroy(p1);
 
         //return;
         // Remove all IRnop's

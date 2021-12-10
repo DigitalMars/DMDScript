@@ -227,13 +227,13 @@ class Program
 
             result.getErrInfo(cc, &errinfo, cc.linnum);
             cc.linnum = 0;
-            delete p1;
+            destroy(p1);
             throw new ScriptException(&errinfo);
         }
         //writef("-Program.execute()\n");
 
 
-        delete p1;
+        destroy(p1);
     }
 
     void toBuffer(ref tchar[] buf)
