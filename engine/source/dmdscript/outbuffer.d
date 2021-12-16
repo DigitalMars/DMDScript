@@ -75,7 +75,7 @@ class OutBuffer
         {
             assert(offset + nbytes <= data.length);
         }
-        body
+        do
         {
             //c.stdio.printf("OutBuffer.reserve: length = %d, offset = %d, nbytes = %d\n", data.length, offset, nbytes);
             if (data.length < offset + nbytes)
@@ -210,7 +210,7 @@ class OutBuffer
     {
         assert((offset & (alignsize - 1)) == 0);
     }
-    body
+    do
     {   uint nbytes;
 
         nbytes = offset & (alignsize - 1);
@@ -261,7 +261,7 @@ class OutBuffer
         {
             assert(index <= offset);
         }
-        body
+        do
         {
             reserve(nbytes);
 
