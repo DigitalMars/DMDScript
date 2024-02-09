@@ -661,6 +661,12 @@ void* Dglobal_readln(Dobject pthis, CallContext *cc, Dobject othis, Value* ret, 
             if(c == EOF)
                 break;
         }
+	else version(iOS)
+        {
+            c = core.stdc.stdio.getchar();
+            if(c == EOF)
+                break;
+        }
         else version(FreeBSD)
         {
             c = core.stdc.stdio.getchar();
