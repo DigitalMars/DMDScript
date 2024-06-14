@@ -17,44 +17,46 @@ jobs:
             matrix:
                 os: [ubuntu-latest, windows-latest]
                 dc: [dmd-latest, ldc-latest, ldc-1.15.0]
-                arch: [x86, x86_64]
+                arch: [x86_64]
+                include:
+                    - {os: windows-latest, dc: ldc-latest, arch: x86}
 
         runs-on: ${{ matrix.os }}
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
 
             - name: Install D compiler
-              uses: dlang-community/setup-dlang@v1
+              uses: dlang-community/setup-dlang@v2
               with:
                   compiler: ${{ matrix.dc }}
 
             - name: Run tests
-              env:
-                CONFIG: ${{matrix.config}}
-                ARCH: ${{matrix.arch}}
               shell: bash
-              run: dub test :engine
+              run: dub test :engine -a ${{matrix.arch}}
     testsuite:
         name: Test262
         strategy:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                dc: [dmd-latest]
-                arch: [x86_64]
+                dc: [ldc-latest]
 
         runs-on: ${{ matrix.os }}
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
 
             - name: Install D compiler
-              uses: dlang-community/setup-dlang@v1
+              uses: dlang-community/setup-dlang@v2
               with:
-                  compiler: ${{ matrix.dc }}
+                  compiler: ${{matrix.dc}}
 
             - name: Run tests
-              env:
-                CONFIG: ${{matrix.config}}
-                ARCH: ${{matrix.arch}}
               shell: bash
               run: ./run-test262.sh
+
+            - name: Upload log
+              uses: actions/upload-artifact@v3
+              if: always()
+              with:
+                name: runtest262 log
+                path: dmdscript-test262.log
