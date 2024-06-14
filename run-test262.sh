@@ -29,7 +29,7 @@ cd test262-harness-py
 python3 src/test262.py --summary --non_strict_only --command ../timed-dmdscript.sh --tests=../test262 | tee ../dmdscript-test262.log | grep -a '=== .* failed in .* ==='
 cd ..
 
-EXPECTED_TO_PASS=5223
+EXPECTED_TO_PASS=5238
 PASSED=$(grep -a ' - Passed [0-9]* tests' dmdscript-test262.log | sed -n 's/.*Passed \([0-9]*\) tests.*/\1/;P')
 
 if [ "$PASSED" -gt "$EXPECTED_TO_PASS" ]; then
