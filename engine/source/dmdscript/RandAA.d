@@ -510,7 +510,6 @@ public:
         // handle it.
         GC.free(cast(void*)this._keys);
         GC.free(cast(void*)this.flags);
-        GC.free(cast(void*)this.vals);
 
         static if(storeHash)
         {

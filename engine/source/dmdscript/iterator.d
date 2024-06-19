@@ -70,7 +70,8 @@ struct Iterator
         ostart = o;
         this.o = o;
         this.callcontext = cc;
-        keys = o.proptable.table.keys.sort!((a, b) => a.compare(cc, b) < 0).release;
+        if (o.proptable.table)
+            keys = o.proptable.table.keys.sort!((a, b) => a.compare(cc, b) < 0).release;
         keyindex = 0;
     }
 

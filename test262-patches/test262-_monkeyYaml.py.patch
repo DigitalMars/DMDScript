@@ -1,0 +1,13 @@
+diff --git "a/src/_monkeyYaml.py" "b/src/_monkeyYaml.py"
+index bc6d128..a8327e0 100644
+--- "a/src/_monkeyYaml.py"
++++ "b/src/_monkeyYaml.py"
+@@ -75,7 +75,7 @@ def myMultilineList(lines, value):
+         leading = myLeadingSpaces(line)
+         if myIsAllSpaces(line):
+             pass
+-        elif leading < indent:
++        elif indent != None and leading < indent:
+             lines.insert(0, line)
+             break;
+         else:
