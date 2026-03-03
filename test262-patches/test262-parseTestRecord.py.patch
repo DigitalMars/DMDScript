@@ -2,6 +2,15 @@ diff --git "a/src/parseTestRecord.py" "b/src/parseTestRecord.py"
 index 22d5664..5be3a5f 100644
 --- "a/src/parseTestRecord.py"
 +++ "b/src/parseTestRecord.py"
+@@ -16,7 +16,7 @@
+ import sys
+ import tempfile
+ import time
+-import imp
++import importlib
+ 
+ from _monkeyYaml import load as yamlLoad
+ 
 @@ -78,7 +78,7 @@ def yamlAttrParser(testRecord, attrs, name):
      parsed = yamlLoad(body)
  
